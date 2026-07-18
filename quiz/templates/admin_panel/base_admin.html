@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>
+CIA Admin Panel
+</title>
+
+<style>
+
+body{
+    font-family: Arial;
+    background:#f4f6f9;
+    margin:0;
+}
+
+.header{
+    background:#343a40;
+    color:white;
+    padding:20px;
+}
+
+.container{
+    padding:30px;
+}
+
+.btn{
+    background:#007bff;
+    color:white;
+    padding:10px 15px;
+    text-decoration:none;
+    border-radius:5px;
+}
+
+table{
+    background:white;
+    border-collapse:collapse;
+}
+
+th,td{
+    padding:10px;
+    border:1px solid #ddd;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="header">
+
+<h2>
+CIA Online Exam System
+</h2>
+
+</div>
+
+
+<div class="container">
+
+{% block content %}
+
+{% endblock %}
+
+</div>
+
+
+</body>
+
+</html>

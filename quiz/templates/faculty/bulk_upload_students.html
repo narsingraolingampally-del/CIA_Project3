@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white fw-bold">Bulk Student Upload</div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Excel File</label>
+                            <input type="file" name="file" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Generate Accounts</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            {% if generated_accounts %}
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <span>✅ Generated Passwords</span>
+                    <button onclick="window.print()" class="btn btn-sm btn-light">Print List</button>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-striped">
+                        <thead>
+                            <tr>
+                                <th>Roll Number</th>
+                                <th>Name</th>
+                                <th>Password</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for account in generated_accounts %}
+                            <tr>
+                                <td class="fw-bold">{{ account.roll_no }}</td>
+                                <td>{{ account.name }}</td>
+                                <td class="text-danger fw-bold">{{ account.password }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                Upload your Excel sheet (Columns: username, first_name, course, semester) to generate passwords.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

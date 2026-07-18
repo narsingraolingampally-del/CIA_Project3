@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold">Welcome, {{ student.user.first_name|default:student.user.username }}!</h2>
+            <p class="text-muted">Course: <span class="badge bg-secondary">{{ student.course }}</span> | Semester: <span class="badge bg-secondary">{{ student.semester }}</span></p>
+        </div>
+    </div>
+
+    <div class="card mb-4 shadow-sm border-0">
+        <div class="card-header bg-primary text-white d-flex align-items-center">
+            <i class="bi bi-pencil-square me-2"></i> <strong>Available Exams</strong>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Subject</th>
+                            <th>Duration</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for quiz in quizzes %}
+                        <tr>
+                            <td class="fw-bold">{{ quiz.subject }}</td>
+                            <td>{{ quiz.duration_minutes }} Minutes</td>
+                            <td class="text-center">
+                                <a href="{% url 'take_quiz' quiz.id %}" class="btn btn-success btn-sm px-4 shadow-sm">
+                                    Start Exam
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center py-4 text-muted">
+                                <i class="bi bi-info-circle me-1"></i> No exams scheduled for your Course/Semester at the moment.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white d-flex align-items-center">
+            <i class="bi bi-graph-up-arrow me-2"></i> <strong>Your Performance History</strong>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Subject</th>
+                            <th>Score</th>
+                            <th>Date</th>
+                            <th class="text-center">Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for res in results %}
+                        <tr>
+                            <td>{{ res.quiz.subject }}</td>
+                            <td>
+                                <span class="badge {% if res.score > 5 %}bg-success{% else %}bg-warning{% endif %}">
+                                    {{ res.score }}
+                                </span>
+                            </td>
+                            <td class="text-muted small">{{ res.completed_at|date:"d M Y" }}</td>
+                            <td class="text-center">
+                                <a href="{% url 'view_score' res.id %}" class="btn btn-outline-primary btn-sm">
+                                    View Report
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-muted">
+                                You haven't attempted any exams yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card { border-radius: 10px; overflow: hidden; }
+    .table thead th { border-top: none; }
+    .badge { font-size: 0.9rem; }
+</style>
+{% endblock %}

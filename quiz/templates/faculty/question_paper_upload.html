@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div style="display: flex; min-height: 100vh;">
+    
+    {% include 'faculty/sidebar.html' %}
+
+    <main style="flex: 1; padding: 40px; background-color: #f4f7f6; display: flex; justify-content: center; align-items: flex-start;">
+        
+        <div style="width: 100%; max-width: 600px; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #75dec9; padding-bottom: 15px;">
+                <h2 style="color: #2c75ff; margin: 0; font-size: 24px;">📚 Upload Paper</h2>
+               <a href="{% url 'download_question_template' %}">Download Template</a>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #34495e;">Course</label>
+                    <select name="course" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+                        {% for course in courses %}
+                            <option value="{{ course.id }}">{{ course.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #34495e;">Group</label>
+                    <select name="course" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+                        {% for course in courses %}
+                            <option value="{{ course.id }}">{{ course.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #34495e;">Course</label>
+                    <select name="course" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+                        {% for course in courses %}
+                            <option value="{{ course.id }}">{{ course.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #34495e;">Subject Name</label>
+                    <input type="text" name="subject" placeholder="e.g. Computer Science" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;" required>
+                </div>
+
+                
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #34495e;">Semester</label>
+                    <input type="number" name="semester" placeholder="1" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;" required>
+                </div>
+                 <div style="margin-bottom: 20px;">
+    <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #34495e;">Subject Code</label>
+    <input type="text" name="subject_code" placeholder="e.g. CS101" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;" required>
+</div>
+
+                <div style="border: 2px dashed #2c75ff; background-color: #f8fbff; padding: 30px; text-align: center; border-radius: 8px; margin-bottom: 25px;">
+                    <p style="margin-bottom: 10px; color: #2c75ff; font-weight: bold;">Select .xlsx File</p>
+                    <input type="file" name="file" accept=".xlsx, .xls" required>
+                </div>
+               
+
+                <button type="submit" style="width: 100%; background-color: #2c75ff; color: white; padding: 14px; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer;">
+                    Upload & Publish Exam
+                </button>
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}

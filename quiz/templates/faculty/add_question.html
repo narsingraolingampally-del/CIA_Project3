@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div style="display: flex; min-height: 100vh;">
+    
+    {% include 'faculty/sidebar.html' %}
+
+    <main style="flex: 1; padding: 40px; background-color: #f4f7f6;">
+        
+        <div style="max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <h2 style="color: #2c75ff; margin-bottom: 25px; font-weight: bold; border-bottom: 2px solid #75dec9; padding-bottom: 10px;">
+                ➕ Add New Question
+            </h2>
+
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="quiz-form-container">
+                    {% for field in form %}
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #34495e;">
+                                {{ field.label }}
+                            </label>
+                            {{ field }}
+                            {% if field.help_text %}
+                                <small style="color: #888; display: block; mt-1;">{{ field.help_text }}</small>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <p style="color: #ff7675; font-size: 0.9rem;">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div style="margin-top: 30px; display: flex; gap: 10px;">
+                    <button type="submit" class="btn" style="background-color: #2c75ff; color: white; padding: 10px 25px; font-weight: bold; border: none; border-radius: 4px;">
+                        Save Question
+                    </button>
+                    <a href="{% url 'view_questions' %}" class="btn" style="background-color: #95a5a6; color: white; padding: 10px 25px; text-decoration: none; border-radius: 4px;">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+
+<style>
+    /* Styling the Django form inputs to look modern */
+    input[type="text"], input[type="number"], select, textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+    textarea { height: 100px; }
+</style>
+{% endblock %}

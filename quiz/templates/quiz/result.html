@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-5">
+                    {% if score >= 50 %}
+                        <div class="mb-4">
+                            <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
+                        </div>
+                        <h2 class="text-success fw-bold">Congratulations!</h2>
+                    {% else %}
+                        <div class="mb-4">
+                            <i class="fas fa-info-circle text-warning" style="font-size: 5rem;"></i>
+                        </div>
+                        <h2 class="text-dark fw-bold">Exam Submitted</h2>
+                    {% endif %}
+
+                    <p class="text-muted mt-3">You have successfully completed the exam for:</p>
+                    <h4 class="mb-4 text-primary">{{ subject }}</h4>
+
+                    <div class="display-4 mb-2">
+                        <span class="fw-bold">{{ score }}</span> <small class="text-muted">/ {{ total }}</small>
+                    </div>
+                    
+                    <div class="progress mb-4" style="height: 25px;">
+                        <div class="progress-bar {% if score >= 50 %}bg-success{% else %}bg-warning{% endif %}" 
+                             role="progressbar" 
+                             style="width: {% widthratio score total 100 %}%" 
+                             aria-valuenow="{{ score }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="{{ total }}">
+                             {% widthratio score total 100 %}%
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <a href="{% url 'student_dashboard' %}" class="btn btn-primary btn-lg">
+                            Return to Dashboard
+                        </a>
+                        <button onclick="window.print()" class="btn btn-outline-secondary">
+                            Print Result Card
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

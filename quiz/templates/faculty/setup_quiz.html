@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-0">
+                <div class="card-body p-5">
+                    <h2 class="text-center fw-bold mb-4">Set Exam Active</h2>
+                    <form method="POST">
+                        {% csrf_token %}
+                        {% for field in form %}
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">{{ field.label }}</label>
+                                <div class="field-wrapper" 
+                                     {% if field.name == 'category' %} id="cat-wrapper" {% endif %}
+                                     {% if field.name == 'course' %} id="crs-wrapper" {% endif %}
+                                     {% if field.name == 'semester' %} id="sem-wrapper" {% endif %}>
+                                    
+                                    {{ field }}
+                                </div>
+                                {% if field.help_text %}
+                                    <small class="text-muted">{{ field.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+
+                        <div id="preview-section" class="alert alert-info mt-3 d-none">
+                            <i class="fas fa-search"></i> 
+                            Questions found for this selection: <span id="question-count" class="fw-bold">0</span>
+                        </div>
+
+                        <button type="submit" class="btn btn-success btn-lg w-100 mt-3 shadow">
+                            Activate Quiz Now
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const getField = (name) => document.getElementsByName(name)[0];
+
+const catField = getField('category');
+const courseDropdown = getField('course');
+const semDropdown = getField('semester');
+const subjectField = getField('subject'); // Needed for preview
+const previewBox = document.getElementById('preview-section');
+const countSpan = document.getElementById('question-count');
+
+// --- YOUR EXISTING DROPDOWN LOGIC (UNTOUCHED) ---
+if (catField) {
+    catField.addEventListener('change', function() {
+        const category = this.value;
+        courseDropdown.innerHTML = '<option value="">-- Select Course --</option>';
+        const courses = {
+            'UG': ['BCA', 'BBA', 'B.Com', 'B.Sc'],
+            'PG': ['MCA', 'MBA', 'M.Com', 'M.Sc']
+        };
+
+        if (courses[category]) {
+            courses[category].forEach(course => {
+                const option = document.createElement('option');
+                option.value = course; 
+                option.textContent = course;
+                courseDropdown.appendChild(option);
+            });
+        }
+
+        semDropdown.innerHTML = '';
+        const maxSem = (category === 'UG') ? 6 : 4;
+        for (let i = 1; i <= maxSem; i++) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = "Semester " + i;
+            semDropdown.appendChild(option);
+        }

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row sticky-top bg-white py-3 border-bottom">
+        <div class="col-md-8">
+            <h2>{{ quiz.subject }} - Exam</h2>
+        </div>
+        <div class="col-md-4 text-end">
+            <h4 class="text-danger">Time Left: <span id="timer">--:--</span></h4>
+        </div>
+    </div>
+
+    <form id="quizForm" method="POST" action="{% url 'submit_quiz' %}" class="mt-4">
+        {% csrf_token %}
+        <input type="hidden" name="quiz_id" value="{{ quiz.id }}">
+
+        {% for q in questions %}
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Q{{ forloop.counter }}: {{ q.question_text }}</h5>
+                <hr>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="q_{{ q.id }}" value="1" id="q{{ q.id }}_1">
+                    <label class="form-check-label" for="q{{ q.id }}_1">{{ q.option1 }}</label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="q_{{ q.id }}" value="2" id="q{{ q.id }}_2">
+                    <label class="form-check-label" for="q{{ q.id }}_2">{{ q.option2 }}</label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="q_{{ q.id }}" value="3" id="q{{ q.id }}_3">
+                    <label class="form-check-label" for="q{{ q.id }}_3">{{ q.option3 }}</label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="q_{{ q.id }}" value="4" id="q{{ q.id }}_4">
+                    <label class="form-check-label" for="q{{ q.id }}_4">{{ q.option4 }}</label>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="text-center mb-5">
+            <button type="submit" class="btn btn-primary btn-lg px-5">Submit Exam</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // 1. Set the duration from Django (passed in context as duration_seconds)
+    let timeLeft = {{ duration_seconds }};
+    const timerDisplay = document.getElementById('timer');
+    const quizForm = document.getElementById('quizForm');
+
+    const countdown = setInterval(() => {
+        if (timeLeft <= 0) {
+            clearInterval(countdown);
+            alert("Time is up! Your exam will be submitted automatically.");
+            quizForm.submit(); // Auto-submit
+        } else {
+            let minutes = Math.floor(timeLeft / 60);
+            let seconds = timeLeft % 60;
+            timerDisplay.innerHTML = 
+                (minutes < 10 ? "0" : "") + minutes + ":" + 
+                (seconds < 10 ? "0" : "") + seconds;
+            timeLeft--;
+        }
+    }, 1000);
+
+    // Prevent accidental back-button or refresh
+    window.onbeforeunload = function() {
+        return "Are you sure you want to leave? Your progress will be lost.";
+    };
+    
+    // Remove warning on legitimate submit
+    quizForm.onsubmit = function() {

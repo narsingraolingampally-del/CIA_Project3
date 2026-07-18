@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+<h2>Exam Reports</h2>
+
+<table class="table table-striped">
+
+<thead class="table-dark">
+
+<tr>
+
+<th>Student</th>
+
+<th>Score</th>
+
+<th>Total</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for r in results %}
+
+<tr>
+
+<td>{{ r.student.username }}</td>
+
+<td>{{ r.score }}</td>
+
+<td>{{ r.total_marks }}</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+
+<td colspan="3">No Results Available</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

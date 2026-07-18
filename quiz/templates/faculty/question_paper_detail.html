@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Question Paper Preview - {{ quiz.subject }}</title>
+    <style>
+        body { font-family: 'Times New Roman', Times, serif; padding: 40px; line-height: 1.6; }
+        .header-section { text-align: center; border-bottom: 2px solid #000; margin-bottom: 30px; padding-bottom: 10px; }
+        .details-grid { display: grid; grid-template-columns: 1fr 1fr; margin-bottom: 30px; font-weight: bold; }
+        .question-item { margin-bottom: 20px; page-break-inside: avoid; }
+        
+        /* Buttons and UI */
+        .no-print { 
+            background: #f4f7f6; padding: 15px; border-radius: 8px; margin-bottom: 30px;
+            display: flex; gap: 10px; align-items: center; 
+        }
+        .btn { padding: 8px 16px; border-radius: 4px; text-decoration: none; cursor: pointer; border: 1px solid #ccc; font-family: sans-serif; }
+        .btn-primary { background: #007bff; color: white; border: none; }
+        .btn-success { background: #28a745; color: white; border: none; }
+        
+        /* Hide UI when printing */
+        @media print {
+            .no-print { display: none; }
+            body { padding: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="margin-bottom: 10px;">
+    <a href="{% url 'faculty_dashboard' %}" style="color: #666; text-decoration: none;">&larr; Back to Dashboard</a>
+</div>
+
+    <div class="no-print">
+        <strong>Faculty Controls:</strong>
+        {% if is_shuffled %}
+            <a href="?" class="btn">Reset to Original Order</a>
+        {% else %}
+            <a href="?shuffle=true" class="btn btn-primary">Randomize Order</a>
+        {% endif %}
+        <button onclick="window.print()" class="btn btn-success">Print / Save as PDF</button>
+    </div>
+
+    <div class="header-section">
+        <h2>CENTRAL INSTITUTE OF ACADEMICS</h2>
+        <h3>Internal Assessment Examination</h3>
+    </div>
+
+    <div class="details-grid">
+        <div>Course: {{ quiz.course.name }}</div>
+        <div style="text-align: right;">Subject: {{ quiz.subject }}</div>
+        <div>Semester: {{ quiz.semester }}</div>
+        <div style="text-align: right;">Max Marks: 50</div>
+    </div>
+
+    <div class="questions-container">
+        <ol>
+            {% for q in questions %}
+                <li class="question-item">
+                    <strong>{{ q.question_text }}</strong>
+                    <div style="margin-top: 10px; padding-left: 20px;">
+                        {% if q.image %}
+                            <img src="{{ q.image.url }}" style="max-width: 300px; display: block; margin-bottom: 10px;">
+                        {% endif %}
+                        <small>(A) {{ q.option1 }} &nbsp;&nbsp; (B) {{ q.option2 }} &nbsp;&nbsp; (C) {{ q.option3 }} &nbsp;&nbsp; (D) {{ q.option4 }}</small>
+                    </div>
+                </li>
+            {% empty %}
+                <p>No questions found for the criteria: {{ quiz.course.name }} | Sem {{ quiz.semester }} | {{ quiz.subject }}</p>
+            {% endfor %}
+        </ol>
+    </div>
+
+</body>
+</html>

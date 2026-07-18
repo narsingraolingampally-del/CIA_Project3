@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5 text-center">
+    <div class="card shadow-lg p-5 border-0 mx-auto" style="max-width: 600px;">
+        <h1 class="display-3 text-success">Well Done!</h1>
+        <p class="lead text-muted">You have successfully completed the <strong>{{ subject }}</strong> quiz.</p>
+        
+        <div class="my-5">
+            <h2 class="text-dark">Your Score</h2>
+            <div class="display-1 fw-bold text-primary">{{ score }} / {{ total }}</div>
+            <div class="h4 text-muted">({{ percentage }}%)</div>
+        </div>
+
+        <a href="{% url 'home' %}" class="btn btn-outline-primary btn-lg px-5">Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

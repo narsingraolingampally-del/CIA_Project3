@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div style="display: flex; min-height: 100vh;">
+    
+    {% include 'faculty/sidebar.html' %} 
+
+    <main class="main-canvas" style="flex: 1; display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch; padding: 40px; background-color: #f4f7f6;">
+        
+        {% block dashboard_body %}
+            {% if papers %}
+                <h4 style="color: #2c75ff; margin-bottom: 20px; font-weight: bold; border-bottom: 2px solid #75dec9; padding-bottom: 10px;">
+                    Uploaded Question Papers
+                </h4>
+                
+                <div style="background: white; border: 1px solid #ccc; border-radius: 4px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <table class="table table-hover mb-0">
+                        <thead style="background-color: #2c75ff; color: white;">
+                            <tr>
+                                <th style="padding: 12px;">Subject</th>
+                                <th>Course</th>
+                                <th>Semester</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for paper in papers %}
+                            <tr>
+                                <td style="padding: 12px; vertical-align: middle;">{{ paper.subject }}</td>
+                                <td style="vertical-align: middle;">{{ paper.course }}</td>
+                                <td style="vertical-align: middle;">{{ paper.semester }}</td>
+                                <td style="vertical-align: middle;">{{ paper.uploaded_at|date:"d/m/Y" }}</td>
+                                <td style="vertical-align: middle;">
+                                    {% if not paper.is_active %}
+                                      <a href="{% url 'publish_exam' paper.id %}" 
+           class="btn btn-success">
+            Publish Exam
+        </a>
+                                        <span class="badge bg-primary" style="padding: 8px; margin-right: 5px; color: white;">Published</span>
+                                    {% endif %}
+
+                                    {% if paper.file %}
+                                        <a href="{{ paper.file.url }}" class="btn btn-sm" style="background-color: #75dec9; font-weight: bold; margin-right: 5px;" target="_blank">View File</a>
+                                    {% endif %}
+
+                                    <a href="{% url 'delete_paper' paper.pk %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a> 
+                                <a href="{% url 'delete_paper' paper.pk %}"
+   class="btn btn-sm btn-danger"
+   onclick="return confirm('Are you sure?')">
+    Delete
+</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div style="text-align: center; margin-top: 80px;">
+                    <img src="{% static 'images/examination_logo.png' %}" style="max-width: 300px; opacity: 0.5;">
+                    <p style="color: #888; margin-top: 20px; font-size: 1.1rem;">No question papers found.</p>
+                    <a href="{% url 'upload_question_paper' %}" class="btn btn-primary">Upload Your First Paper</a>
+                </div>
+            {% endif %}
+        {% endblock %}
+        
+    </main>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+<div class="sidebar" style="width: 250px; background-color: #2c3e50; color: white; min-height: 100vh; padding-top: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+    
+    <a href="{% url 'faculty_dashboard' %}" style="padding: 15px 25px; display: block; color: white; text-decoration: none; border-left: 4px solid #75dec9; background-color: #34495e; margin-bottom: 5px;">
+        <i class="fas fa-th-large"></i> <span style="margin-left: 10px;">Home</span>
+    </a>
+
+    <a href="{% url 'view_questions' %}" style="padding: 15px 25px; display: block; color: white; text-decoration: none; transition: 0.3s;">
+        <i class="fas fa-tasks"></i> <span style="margin-left: 10px;">All Questions</span>
+    </a>
+
+    <a href="{% url 'upload_question_paper' %}" style="padding: 15px 25px; display: block; color: white; text-decoration: none; transition: 0.3s;">
+        <i class="fas fa-paper-plane"></i> <span style="margin-left: 10px;">Upload Paper</span></a>
+        
+    
+    
+    
+
+    <a href="{% url 'password_generator' %}" style="padding: 15px 25px; display: block; color: white; text-decoration: none; transition: 0.3s;">
+        <i class="fas fa-key"></i> <span style="margin-left: 10px;">Generate Passwords</span></a>
+
+    <a href="{% url 'view_results' %}" style="padding: 15px 25px; display: block; color: white; text-decoration: none; transition: 0.3s;">
+        <i class="fas fa-poll"></i> <span style="margin-left: 10px;">Exam Results</span></a>
+
+    <div style="position: absolute; bottom: 20px; width: 250px;">
+        <hr style="border-color: #465d75; margin: 10px 20px;">
+        <a href="{% url 'logout' %}" style="padding: 15px 25px; display: block; color: #ff7675; text-decoration: none; font-weight: bold;">
+            <i class="fas fa-power-off"></i> <span style="margin-left: 10px;">Logout</span>
+        </a>
+    </div>
+</div>
+
+<style>
+    /* Hover effect for the links */
+    .sidebar a {
+        transition: all 0.3s ease;
+    }
+    .sidebar a:hover {
+        background-color: #3e5871;
+        border-left: 4px solid #2c75ff;
+        color: #75dec9 !important;
+        text-decoration: none;
+    }
+</style>

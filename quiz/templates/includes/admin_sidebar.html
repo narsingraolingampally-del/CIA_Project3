@@ -1,0 +1,66 @@
+<div class="sidebar">
+
+    <div class="logo">
+        <h3>CIA Portal</h3>
+        <small>Administrator</small>
+    </div>
+
+    <ul>
+
+        <li>
+            <a href="{% url 'admin_dashboard' %}">
+                🏠 Dashboard
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'manage_faculty' %}">
+                👨‍🏫 Faculty
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'manage_students' %}">
+                👨‍🎓 Students
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'manage_courses' %}">
+                📚 Courses
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'manage_subjects' %}">
+                📖 Subjects
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'manage_exams' %}">
+                📝 Publish Exams
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'admin_reports' %}">
+                📊 Reports
+            </a>
+        </li>
+
+        <li>
+            <a href="/admin/">
+                ⚙ Django Admin
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'logout' %}">
+                🚪 Logout
+            </a>
+        </li>
+
+    </ul>
+
+</div>

@@ -1,0 +1,63 @@
+{% extends 'base_admin.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-info text-white">
+            <h3>📘 Add Subject</h3>
+        </div>
+
+        <div class="card-body">
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST">
+
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label class="form-label">Subject Code</label>
+                    {{ form.code }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Subject Name</label>
+                    {{ form.name }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Course</label>
+                    {{ form.course }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Semester</label>
+                    {{ form.semester }}
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    Save Subject
+                </button>
+
+                <a href="{% url 'manage_subjects' %}" class="btn btn-secondary">
+                    Back
+                </a>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

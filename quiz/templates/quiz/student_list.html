@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">🎓 Imported Student List</h2>
+        <a href="{% url 'index' %}" class="btn btn-outline-secondary btn-sm">Back to Portal</a>
+    </div>
+
+    <div class="card bg-light mb-4 shadow-sm border-0">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold small">Course</label>
+                    <select name="course" class="form-select">
+                        <option value="">All Courses</option>
+                        {% for c in courses %}
+                            <option value="{{ c }}" {% if selected_course == c %}selected{% endif %}>{{ c|upper }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label fw-bold small">Semester</label>
+                    <select name="semester" class="form-select">
+                        <option value="">All</option>
+                        {% for s in semesters %}
+                            <option value="{{ s }}" {% if selected_semester == s|stringformat:"i" %}selected{% endif %}>Sem {{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label fw-bold small">Search Name/Username</label>
+                    <input type="text" id="liveSearch" class="form-control" placeholder="Type to search...">
+                </div>
+
+                <div class="col-md-3 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary flex-grow-1">Filter</button>
+                    <a href="{% url 'student_list' %}" class="btn btn-outline-secondary">Reset</a>
+                </div>
+            </form>
+        </div>
+        <div class="card-footer bg-white border-0 py-2 text-end">
+            <span class="badge bg-dark">Students in this group: {{ students.count }}</span>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="studentTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Username</th>
+                            <th>Category</th>
+                            <th>Course</th>
+                            <th>Stream</th>
+                            <th>Semester</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td class="fw-bold text-primary">{{ student.user.username }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ student.category }}</span></td>
+                            <td>{{ student.course|upper }}</td>
+                            <td>{{ student.stream }}</td>
+                            <td>Sem {{ student.semester }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                No students match your selection.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('liveSearch').addEventListener('keyup', function() {
+        let filter = this.value.toLowerCase();
+        let rows = document.querySelectorAll('#studentTable tbody tr');
+        rows.forEach(row => {
+            let text = row.textContent.toLowerCase();
+            row.style.display = text.includes(filter) ? '' : 'none';
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white">
+            <h3>Upload Question Paper</h3>
+        </div>
+
+        <div class="card-body">
+
+            <form method="POST" enctype="multipart/form-data">
+
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label class="form-label">Subject</label>
+                    {{ form.subject }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Course</label>
+                    {{ form.course }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Semester</label>
+                    {{ form.semester }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Duration (Minutes)</label>
+                    {{ form.duration_minutes }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Question Paper</label>
+                    {{ form.file }}
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    Upload Paper
+                </button>
+
+                <a href="{% url 'faculty_dashboard' %}" class="btn btn-secondary">
+                    Cancel
+                </a>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

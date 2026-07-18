@@ -1,0 +1,55 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block content %}
+
+<h2>Question Bank</h2>
+
+<a href="{% url 'upload_questions' %}" class="btn btn-primary">
+    Upload Questions
+</a>
+
+
+<table border="1" width="100%">
+
+<tr>
+    <th>Subject</th>
+    <th>Question</th>
+    <th>Answer</th>
+    <th>Marks</th>
+</tr>
+
+{% for q in questions %}
+
+<tr>
+
+<td>
+{{ q.subject.name }}
+</td>
+
+<td>
+{{ q.question_text }}
+</td>
+
+<td>
+{{ q.correct_answer }}
+</td>
+
+<td>
+{{ q.marks }}
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+<td colspan="4">
+No Questions Available
+</td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% endblock %}

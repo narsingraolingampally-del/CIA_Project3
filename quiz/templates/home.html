@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow border-0 text-center p-4 mb-4">
+                <div class="mb-3">
+                    <i class="bi bi-person-circle display-1 text-primary"></i>
+                </div>
+                <h3 class="fw-bold">{{ user.username }}</h3>
+                <p class="text-muted">{{ student.course }} | Semester {{ student.semester }}</p>
+                <hr>
+                <a href="{% url 'take_quiz' %}" class="btn btn-primary btn-lg w-100 shadow-sm">
+                    <i class="bi bi-play-fill"></i> Start Active Quiz
+                </a>
+                <a href="{% url 'logout' %}" style="color: #d9534f; font-weight: bold; text-decoration: none;">
+    ✖ Logout
+</a>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow border-0">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-graph-up me-2"></i>Recent Results</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Score</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for res in past_results %}
+                            <tr>
+                                <td>{{ res.subject }}</td>
+                                <td><span class="badge bg-success">{{ res.score }}</span></td>
+                                <td>{{ res.date|date:"d M, Y" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">No records found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

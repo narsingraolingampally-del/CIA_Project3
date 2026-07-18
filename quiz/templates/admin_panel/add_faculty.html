@@ -1,0 +1,96 @@
+{% extends 'base_admin.html' %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="row justify-content-center">
+
+        <div class="col-md-8">
+
+            <div class="card shadow">
+
+                <div class="card-header bg-primary text-white">
+
+                    <h3 class="mb-0">
+                        <i class="fas fa-user-plus"></i>
+                        Add Faculty
+                    </h3>
+
+                </div>
+
+                <div class="card-body">
+
+                    <form method="POST">
+
+                        {% csrf_token %}
+
+                        <div class="row">
+
+                            <div class="col-md-6 mb-3">
+                                <label>Name</label>
+                                {{ form.name }}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label>Username</label>
+                                {{ form.username }}
+                            </div>
+
+                        </div>
+
+                        <div class="row">
+
+                            <div class="col-md-6 mb-3">
+                                <label>First Name</label>
+                                {{ form.first_name }}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label>Last Name</label>
+                                {{ form.last_name }}
+                            </div>
+
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Email</label>
+                            {{ form.email }}
+                        </div>
+
+                        <div class="row">
+
+                            <div class="col-md-6 mb-3">
+                                <label>Password</label>
+                                {{ form.password }}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label>Confirm Password</label>
+                                {{ form.confirm_password }}
+                            </div>
+
+                        </div>
+
+                        <button class="btn btn-success">
+                            <i class="fas fa-save"></i>
+                            Save Faculty
+                        </button>
+
+                        <a href="{% url 'manage_faculty' %}" class="btn btn-secondary">
+                            Cancel
+                        </a>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
