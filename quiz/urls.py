@@ -28,6 +28,16 @@ urlpatterns = [
     # ===================================
 
     path('student-dashboard/', views.student_dashboard, name='student_dashboard'),
+    path(
+    'take-quiz/<int:exam_id>/',
+    views.take_quiz,
+    name='take_quiz'
+),
+path(
+    'submit-quiz/',
+    views.submit_quiz,
+    name='submit_quiz'
+),
 
     path('faculty-dashboard/', views.faculty_dashboard, name='faculty_dashboard'),
 
@@ -39,7 +49,6 @@ urlpatterns = [
 
     path('upload-question-paper/', views.upload_question_paper, name='upload_question_paper'),
 
-    path('password-generator/', views.password_generator, name='password_generator'),
 
     path('view-results/', views.view_results, name='view_results'),
 
@@ -61,9 +70,9 @@ urlpatterns = [
 
     path('admin-panel/subjects/', views.manage_subjects, name='manage_subjects'),
 
-    path('admin-panel/exams/', views.manage_exams, name='manage_exams'),
+    
 
-    path('admin-panel/reports/', views.admin_reports, name='admin_reports'),
+    
 
     # ===================================
     # LOGOUT
@@ -174,6 +183,17 @@ path(
     'admin-panel/question-bank/upload/',
     views.upload_questions,
     name='upload_questions'
+),
+path(
+    "admin-panel/question-bank/edit/<int:pk>/",
+    views.edit_question,
+    name="edit_question",
+),
+
+path(
+    "admin-panel/question-bank/delete/<int:pk>/",
+    views.delete_question,
+    name="delete_question",
 ),
 
 ]

@@ -2,9 +2,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 
-
 # ==================================================
-# CUSTOM USER MODEL
+# CUSTOM USER
 # ==================================================
 
 class User(AbstractUser):
@@ -42,16 +41,16 @@ class Course(models.Model):
     )
 
 
+
     def __str__(self):
         return self.name
+
 
 
 # ==================================================
 # SUBJECT
 # ==================================================
 
-
-    
 class Subject(models.Model):
 
     code = models.CharField(
@@ -70,8 +69,11 @@ class Subject(models.Model):
 
     semester = models.IntegerField()
 
+
     def __str__(self):
         return f"{self.code} - {self.name}"
+
+
 
 # ==================================================
 # STUDENT PROFILE
@@ -86,8 +88,8 @@ class StudentProfile(models.Model):
 
     name = models.CharField(
         max_length=100,
-        null=True,
-        blank=True
+        blank=True,
+        null=True
     )
 
     course = models.CharField(
@@ -100,7 +102,7 @@ class StudentProfile(models.Model):
 
 
     def __str__(self):
-        return f"{self.name} - {self.course}"
+        return self.name or self.user.username
 
 
 
@@ -126,11 +128,7 @@ class FacultyProfile(models.Model):
 
 
 # ==================================================
-# QUESTIONS
-# ==================================================
-
-# ==================================================
-# QUESTIONS
+# QUESTION BANK
 # ==================================================
 
 class Question(models.Model):
@@ -141,6 +139,7 @@ class Question(models.Model):
     )
 
     question_text = models.TextField()
+
 
     option1 = models.CharField(
         max_length=200
@@ -158,61 +157,25 @@ class Question(models.Model):
         max_length=200
     )
 
+
     correct_answer = models.CharField(
         max_length=200
     )
+
 
     marks = models.IntegerField(
         default=1
     )
 
+
     def __str__(self):
-        return f"{self.subject.code} - {self.question_text[:50]}"
+        return self.question_text[:50]
+
 
 
 # ==================================================
-# ACTIVE QUIZ
+# QUESTION PAPER UPLOAD
 # ==================================================
-
-class ActiveQuiz(models.Model):
-
-    subject = models.CharField(
-        max_length=100
-    )
-
-    course = models.ForeignKey(
-        Course,
-        on_delete=models.CASCADE
-    )
-
-    semester = models.IntegerField()
-
-
-    start_time = models.DateTimeField(
-        null=True,
-        blank=True
-    )
-
-    end_time = models.DateTimeField(
-        null=True,
-        blank=True
-    )
-
-
-    duration_minutes = models.IntegerField(
-        default=30
-    )
-
-
-    is_active = models.BooleanField(
-        default=False
-    )
-
-
-    def __str__(self):
-        return f"{self.subject} - {self.course}"
-
-
 
 class QuestionPaper(models.Model):
 
@@ -222,9 +185,11 @@ class QuestionPaper(models.Model):
     )
 
     course = models.ForeignKey(
-        Course,
-        on_delete=models.CASCADE
-    )
+    Course,
+    on_delete=models.CASCADE,
+    null=True,
+    blank=True
+)
 
     semester = models.IntegerField()
 
@@ -241,9 +206,39 @@ class QuestionPaper(models.Model):
     )
 
     def __str__(self):
-        return f"{self.subject.name} ({self.course.name})"
+        return self.subject.name
+
 # ==================================================
-# RESULTS
+# ACTIVE QUIZ
+# ==================================================
+
+class ActiveQuiz(models.Model):
+
+    subject = models.ForeignKey(
+        Subject,
+        on_delete=models.CASCADE
+    )
+
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE
+    )
+
+    semester = models.IntegerField()
+
+    start_time = models.DateTimeField()
+
+    end_time = models.DateTimeField()
+
+    duration_minutes = models.IntegerField(default=60)
+
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.subject.name} - {self.course.name}"
+
+# ==================================================
+# RESULT
 # ==================================================
 
 class Result(models.Model):
@@ -285,9 +280,11 @@ class PublishedExam(models.Model):
         max_length=100
     )
 
+
     course = models.CharField(
         max_length=100
     )
+
 
     semester = models.IntegerField()
 
@@ -298,9 +295,9 @@ class PublishedExam(models.Model):
 
 
 
-# ==================================================
+# ==========================================================
 # COURSE CONFIGURATION
-# ==================================================
+# ==========================================================
 
 class CourseConfig(models.Model):
 
@@ -311,7 +308,126 @@ class CourseConfig(models.Model):
         blank=True
     )
 
-
     is_open = models.BooleanField(
         default=True
     )
+
+    def __str__(self):
+        return str(self.course)
+# ==================================================
+# EXAM
+# ==================================================
+
+class Exam(models.Model):
+
+    exam_name = models.CharField(
+        max_length=100
+    )
+
+
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE
+    )
+
+
+    subject = models.ForeignKey(
+        Subject,
+        on_delete=models.CASCADE
+    )
+
+
+    duration = models.IntegerField(
+        default=60
+    )
+
+
+    number_of_questions = models.IntegerField()
+
+
+    start_time = models.DateTimeField()
+
+
+    end_time = models.DateTimeField()
+
+
+    is_published = models.BooleanField(
+        default=False
+    )
+
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+
+    def __str__(self):
+        return self.exam_name
+
+
+
+# ==================================================
+# EXAM QUESTIONS
+# ==================================================
+
+class ExamQuestion(models.Model):
+
+    exam = models.ForeignKey(
+        Exam,
+        on_delete=models.CASCADE
+    )
+
+
+    question = models.ForeignKey(
+        Question,
+        on_delete=models.CASCADE
+    )
+
+
+    class Meta:
+
+        unique_together = (
+            "exam",
+            "question",
+        )
+
+        # ==================================================
+# STUDENT ANSWER
+# ==================================================
+
+class StudentAnswer(models.Model):
+
+    student = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE
+    )
+
+    exam = models.ForeignKey(
+        Exam,
+        on_delete=models.CASCADE
+    )
+
+    question = models.ForeignKey(
+        Question,
+        on_delete=models.CASCADE
+    )
+
+    selected_answer = models.CharField(
+        max_length=200
+    )
+
+    is_correct = models.BooleanField(
+        default=False
+    )
+
+    marks_obtained = models.IntegerField(
+        default=0
+    )
+
+    answered_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+
+    def __str__(self):
+        return f"{self.student.username} - {self.question.id}"

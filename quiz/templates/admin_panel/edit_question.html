@@ -1,0 +1,23 @@
+{% extends "admin_panel/base_admin.html" %}
+
+{% block content %}
+
+<h2>Edit Question</h2>
+
+<form method="post">
+
+    {% csrf_token %}
+
+    {{ form.as_p }}
+
+    <button type="submit" class="btn btn-success">
+        Save Changes
+    </button>
+
+    <a href="{% url 'question_bank' %}" class="btn btn-secondary">
+        Cancel
+    </a>
+
+</form>
+
+{% endblock %}

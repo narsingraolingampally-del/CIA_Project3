@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <div class="card shadow-lg border-0 text-center p-5">
+
+        <h1 class="text-success mb-3">
+            🎉 Exam Completed
+        </h1>
+
+        <h3 class="mb-4">
+            {{ subject }}
+        </h3>
+
+        <h2>
+            Your Score
+        </h2>
+
+        <h1 class="display-1 text-primary">
+            {{ score }} / {{ total }}
+        </h1>
+
+        <h3 class="text-secondary">
+            {{ percentage }}%
+        </h3>
+
+        <hr>
+
+        {% if percentage >= 80 %}
+            <div class="alert alert-success">
+                Excellent Performance!
+            </div>
+        {% elif percentage >= 50 %}
+            <div class="alert alert-warning">
+                Good Job!
+            </div>
+        {% else %}
+            <div class="alert alert-danger">
+                Better Luck Next Time!
+            </div>
+        {% endif %}
+
+        <a href="{% url 'student_dashboard' %}"
+           class="btn btn-primary btn-lg mt-3">
+            Back to Dashboard
+        </a>
+
+    </div>
+</div>
+
+{% endblock %}
