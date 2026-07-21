@@ -11,9 +11,9 @@ SECRET_KEY = os.environ.get(
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "127.0.0.1",
+    "cia-project3.onrender.com",
     "localhost",
-    "ciaonlineexam-1.onrender.com",
+    "127.0.0.1",
 ]
 
 INSTALLED_APPS = [
