@@ -1,0 +1,27 @@
+{% extends "admin_panel/base_admin.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Manage Exams</h2>
+
+    <table class="table table-bordered">
+        <tr>
+            <th>ID</th>
+            <th>Subject</th>
+            <th>Date</th>
+        </tr>
+
+        {% for exam in exams %}
+        <tr>
+            <td>{{ exam.id }}</td>
+            <td>{{ exam.subject }}</td>
+            <td>{{ exam.exam_date }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="3">No exams available.</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

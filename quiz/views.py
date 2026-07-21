@@ -1104,3 +1104,25 @@ def delete_paper(request, pk):
     )
 
     return redirect("faculty_dashboard")
+@login_required
+@user_passes_test(is_admin)
+def admin_reports(request):
+    return render(request, "admin_panel/reports.html")
+
+# =========================================
+# MANAGE EXAMS
+# =========================================
+
+@login_required
+@user_passes_test(is_admin)
+def manage_exams(request):
+
+    exams = PublishedExam.objects.all().order_by("-id")
+
+    return render(
+        request,
+        "admin_panel/manage_exams.html",
+        {
+            "exams": exams,
+        }
+    )
