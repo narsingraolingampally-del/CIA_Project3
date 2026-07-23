@@ -1,66 +1,121 @@
-{% extends "admin_panel/base_admin.html" %}
-
+{% extends 'base_admin.html' %}
 
 {% block content %}
 
-<div class="container mt-5">
+<div class="container-fluid">
 
-    <div class="card shadow">
+    <div class="row justify-content-center">
 
-        <div class="card-header bg-primary text-white">
-            <h3>
-                Upload Question Bank
-            </h3>
-        </div>
+        <div class="col-lg-7">
 
+            <div class="card shadow">
 
-        <div class="card-body">
+                <div class="card-header bg-danger text-white">
 
-            <form method="POST" enctype="multipart/form-data">
-
-                {% csrf_token %}
-
-
-                <div class="mb-3">
-
-                    <label class="form-label">
-                        Subject
-                    </label>
-
-                    {{ form.subject }}
+                    <h4 class="mb-0">
+                        <i class="fas fa-file-excel"></i>
+                        Upload Question Paper
+                    </h4>
 
                 </div>
 
+                <div class="card-body">
 
-                <div class="mb-3">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
 
-                    <label class="form-label">
-                        Excel File
-                    </label>
+                    <form method="POST"
+                          enctype="multipart/form-data">
 
-                    {{ form.excel_file }}
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Subject
+                            </label>
+
+                            {{ form.subject }}
+
+                        </div>
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Course
+                            </label>
+
+                            {{ form.course }}
+
+                        </div>
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Semester
+                            </label>
+
+                            {{ form.semester }}
+
+                        </div>
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Exam Duration (Minutes)
+                            </label>
+
+                            {{ form.duration_minutes }}
+
+                        </div>
+
+                        <div class="mb-4">
+
+                            <label class="form-label">
+                                Excel File
+                            </label>
+
+                            <input
+                                type="file"
+                                name="excel_file"
+                                class="form-control"
+                                required>
+
+                            <small class="text-muted">
+                                Upload only .xlsx files.
+                            </small>
+
+                        </div>
+
+                        <div class="d-grid">
+
+                            <button
+                                type="submit"
+                                class="btn btn-danger btn-lg">
+
+                                <i class="fas fa-upload"></i>
+
+                                Upload Question Paper
+
+                            </button>
+
+                        </div>
+
+                    </form>
 
                 </div>
 
-
-                <button type="submit" class="btn btn-success">
-                    Upload Questions
-                </button>
-
-
-                <a href="{% url 'question_bank' %}"
-                   class="btn btn-secondary">
-                    Cancel
-                </a>
-
-
-            </form>
+            </div>
 
         </div>
 
     </div>
 
 </div>
-
 
 {% endblock %}

@@ -15,11 +15,50 @@ from .models import (
 # FACULTY FORM
 # =========================================
 
-class FacultyForm(forms.ModelForm):
+from django import forms
+from .models import User
 
-    class Meta:
-        model = FacultyProfile
-        fields = "__all__"
+
+class FacultyForm(forms.Form):
+
+    name = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={"class": "form-control"})
+    )
+
+    username = forms.CharField(
+        max_length=150,
+        widget=forms.TextInput(attrs={"class": "form-control"})
+    )
+
+    first_name = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={"class": "form-control"})
+    )
+
+    last_name = forms.CharField(
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control"})
+    )
+
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={"class": "form-control"})
+    )
+    department = forms.CharField(
+    max_length=100,
+    widget=forms.TextInput(attrs={
+        "class": "form-control"
+    })
+)
+
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={"class": "form-control"})
+    )
+
+    confirm_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={"class": "form-control"})
+    )
         # =========================================
 # STUDENT REGISTRATION FORM
 # =========================================

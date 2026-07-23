@@ -2,61 +2,103 @@
 
 {% block content %}
 
-<div class="container mt-4">
+<div class="container-fluid">
 
-    <div class="card shadow">
+<div class="row justify-content-center">
 
-        <div class="card-header bg-primary text-white">
-            <h3>📤 Upload Students (Excel)</h3>
-        </div>
+<div class="col-lg-7">
 
-        <div class="card-body">
+<div class="card shadow">
 
-            <!-- Messages -->
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
-                        {{ message }}
-                        <button type="button"
-                                class="btn-close"
-                                data-bs-dismiss="alert"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
+<div class="card-header bg-success text-white">
 
-            <form action="{% url 'upload_students' %}"
-                  method="POST"
-                  enctype="multipart/form-data">
+<h4>
+<i class="fas fa-user-graduate"></i>
+Upload Students
+</h4>
 
-                {% csrf_token %}
+</div>
 
-                <div class="mb-3">
-                    <label class="form-label">
-                        Select Excel File
-                    </label>
+<div class="card-body">
 
-                    <input
-                        type="file"
-                        name="excel_file"
-                        class="form-control"
-                        accept=".xlsx,.xls"
-                        required>
-                </div>
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-{{ message.tags }}">
+{{ message }}
+</div>
+{% endfor %}
+{% endif %}
 
-                <button type="submit" class="btn btn-success">
-                    Upload Students
-                </button>
+<form method="POST" enctype="multipart/form-data">
 
-                <a href="{% url 'manage_students' %}"
-                   class="btn btn-secondary">
-                    Back
-                </a>
+{% csrf_token %}
 
-            </form>
+<div class="mb-4">
 
-        </div>
+<label class="form-label fw-bold">
+Select Excel File
+</label>
 
-    </div>
+<input
+type="file"
+name="excel_file"
+class="form-control"
+required>
+
+<div class="form-text">
+
+Supported Format :
+<strong>.xlsx</strong>
+
+</div>
+
+</div>
+
+<div class="alert alert-info">
+
+<h6>Excel Format</h6>
+
+<ul class="mb-0">
+
+<li>Username</li>
+
+<li>First Name</li>
+
+<li>Last Name</li>
+
+<li>Email</li>
+
+<li>Course</li>
+
+<li>Semester</li>
+
+</ul>
+
+</div>
+
+<div class="d-grid">
+
+<button
+type="submit"
+class="btn btn-success btn-lg">
+
+<i class="fas fa-upload"></i>
+
+Upload Students
+
+</button>
+
+</div>
+
+</form>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
 
 </div>
 

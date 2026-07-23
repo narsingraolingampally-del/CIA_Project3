@@ -1,54 +1,73 @@
-{% extends 'base.html' %}
+{% extends 'base_admin.html' %}
 
 {% block content %}
 
-<div class="container mt-4">
+<div class="container-fluid">
 
-<h2>Exam Reports</h2>
+    <h2 class="mb-4">
+        <i class="fas fa-chart-bar"></i>
+        Exam Reports
+    </h2>
 
-<table class="table table-striped">
+    <div class="card shadow">
 
-<thead class="table-dark">
+        <div class="card-body">
 
-<tr>
+            <table class="table table-bordered table-hover">
 
-<th>Student</th>
+                <thead class="table-dark">
 
-<th>Score</th>
+                    <tr>
 
-<th>Total</th>
+                        <th>Student</th>
+                        <th>Exam</th>
+                        <th>Score</th>
+                        <th>Total Marks</th>
+                        <th>Date</th>
 
-</tr>
+                    </tr>
 
-</thead>
+                </thead>
 
-<tbody>
+                <tbody>
 
-{% for r in results %}
+                {% for result in results %}
 
-<tr>
+                <tr>
 
-<td>{{ r.student.username }}</td>
+                    <td>{{ result.student.username }}</td>
 
-<td>{{ r.score }}</td>
+                    <td>{{ result.quiz.subject }}</td>
 
-<td>{{ r.total_marks }}</td>
+                    <td>{{ result.score }}</td>
 
-</tr>
+                    <td>{{ result.total_marks }}</td>
 
-{% empty %}
+                    <td>{{ result.completed_at }}</td>
 
-<tr>
+                </tr>
 
-<td colspan="3">No Results Available</td>
+                {% empty %}
 
-</tr>
+                <tr>
 
-{% endfor %}
+                    <td colspan="5" class="text-center">
 
-</tbody>
+                        No Results Available
 
-</table>
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
 
 </div>
 

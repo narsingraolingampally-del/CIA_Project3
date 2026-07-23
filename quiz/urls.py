@@ -117,12 +117,18 @@ urlpatterns = [
         views.edit_faculty,
         name='edit_faculty'
     ),
+    
 
     path(
         'admin-panel/faculty/delete/<int:id>/',
         views.delete_faculty,
         name='delete_faculty'
     ),
+    path(
+    "admin-panel/upload-faculty/",
+    views.upload_faculty,
+    name="upload_faculty",
+),
 
     # =====================================================
     # STUDENT MANAGEMENT
@@ -255,6 +261,7 @@ urlpatterns = [
         views.admin_reports,
         name='admin_reports'
     ),
+    
 
     # =====================================================
     # LOGOUT
@@ -264,6 +271,7 @@ urlpatterns = [
         'logout/',
         LogoutView.as_view(next_page='index'),
         name='logout'
+
     ),
 ]
 

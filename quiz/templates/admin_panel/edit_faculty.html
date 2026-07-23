@@ -1,0 +1,91 @@
+{% extends 'base_admin.html' %}
+
+{% block content %}
+
+<div class="container">
+
+<div class="card shadow">
+
+<div class="card-header bg-warning text-white">
+
+<h3>Edit Faculty</h3>
+
+</div>
+
+<div class="card-body">
+
+<form method="POST">
+
+{% csrf_token %}
+
+<div class="mb-3">
+<label>Name</label>
+<input
+type="text"
+name="name"
+class="form-control"
+value="{{ faculty.name }}">
+</div>
+
+<div class="mb-3">
+<label>Username</label>
+<input
+type="text"
+name="username"
+class="form-control"
+value="{{ user.username }}">
+</div>
+
+<div class="row">
+
+<div class="col-md-6">
+<label>First Name</label>
+<input
+type="text"
+name="first_name"
+class="form-control"
+value="{{ user.first_name }}">
+</div>
+
+<div class="col-md-6">
+<label>Last Name</label>
+<input
+type="text"
+name="last_name"
+class="form-control"
+value="{{ user.last_name }}">
+</div>
+
+</div>
+
+<br>
+
+<div class="mb-3">
+
+<label>Email</label>
+
+<input
+type="email"
+name="email"
+class="form-control"
+value="{{ user.email }}">
+
+</div>
+
+<button class="btn btn-success">
+Update Faculty
+</button>
+
+<a href="{% url 'manage_faculty' %}" class="btn btn-secondary">
+Cancel
+</a>
+
+</form>
+
+</div>
+
+</div>
+
+</div>
+
+{% endblock %}

@@ -117,14 +117,16 @@ class FacultyProfile(models.Model):
         on_delete=models.CASCADE
     )
 
-    name = models.CharField(
-        max_length=100
-    )
+    name = models.CharField(max_length=100)
 
+    department = models.CharField(
+    max_length=100,
+    blank=True,
+    null=True
+)
 
     def __str__(self):
         return self.name
-
 
 
 # ==================================================
@@ -431,3 +433,9 @@ class StudentAnswer(models.Model):
 
     def __str__(self):
         return f"{self.student.username} - {self.question.id}"
+    
+    
+
+
+
+

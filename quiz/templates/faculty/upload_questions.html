@@ -1,60 +1,38 @@
-{% extends "base.html" %}
+<div class="card-body">
 
-{% block content %}
+    <!-- Download Sample Button -->
+    <a href="/media/sample_question_format.xlsx"
+       class="btn btn-primary mb-3">
 
-<div class="container mt-5">
+        <i class="fas fa-download"></i>
+        Download Sample Excel
 
-    <div class="card shadow">
+    </a>
 
-        <div class="card-header bg-primary text-white">
-            <h3>Upload Question Paper</h3>
+    <form method="POST" enctype="multipart/form-data">
+
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label class="form-label">Subject</label>
+            {{ form.subject }}
         </div>
 
-        <div class="card-body">
-
-            <form method="POST" enctype="multipart/form-data">
-
-                {% csrf_token %}
-
-                <div class="mb-3">
-                    <label class="form-label">Subject</label>
-                    {{ form.subject }}
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Course</label>
-                    {{ form.course }}
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Semester</label>
-                    {{ form.semester }}
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Duration (Minutes)</label>
-                    {{ form.duration_minutes }}
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Question Paper</label>
-                    {{ form.file }}
-                </div>
-
-                <button type="submit" class="btn btn-success">
-                    Upload Paper
-                </button>
-
-                <a href="{% url 'faculty_dashboard' %}" class="btn btn-secondary">
-                    Cancel
-                </a>
-
-            </form>
-
+        <div class="mb-3">
+            <label class="form-label">Excel File</label>
+            {{ form.excel_file }}
         </div>
 
-    </div>
+        <button class="btn btn-success">
+            <i class="fas fa-upload"></i>
+            Upload Questions
+        </button>
+
+        <a href="{% url 'question_bank' %}"
+           class="btn btn-secondary">
+            Back
+        </a>
+
+    </form>
 
 </div>
-
-{% endblock %}

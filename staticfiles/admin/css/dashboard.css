@@ -27,3 +27,58 @@ ul.actionlist li {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+.dashboard-card{
+    border:none;
+    border-radius:18px;
+    overflow:hidden;
+    transition:.3s;
+    box-shadow:0 8px 20px rgba(0,0,0,.12);
+}
+
+.dashboard-card:hover{
+    transform:translateY(-8px);
+    box-shadow:0 15px 30px rgba(0,0,0,.18);
+}
+
+.dashboard-card .card-body{
+    padding:30px;
+}
+
+.dashboard-card h5{
+    font-size:18px;
+    font-weight:600;
+}
+
+.dashboard-card .count{
+    font-size:42px;
+    font-weight:bold;
+    margin-top:15px;
+}
+
+.dashboard-card i{
+    opacity:.25;
+}
+
+.card{
+    border:none;
+    border-radius:15px;
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+}
+
+.card-header{
+    border-radius:15px 15px 0 0 !important;
+    font-weight:600;
+}
+
+.table th{
+    background:#f8f9fa;
+}
+
+.btn{
+    border-radius:10px;
+}
+
+.btn:hover{
+    transform:scale(1.03);
+}

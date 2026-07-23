@@ -4,16 +4,31 @@
 
 <div class="container-fluid">
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
 
-        <h3>Course Management</h3>
+        <div>
+
+            <h2 class="fw-bold">
+                <i class="fas fa-book text-warning"></i>
+                Course Management
+            </h2>
+
+            <p class="text-muted mb-0">
+                Total Courses :
+                <strong>{{ courses|length }}</strong>
+            </p>
+
+        </div>
 
         <a href="{% url 'add_course' %}" class="btn btn-success">
-            ➕ Add Course
+            <i class="fas fa-plus"></i>
+            Add Course
         </a>
 
     </div>
 
+    <!-- Messages -->
     {% if messages %}
         {% for message in messages %}
             <div class="alert alert-{{ message.tags }}">
@@ -22,61 +37,107 @@
         {% endfor %}
     {% endif %}
 
-    <table class="table table-bordered table-hover shadow-sm">
+    <!-- Search -->
+    <div class="card shadow-sm mb-3">
 
-        <thead class="table-dark">
+        <div class="card-body">
 
-            <tr>
-                <th>ID</th>
-                <th>Course Name</th>
-                <th width="180">Action</th>
-            </tr>
+            <input
+                type="text"
+                id="courseSearch"
+                class="form-control"
+                placeholder="Search Course..."
+            >
 
-        </thead>
+        </div>
 
-        <tbody>
+    </div>
 
-            {% for course in courses %}
+    <!-- Table -->
+    <div class="card shadow">
 
-            <tr>
+        <div class="card-body table-responsive">
 
-                <td>{{ course.id }}</td>
+            <table class="table table-striped table-hover align-middle" id="courseTable">
 
-                <td>{{ course.name }}</td>
+                <thead class="table-dark">
 
-                <td>
+                    <tr>
+                        <th>ID</th>
+                        <th>Course Name</th>
+                        <th width="180">Actions</th>
+                    </tr>
 
-                    <a href="{% url 'edit_course' course.id %}"
-                       class="btn btn-warning btn-sm">
-                        Edit
-                    </a>
+                </thead>
 
-                    <a href="{% url 'delete_course' course.id %}"
-                       class="btn btn-danger btn-sm"
-                       onclick="return confirm('Delete this course?')">
-                        Delete
-                    </a>
+                <tbody>
 
-                </td>
+                    {% for course in courses %}
 
-            </tr>
+                    <tr>
 
-            {% empty %}
+                        <td>{{ course.id }}</td>
 
-            <tr>
+                        <td>{{ course.name }}</td>
 
-                <td colspan="3" class="text-center">
-                    No Courses Found
-                </td>
+                        <td>
 
-            </tr>
+                            <a href="{% url 'edit_course' course.id %}"
+                               class="btn btn-warning btn-sm">
+                                <i class="fas fa-edit"></i>
+                            </a>
 
-            {% endfor %}
+                            <a href="{% url 'delete_course' course.id %}"
+                               class="btn btn-danger btn-sm"
+                               onclick="return confirm('Delete this course?')">
+                                <i class="fas fa-trash"></i>
+                            </a>
 
-        </tbody>
+                        </td>
 
-    </table>
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="3" class="text-center text-muted">
+                            No Courses Found
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
 
 </div>
+
+<script>
+
+document.getElementById("courseSearch").addEventListener("keyup", function(){
+
+    let value = this.value.toLowerCase();
+
+    let rows = document.querySelectorAll("#courseTable tbody tr");
+
+    rows.forEach(function(row){
+
+        row.style.display =
+            row.innerText.toLowerCase().includes(value)
+            ? ""
+            : "none";
+
+    });
+
+});
+
+</script>
 
 {% endblock %}

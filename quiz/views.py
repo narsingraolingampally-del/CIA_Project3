@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
-
+from .models import Result
 import pandas as pd
 import random
 import string
@@ -359,6 +359,14 @@ def manage_faculty(request):
 # ADD FACULTY
 # =========================================
 
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required, user_passes_test
+
+from .forms import FacultyForm
+from .models import User, FacultyProfile
+
+
 @login_required
 @user_passes_test(is_admin)
 def add_faculty(request):
@@ -369,12 +377,40 @@ def add_faculty(request):
 
         if form.is_valid():
 
-            form.save()
+            if form.cleaned_data["password"] != form.cleaned_data["confirm_password"]:
+                messages.error(request, "Passwords do not match.")
+                return render(
+                    request,
+                    "admin_panel/add_faculty.html",
+                    {"form": form}
+                )
 
-            messages.success(
-                request,
-                "Faculty added successfully."
+            if User.objects.filter(username=form.cleaned_data["username"]).exists():
+                messages.error(request, "Username already exists.")
+                return render(
+                    request,
+                    "admin_panel/add_faculty.html",
+                    {"form": form}
+                )
+
+            user = User.objects.create_user(
+                username=form.cleaned_data["username"],
+                email=form.cleaned_data["email"],
+                password=form.cleaned_data["password"],
+                first_name=form.cleaned_data["first_name"],
+                last_name=form.cleaned_data["last_name"],
             )
+
+            user.is_faculty = True
+            user.save()
+
+            FacultyProfile.objects.create(
+                user=user,
+                name=form.cleaned_data["name"],
+                department=form.cleaned_data["department"],
+            )
+
+            messages.success(request, "Faculty added successfully.")
 
             return redirect("manage_faculty")
 
@@ -399,42 +435,33 @@ def add_faculty(request):
 @user_passes_test(is_admin)
 def edit_faculty(request, id):
 
-    faculty = get_object_or_404(
-        FacultyProfile,
-        id=id
-    )
+    faculty = get_object_or_404(FacultyProfile, id=id)
+    user = faculty.user
 
     if request.method == "POST":
 
-        form = FacultyForm(
-            request.POST,
-            instance=faculty
-        )
+        faculty.name = request.POST.get("name")
 
-        if form.is_valid():
+        user.username = request.POST.get("username")
+        user.first_name = request.POST.get("first_name")
+        user.last_name = request.POST.get("last_name")
+        user.email = request.POST.get("email")
 
-            form.save()
+        user.save()
+        faculty.save()
 
-            messages.success(
-                request,
-                "Faculty updated successfully."
-            )
+        messages.success(request, "Faculty updated successfully.")
 
-            return redirect("manage_faculty")
-
-    else:
-
-        form = FacultyForm(instance=faculty)
+        return redirect("manage_faculty")
 
     return render(
         request,
         "admin_panel/edit_faculty.html",
         {
-            "form": form
+            "faculty": faculty,
+            "user": user
         }
     )
-
-
 # =========================================
 # DELETE FACULTY
 # =========================================
@@ -899,8 +926,6 @@ def question_bank(request):
             "questions": questions
         }
     )
-
-
 # =========================================
 # UPLOAD QUESTIONS
 # =========================================
@@ -1107,8 +1132,19 @@ def delete_paper(request, pk):
 @login_required
 @user_passes_test(is_admin)
 def admin_reports(request):
-    return render(request, "admin_panel/reports.html")
 
+    results = Result.objects.select_related(
+        "student",
+        "quiz"
+    ).all().order_by("-completed_at")
+
+    return render(
+        request,
+        "admin_panel/reports.html",
+        {
+            "results": results
+        }
+    )
 # =========================================
 # MANAGE EXAMS
 # =========================================
@@ -1125,4 +1161,76 @@ def manage_exams(request):
         {
             "exams": exams,
         }
+    )
+@login_required
+@user_passes_test(is_admin)
+def upload_faculty(request):
+
+    if request.method == "POST":
+
+        excel_file = request.FILES.get("excel_file")
+
+        if not excel_file:
+
+            messages.error(
+                request,
+                "Please choose an Excel file."
+            )
+
+            return redirect("upload_faculty")
+
+        try:
+
+            df = pd.read_excel(excel_file)
+
+            imported = 0
+            skipped = 0
+
+            for _, row in df.iterrows():
+
+                username = str(row["Username"]).strip()
+
+                if User.objects.filter(username=username).exists():
+                    skipped += 1
+                    continue
+
+                user = User.objects.create_user(
+                    username=username,
+                    password=str(row["Password"]),
+                    first_name=str(row["First Name"]),
+                    last_name=str(row["Last Name"]),
+                    email=str(row["Email"]),
+                )
+
+                user.is_faculty = True
+                user.save()
+
+                FacultyProfile.objects.create(
+                    user=user,
+                    name=str(row["Name"]),
+                    department=str(row["Department"])
+                )
+
+                imported += 1
+
+            messages.success(
+                request,
+                f"{imported} faculty imported successfully."
+            )
+
+            if skipped:
+                messages.warning(
+                    request,
+                    f"{skipped} duplicate faculty skipped."
+                )
+
+            return redirect("manage_faculty")
+
+        except Exception as e:
+
+            messages.error(request, str(e))
+
+    return render(
+        request,
+        "admin_panel/upload_faculty.html"
     )
