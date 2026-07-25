@@ -172,6 +172,9 @@ class Question(models.Model):
 
     def __str__(self):
         return self.question_text[:50]
+    
+
+    
 
 
 
@@ -361,37 +364,11 @@ class Exam(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True
     )
-
-
     def __str__(self):
         return self.exam_name
 
 
 
-# ==================================================
-# EXAM QUESTIONS
-# ==================================================
-
-class ExamQuestion(models.Model):
-
-    exam = models.ForeignKey(
-        Exam,
-        on_delete=models.CASCADE
-    )
-
-
-    question = models.ForeignKey(
-        Question,
-        on_delete=models.CASCADE
-    )
-
-
-    class Meta:
-
-        unique_together = (
-            "exam",
-            "question",
-        )
 
         # ==================================================
 # STUDENT ANSWER
@@ -434,7 +411,32 @@ class StudentAnswer(models.Model):
     def __str__(self):
         return f"{self.student.username} - {self.question.id}"
     
-    
+    # ==================================================
+# EXAM QUESTIONS
+# ==================================================
+
+class ExamQuestion(models.Model):
+
+    exam = models.ForeignKey(
+        Exam,
+        on_delete=models.CASCADE,
+        related_name="exam_questions"
+    )
+
+    question = models.ForeignKey(
+        Question,
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        unique_together = (
+            "exam",
+            "question",
+        )
+
+    def __str__(self):
+        return f"{self.exam.exam_name} - {self.question.question_text[:40]}"
+
 
 
 

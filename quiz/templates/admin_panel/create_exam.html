@@ -1,0 +1,23 @@
+{% extends "admin_panel/base_admin.html" %}
+
+{% block content %}
+
+<h1 style="color:red;">
+CREATE EXAM PAGE WORKING
+</h1>
+
+<hr>
+
+<form method="POST">
+
+{% csrf_token %}
+
+{{ form.as_p }}
+
+<button type="submit" class="btn btn-primary">
+    Create Exam
+</button>
+
+</form>
+
+{% endblock %}

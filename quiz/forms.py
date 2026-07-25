@@ -1,6 +1,4 @@
 
-from django import forms
-
 from .models import (
     User,
     FacultyProfile,
@@ -9,6 +7,7 @@ from .models import (
     Subject,
     Question,
     QuestionPaper,
+    Exam,
 )
 
 # =========================================
@@ -90,11 +89,93 @@ class SubjectForm(forms.ModelForm):
 # QUESTION FORM
 # =========================================
 
+from django import forms
+from .models import Question
+
+
 class QuestionForm(forms.ModelForm):
 
     class Meta:
+
         model = Question
-        fields = "__all__"
+
+        fields = [
+            "subject",
+            "question_text",
+            "option1",
+            "option2",
+            "option3",
+            "option4",
+            "correct_answer",
+            "marks",
+        ]
+
+
+        widgets = {
+
+            "subject": forms.Select(
+                attrs={
+                    "class": "form-control"
+                }
+            ),
+
+
+            "question_text": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": "Enter question"
+                }
+            ),
+
+
+            "option1": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Option 1"
+                }
+            ),
+
+
+            "option2": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Option 2"
+                }
+            ),
+
+
+            "option3": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Option 3"
+                }
+            ),
+
+
+            "option4": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Option 4"
+                }
+            ),
+
+
+            "correct_answer": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Enter correct answer"
+                }
+            ),
+
+
+            "marks": forms.NumberInput(
+                attrs={
+                    "class": "form-control"
+                }
+            ),
+
+        }
         # =========================================
 # QUESTION PAPER FORM
 # =========================================
@@ -118,3 +199,62 @@ class QuestionUploadForm(forms.Form):
     excel_file = forms.FileField(
         label="Excel File"
     )
+
+    # =========================================
+# EXAM FORM
+# =========================================
+
+class ExamForm(forms.ModelForm):
+
+    class Meta:
+
+        model = Exam
+
+        fields = [
+            "exam_name",
+            "course",
+            "subject",
+            "duration",
+            "number_of_questions",
+            "start_time",
+            "end_time",
+        ]
+
+        widgets = {
+
+            "exam_name": forms.TextInput(attrs={
+                "class": "form-control"
+            }),
+
+            "course": forms.Select(attrs={
+                "class": "form-control"
+            }),
+
+            "subject": forms.Select(attrs={
+                "class": "form-control"
+            }),
+
+            "duration": forms.NumberInput(attrs={
+                "class": "form-control"
+            }),
+
+            "number_of_questions": forms.NumberInput(attrs={
+                "class": "form-control"
+            }),
+
+            "start_time": forms.DateTimeInput(
+                attrs={
+                    "class": "form-control",
+                    "type": "datetime-local"
+                }
+            ),
+
+            "end_time": forms.DateTimeInput(
+                attrs={
+                    "class": "form-control",
+                    "type": "datetime-local"
+                }
+            ),
+
+        }
+        # ==================================================

@@ -7,7 +7,8 @@ from .models import Result
 import pandas as pd
 import random
 import string
-
+from .forms import QuestionForm
+from .models import Question, Subject
 from .models import (
     User,
     StudentProfile,
@@ -19,6 +20,8 @@ from .models import (
     ActiveQuiz,
     PublishedExam,
     Result,
+    Exam,
+    ExamQuestion,
 )
 
 from .forms import (
@@ -29,6 +32,7 @@ from .forms import (
     QuestionPaperForm,
     QuestionUploadForm,
     QuestionForm,
+    ExamForm,
 )
 # =========================================
 # HOME PAGE
@@ -333,6 +337,43 @@ def admin_dashboard(request):
         context
     )
 
+# ==================================================
+# ADD QUESTION
+# ==================================================
+
+@login_required
+@user_passes_test(is_admin)
+def add_question(request):
+
+    if request.method == "POST":
+
+        form = QuestionForm(request.POST)
+
+        if form.is_valid():
+
+            form.save()
+
+            messages.success(
+                request,
+                "Question added successfully."
+            )
+
+            return redirect("question_bank")
+
+
+    else:
+
+        form = QuestionForm()
+
+
+    return render(
+        request,
+        "admin_panel/add_question.html",
+        {
+            "form": form
+        }
+    )
+
 
 # =========================================
 # FACULTY MANAGEMENT
@@ -483,6 +524,48 @@ def delete_faculty(request, id):
     )
 
     return redirect("manage_faculty")
+# =========================================
+# CREATE EXAM
+# =========================================
+
+@login_required
+@user_passes_test(is_faculty)
+def create_exam(request):
+
+    if request.method == "POST":
+
+        form = ExamForm(request.POST)
+
+        if form.is_valid():
+
+            exam = form.save(commit=False)
+
+            exam.is_published = False
+
+            exam.save()
+
+
+            messages.success(
+                request,
+                "Exam created successfully."
+            )
+
+
+            return redirect("faculty_dashboard")
+
+
+    else:
+
+        form = ExamForm()
+
+
+    return render(
+        request,
+        "faculty/create_exam.html",
+        {
+            "form": form
+        }
+    )
 # =========================================
 # STUDENT MANAGEMENT
 # =========================================
@@ -916,14 +999,40 @@ def delete_subject(request, id):
 def question_bank(request):
 
     questions = Question.objects.select_related(
-        "subject"
+        "subject",
+        "subject__course"
     ).all().order_by("-id")
+
+
+    search = request.GET.get("search")
+
+
+    if search:
+
+        questions = questions.filter(
+            question_text__icontains=search
+        )
+
+
+    subjects = Subject.objects.all()
+
+
+    subject_id = request.GET.get("subject")
+
+
+    if subject_id:
+
+        questions = questions.filter(
+            subject_id=subject_id
+        )
+
 
     return render(
         request,
         "admin_panel/question_bank.html",
         {
-            "questions": questions
+            "questions": questions,
+            "subjects": subjects
         }
     )
 # =========================================
@@ -1058,25 +1167,41 @@ def upload_question_paper(request):
 
     if request.method == "POST":
 
-        form = QuestionPaperForm(
+        form = QuestionUploadForm(
             request.POST,
             request.FILES
         )
 
         if form.is_valid():
 
-            form.save()
+            subject = form.cleaned_data["subject"]
+            excel_file = form.cleaned_data["excel_file"]
+
+            df = pd.read_excel(excel_file)
+
+            for _, row in df.iterrows():
+
+                Question.objects.create(
+                    subject=subject,
+                    question_text=row["question_text"],
+                    option1=row["option1"],
+                    option2=row["option2"],
+                    option3=row["option3"],
+                    option4=row["option4"],
+                    correct_answer=row["correct_answer"],
+                    marks=row["marks"],
+                )
 
             messages.success(
                 request,
-                "Question Paper uploaded successfully."
+                "Questions uploaded successfully."
             )
 
             return redirect("faculty_dashboard")
 
     else:
 
-        form = QuestionPaperForm()
+        form = QuestionUploadForm()
 
     return render(
         request,
@@ -1085,7 +1210,6 @@ def upload_question_paper(request):
             "form": form
         }
     )
-
 
 # =========================================
 # PUBLISH EXAM
@@ -1153,7 +1277,10 @@ def admin_reports(request):
 @user_passes_test(is_admin)
 def manage_exams(request):
 
-    exams = PublishedExam.objects.all().order_by("-id")
+    exams = Exam.objects.select_related(
+        "course",
+        "subject"
+    ).order_by("-created_at")
 
     return render(
         request,
@@ -1234,3 +1361,43 @@ def upload_faculty(request):
         request,
         "admin_panel/upload_faculty.html"
     )
+
+
+@login_required
+@user_passes_test(is_faculty)
+def password_generator(request):
+    return render(
+        request,
+        "faculty/password_generator.html"
+    )
+@login_required
+@user_passes_test(is_admin)
+def create_exam(request):
+
+    if request.method == "POST":
+
+        form = ExamForm(request.POST)
+
+        if form.is_valid():
+
+            form.save()
+
+            messages.success(
+                request,
+                "Exam created successfully."
+            )
+
+            return redirect("manage_exams")
+
+    else:
+
+        form = ExamForm()
+
+    return render(
+        request,
+        "admin_panel/create_exam.html",
+        {
+            "form": form,
+        }
+    )
+

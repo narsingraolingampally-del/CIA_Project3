@@ -207,5 +207,84 @@ border-radius:8px;
 </style>
 
 </head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+
+    <h3>CIA ADMIN</h3>
+
+    <a href="{% url 'admin_dashboard' %}">
+        <i class="fa fa-dashboard"></i>
+        Dashboard
+    </a>
+
+    <a href="{% url 'manage_students' %}">
+        <i class="fa fa-users"></i>
+        Students
+    </a>
+
+    <a href="{% url 'manage_faculty' %}">
+        <i class="fa fa-user-tie"></i>
+        Faculty
+    </a>
+
+    <a href="{% url 'manage_courses' %}">
+        <i class="fa fa-book"></i>
+        Courses
+    </a>
+
+    <a href="{% url 'manage_subjects' %}">
+        <i class="fa fa-book-open"></i>
+        Subjects
+    </a>
+
+    <a href="{% url 'question_bank' %}">
+        <i class="fa fa-question"></i>
+        Question Bank
+    </a>
+
+    <a href="{% url 'manage_exams' %}">
+        <i class="fa fa-file"></i>
+        Exams
+    </a>
+
+</div>
+
+
+<!-- Main -->
+<div class="main">
+
+
+    <!-- Topbar -->
+    <div class="topbar">
+
+        <h5>
+            CIA Admin Panel
+        </h5>
+
+        <div class="profile">
+            {{ request.user.username }}
+        </div>
+
+    </div>
+
+
+    <!-- Page Content -->
+    <div class="content">
+
+        {% block content %}
+
+        {% endblock %}
+
+    </div>
+
+
+</div>
+
+
+</body>
+
+</html>
 
 <body>

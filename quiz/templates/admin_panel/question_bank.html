@@ -4,6 +4,7 @@
 
 <div class="container-fluid">
 
+    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
 
         <h2>
@@ -11,13 +12,90 @@
             Question Bank
         </h2>
 
-        <a href="{% url 'upload_questions' %}" class="btn btn-success">
-            <i class="fas fa-upload"></i>
-            Upload Excel
-        </a>
+        <div>
+
+            <a href="{% url 'add_question' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i>
+                Add Question
+            </a>
+
+            <a href="{% url 'upload_questions' %}" class="btn btn-success">
+                <i class="fas fa-upload"></i>
+                Upload Excel
+            </a>
+
+        </div>
 
     </div>
 
+    <!-- Search -->
+    <div class="card shadow mb-4">
+
+        <div class="card-body">
+
+            <form method="GET">
+
+                <div class="row">
+
+                    <div class="col-md-6">
+
+                        <input
+                            type="text"
+                            name="search"
+                            value="{{ request.GET.search }}"
+                            class="form-control"
+                            placeholder="Search Question">
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <select
+                            name="subject"
+                            class="form-control">
+
+                            <option value="">
+                                All Subjects
+                            </option>
+
+                            {% for s in subjects %}
+
+                            <option
+                                value="{{ s.id }}"
+                                {% if request.GET.subject == s.id|stringformat:"s" %}
+                                selected
+                                {% endif %}>
+
+                                {{ s.name }}
+
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-2">
+
+                        <button class="btn btn-primary w-100">
+
+                            <i class="fas fa-search"></i>
+                            Search
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- Question Table -->
     <div class="card shadow">
 
         <div class="card-body">
@@ -27,25 +105,30 @@
                 <thead class="table-dark">
 
                     <tr>
-                        <th>ID</th>
+
+                        <th>Course</th>
+                        <th>Semester</th>
                         <th>Subject</th>
                         <th>Question</th>
                         <th>Correct Answer</th>
                         <th>Marks</th>
                         <th width="170">Action</th>
+
                     </tr>
 
                 </thead>
 
                 <tbody>
 
-                {% for q in questions %}
+                    {% for q in questions %}
 
                     <tr>
 
-                        <td>{{ q.id }}</td>
+                        <td>{{ q.subject.course }}</td>
 
-                        <td>{{ q.subject }}</td>
+                        <td>{{ q.subject.semester }}</td>
+
+                        <td>{{ q.subject.name }}</td>
 
                         <td>{{ q.question_text|truncatechars:60 }}</td>
 
@@ -55,28 +138,34 @@
 
                         <td>
 
-                            <a href="{% url 'edit_question' q.id %}"
-                               class="btn btn-warning btn-sm">
+                            <a
+                                href="{% url 'edit_question' q.id %}"
+                                class="btn btn-warning btn-sm">
+
                                 <i class="fas fa-edit"></i>
                                 Edit
+
                             </a>
 
-                            <a href="{% url 'delete_question' q.id %}"
-                               class="btn btn-danger btn-sm"
-                               onclick="return confirm('Delete this question?')">
+                            <a
+                                href="{% url 'delete_question' q.id %}"
+                                class="btn btn-danger btn-sm"
+                                onclick="return confirm('Delete this question?')">
+
                                 <i class="fas fa-trash"></i>
                                 Delete
+
                             </a>
 
                         </td>
 
                     </tr>
 
-                {% empty %}
+                    {% empty %}
 
                     <tr>
 
-                        <td colspan="6" class="text-center">
+                        <td colspan="7" class="text-center">
 
                             No Questions Available
 
@@ -84,7 +173,7 @@
 
                     </tr>
 
-                {% endfor %}
+                    {% endfor %}
 
                 </tbody>
 

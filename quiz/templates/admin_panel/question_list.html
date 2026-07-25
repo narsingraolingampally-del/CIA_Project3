@@ -1,0 +1,208 @@
+{% extends "base_admin.html" %}
+
+
+{% block content %}
+
+
+<div class="container">
+
+
+<h3 class="mb-3">
+    Question Bank
+</h3>
+
+
+<div class="card shadow">
+
+
+<div class="card-body">
+
+
+<form method="GET" class="row mb-3">
+
+
+<div class="col-md-5">
+
+<input 
+type="text"
+name="search"
+class="form-control"
+placeholder="Search question">
+
+</div>
+
+
+
+<div class="col-md-4">
+
+
+<select name="subject" class="form-control">
+
+
+<option value="">
+All Subjects
+</option>
+
+
+{% for s in subjects %}
+
+<option value="{{s.id}}">
+{{s.name}}
+</option>
+
+{% endfor %}
+
+
+</select>
+
+
+</div>
+
+
+
+<div class="col-md-3">
+
+<button class="btn btn-primary">
+Search
+</button>
+
+
+<a href="{% url 'question_bank' %}">
+class="btn btn-secondary">
+
+Reset
+
+</a>
+
+
+</div>
+
+
+</form>
+
+
+
+<table class="table table-bordered">
+
+
+<thead class="table-dark">
+
+
+<tr>
+
+<th>ID</th>
+
+<th>Question</th>
+
+<th>Subject</th>
+
+<th>Course</th>
+
+<th>Semester</th>
+
+<th>Marks</th>
+
+<th>Action</th>
+
+</tr>
+
+
+</thead>
+
+
+
+<tbody>
+
+
+{% for q in questions %}
+
+
+<tr>
+
+
+<td>
+{{q.id}}
+</td>
+
+
+<td>
+{{q.question_text|truncatechars:60}}
+</td>
+
+
+<td>
+{{q.subject.name}}
+</td>
+
+
+<td>
+{{q.subject.course.name}}
+</td>
+
+
+<td>
+{{q.subject.semester}}
+</td>
+
+
+<td>
+{{q.marks}}
+</td>
+
+
+<td>
+
+<a href="#"
+class="btn btn-sm btn-warning">
+
+Edit
+
+</a>
+
+
+<a href="#"
+class="btn btn-sm btn-danger">
+
+Delete
+
+</a>
+
+
+</td>
+
+
+</tr>
+
+
+{% empty %}
+
+
+<tr>
+
+<td colspan="7" class="text-center">
+
+No Questions Found
+
+</td>
+
+</tr>
+
+
+{% endfor %}
+
+
+</tbody>
+
+
+</table>
+
+
+</div>
+
+</div>
+
+
+</div>
+
+
+{% endblock %}

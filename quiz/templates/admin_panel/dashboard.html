@@ -3,68 +3,100 @@
 {% block content %}
 
 <div class="container-fluid">
-    
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-   <div class="d-flex justify-content-between align-items-center mb-4">
 
-    <div>
+    <!-- Page Heading -->
 
-        <h2 class="fw-bold">
-            <i class="fas fa-gauge-high text-primary"></i>
-            Dashboard
-        </h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
 
-        <p class="text-muted mb-0">
-            Welcome to CIA Examination Administration Portal
-        </p>
+        <div>
+
+            <h2 class="fw-bold">
+                <i class="fas fa-gauge-high text-primary"></i>
+                Dashboard
+            </h2>
+
+            <p class="text-muted">
+                Welcome to CIA Examination Administration Portal
+            </p>
+
+        </div>
 
     </div>
 
-</div>
-
-    <!-- Statistics Cards -->
+    <!-- Statistics -->
 
     <div class="row">
 
         <div class="col-lg-3 col-md-6 mb-4">
+
             <div class="card dashboard-card bg-primary text-white">
+
                 <div class="card-body">
+
                     <h5>Students</h5>
-                    <div class="count">{{ student_count }}</div>
+
+                    <h2>{{ student_count }}</h2>
+
                     <i class="fas fa-user-graduate fa-3x float-end"></i>
+
                 </div>
+
             </div>
+
         </div>
 
         <div class="col-lg-3 col-md-6 mb-4">
+
             <div class="card dashboard-card bg-success text-white">
+
                 <div class="card-body">
+
                     <h5>Faculty</h5>
-                    <div class="count">{{ faculty_count }}</div>
+
+                    <h2>{{ faculty_count }}</h2>
+
                     <i class="fas fa-chalkboard-teacher fa-3x float-end"></i>
+
                 </div>
+
             </div>
+
         </div>
 
         <div class="col-lg-3 col-md-6 mb-4">
+
             <div class="card dashboard-card bg-warning text-dark">
+
                 <div class="card-body">
+
                     <h5>Courses</h5>
-                    <div class="count">{{ course_count }}</div>
+
+                    <h2>{{ course_count }}</h2>
+
                     <i class="fas fa-book fa-3x float-end"></i>
+
                 </div>
+
             </div>
+
         </div>
 
         <div class="col-lg-3 col-md-6 mb-4">
+
             <div class="card dashboard-card bg-danger text-white">
+
                 <div class="card-body">
-                    <h5>Published Exams</h5>
-                    <div class="count">{{ published_exam_count }}</div>
-                    <i class="fas fa-file-circle-check fa-3x float-end"></i>
+
+                    <h5>Subjects</h5>
+
+                    <h2>{{ subject_count }}</h2>
+
+                    <i class="fas fa-book-open fa-3x float-end"></i>
+
                 </div>
+
             </div>
+
         </div>
 
     </div>
@@ -72,93 +104,168 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
     <div class="row">
 
         <div class="col-lg-3 col-md-6 mb-4">
+
             <div class="card dashboard-card bg-info text-white">
-                <div class="card-body">
-                    <h5>Question Papers</h5>
-                    <div class="count">{{ paper_count }}</div>
-                    <i class="fas fa-file-lines fa-3x float-end"></i>
-                </div>
-            </div>
-        </div>
 
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card dashboard-card bg-secondary text-white">
                 <div class="card-body">
+
                     <h5>Questions</h5>
-                    <div class="count">{{ question_count }}</div>
-                    <i class="fas fa-list-check fa-3x float-end"></i>
+
+                    <h2>{{ question_count }}</h2>
+
+                    <i class="fas fa-circle-question fa-3x float-end"></i>
+
                 </div>
+
             </div>
+
         </div>
 
         <div class="col-lg-3 col-md-6 mb-4">
+
+            <div class="card dashboard-card bg-secondary text-white">
+
+                <div class="card-body">
+
+                    <h5>Question Papers</h5>
+
+                    <h2>{{ paper_count }}</h2>
+
+                    <i class="fas fa-file-lines fa-3x float-end"></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+
             <div class="card dashboard-card bg-dark text-white">
+
                 <div class="card-body">
-                    <h5>Results</h5>
-                    <div class="count">{{ result_count }}</div>
-                    <i class="fas fa-chart-line fa-3x float-end"></i>
+
+                    <h5>Published Exams</h5>
+
+                    <h2>{{ published_exam_count }}</h2>
+
+                    <i class="fas fa-file-circle-check fa-3x float-end"></i>
+
                 </div>
+
             </div>
+
         </div>
 
         <div class="col-lg-3 col-md-6 mb-4">
+
             <div class="card dashboard-card bg-success text-white">
+
                 <div class="card-body">
-                    <h5>Active Exams</h5>
-                    <div class="count">{{ active_exam_count }}</div>
-                    <i class="fas fa-circle-play fa-3x float-end"></i>
+
+                    <h5>Results</h5>
+
+                    <h2>{{ result_count }}</h2>
+
+                    <i class="fas fa-chart-line fa-3x float-end"></i>
+
                 </div>
+
             </div>
+
         </div>
 
     </div>
+
+    <!-- Bottom Section -->
 
     <div class="row mt-4">
 
-        <!-- Recently Published Exams -->
+        <!-- Latest Exams -->
 
         <div class="col-lg-8">
 
-            <div class="card">
+            <div class="card shadow">
 
                 <div class="card-header bg-primary text-white">
+
                     <h5 class="mb-0">
-                        <i class="fas fa-bolt me-2"></i>
-Quick Actions
+
+                        <i class="fas fa-file-circle-check"></i>
+
+                        Recently Published Exams
+
                     </h5>
+
                 </div>
 
                 <div class="card-body">
 
-                    <table class="table table-hover">
+                    <table class="table table-bordered table-hover">
 
-                        <thead>
+                        <thead class="table-dark">
+
                             <tr>
-                                <th>Subject</th>
+
+                                <th>Exam</th>
+
                                 <th>Course</th>
-                                <th>Semester</th>
-                                <th>Date</th>
+
+                                <th>Subject</th>
+
+                                <th>Start Time</th>
+
+                                <th>Status</th>
+
                             </tr>
+
                         </thead>
 
                         <tbody>
 
                         {% for exam in exams %}
 
-                            <tr>
-                                <td>{{ exam.subject }}</td>
-                                <td>{{ exam.course }}</td>
-                                <td>{{ exam.semester }}</td>
-                                <td>{{ exam.exam_date }}</td>
-                            </tr>
+                        <tr>
+
+                            <td>{{ exam.exam_name }}</td>
+
+                            <td>{{ exam.course }}</td>
+
+                            <td>{{ exam.subject }}</td>
+
+                            <td>{{ exam.start_time }}</td>
+
+                            <td>
+
+                                {% if exam.is_published %}
+
+                                    <span class="badge bg-success">
+                                        Published
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="badge bg-warning text-dark">
+                                        Draft
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
 
                         {% empty %}
 
-                            <tr>
-                                <td colspan="4" class="text-center">
-                                    No Published Exams
-                                </td>
-                            </tr>
+                        <tr>
+
+                            <td colspan="5" class="text-center">
+
+                                No Exams Created
+
+                            </td>
+
+                        </tr>
 
                         {% endfor %}
 
@@ -176,44 +283,85 @@ Quick Actions
 
         <div class="col-lg-4">
 
-            <div class="card">
+            <div class="card shadow">
 
                 <div class="card-header bg-success text-white">
-                    Quick Actions
+
+                    <h5 class="mb-0">
+
+                        <i class="fas fa-bolt"></i>
+
+                        Quick Actions
+
+                    </h5>
+
                 </div>
 
                 <div class="card-body">
 
-                    <div class="d-grid gap-2">
+                    <div class="d-grid gap-3">
 
-                        <a href="{% url 'manage_faculty' %}"class="btn btn-primary btn-lg"">
-                            <i class="fas fa-user-plus"></i>
+                        <a href="{% url 'manage_faculty' %}"
+                           class="btn btn-primary">
+
+                            <i class="fas fa-chalkboard-teacher"></i>
+
                             Manage Faculty
+
                         </a>
 
-                        <a href="{% url 'manage_students' %}"class="btn btn-primary btn-lg">
+                        <a href="{% url 'manage_students' %}"
+                           class="btn btn-primary">
+
                             <i class="fas fa-user-graduate"></i>
+
                             Manage Students
+
                         </a>
 
-                        <a href="{% url 'manage_courses' %}" class="btn btn-primary btn-lg">
+                        <a href="{% url 'manage_courses' %}"
+                           class="btn btn-primary">
+
                             <i class="fas fa-book"></i>
+
                             Manage Courses
+
                         </a>
 
-                        <a href="{% url 'manage_subjects' %}" class="btn btn-primary btn-lg">
+                        <a href="{% url 'manage_subjects' %}"
+                           class="btn btn-primary">
+
                             <i class="fas fa-book-open"></i>
+
                             Manage Subjects
+
                         </a>
 
-                        <a href="{% url 'question_bank' %}" class="btn btn-primary btn-lg">
+                        <a href="{% url 'question_bank' %}"
+                           class="btn btn-success">
+
                             <i class="fas fa-database"></i>
+
                             Question Bank
+
                         </a>
 
-                        <a href="{% url 'view_results' %}" class="btn btn-primary btn-lg">
-                            <i class="fas fa-chart-bar"></i>
-                            View Results
+                        <a href="{% url 'manage_exams' %}"
+                           class="btn btn-warning">
+
+                            <i class="fas fa-file-circle-plus"></i>
+
+                            Create Exam
+
+                        </a>
+
+                        <a href="{% url 'admin_reports' %}"
+                           class="btn btn-info text-white">
+
+                            <i class="fas fa-chart-column"></i>
+
+                            Reports
+
                         </a>
 
                     </div>

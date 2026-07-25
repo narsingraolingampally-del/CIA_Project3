@@ -223,8 +223,8 @@ urlpatterns = [
         views.question_bank,
         name='question_bank'
     ),
-
-    path(
+    
+ path(
         'admin-panel/question-bank/upload/',
         views.upload_questions,
         name='upload_questions'
@@ -273,6 +273,22 @@ urlpatterns = [
         name='logout'
 
     ),
+    path(
+    'admin-panel/question-bank/add/',
+    views.add_question,
+    name='add_question'
+),
+
+path(
+    "faculty/password-generator/",
+    views.password_generator,
+    name="password_generator"
+),
+path(
+    "admin-panel/exams/create/",
+    views.create_exam,
+    name="create_exam",
+),
 ]
 
 if settings.DEBUG:
