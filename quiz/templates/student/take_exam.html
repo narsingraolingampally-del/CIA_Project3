@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white">
+
+            <h3 class="mb-0">
+                {{ exam.exam_name }}
+            </h3>
+
+        </div>
+
+
+        <div class="card-body">
+
+
+            <p>
+                <strong>Subject:</strong>
+                {{ exam.subject.name }}
+            </p>
+
+
+            <hr>
+
+
+            <form method="POST" action="{% url 'submit_exam' %}">
+
+                {% csrf_token %}
+
+
+                <input type="hidden"
+                       name="exam_id"
+                       value="{{ exam.id }}">
+
+
+
+                {% for eq in exam_questions %}
+
+
+                <div class="card mb-3">
+
+
+                    <div class="card-body">
+
+
+                        <h5>
+                            {{ forloop.counter }}.
+                            {{ eq.question.question_text }}
+                        </h5>
+
+
+                        <hr>
+
+
+                        <div class="form-check mb-2">
+
+                            <input class="form-check-input"
+                                   type="radio"
+                                   name="q_{{ eq.question.id }}"
+                                   value="option1"
+                                   id="q{{ eq.question.id }}_1">
+
+                            <label class="form-check-label"
+                                   for="q{{ eq.question.id }}_1">
+
+                                {{ eq.question.option1 }}
+
+                            </label>
+
+                        </div>
+
+
+
+                        <div class="form-check mb-2">
+
+                            <input class="form-check-input"
+                                   type="radio"
+                                   name="q_{{ eq.question.id }}"
+                                   value="option2"
+                                   id="q{{ eq.question.id }}_2">
+
+                            <label class="form-check-label"
+                                   for="q{{ eq.question.id }}_2">
+
+                                {{ eq.question.option2 }}
+
+                            </label>
+
+                        </div>
+
+
+
+
+                        <div class="form-check mb-2">
+
+                            <input class="form-check-input"
+                                   type="radio"
+                                   name="q_{{ eq.question.id }}"
+                                   value="option3"
+                                   id="q{{ eq.question.id }}_3">
+
+                            <label class="form-check-label"
+                                   for="q{{ eq.question.id }}_3">
+
+                                {{ eq.question.option3 }}
+
+                            </label>
+
+                        </div>
+
+
+
+
+                        <div class="form-check mb-2">
+
+                            <input class="form-check-input"
+                                   type="radio"
+                                   name="q_{{ eq.question.id }}"
+                                   value="option4"
+                                   id="q{{ eq.question.id }}_4">
+
+                            <label class="form-check-label"
+                                   for="q{{ eq.question.id }}_4">
+
+                                {{ eq.question.option4 }}
+
+                            </label>
+
+                        </div>
+
+
+                    </div>
+
+
+                </div>
+
+
+                {% empty %}
+
+
+                <div class="alert alert-warning">
+
+                    No questions available for this exam.
+
+                </div>
+
+
+                {% endfor %}
+
+
+
+                <button type="submit"
+                        class="btn btn-success btn-lg">
+
+                    Submit Exam
+
+                </button>
+
+
+            </form>
+
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+{% endblock %}

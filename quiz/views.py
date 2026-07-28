@@ -143,6 +143,20 @@ def faculty_dashboard(request):
 # STUDENT DASHBOARD
 # =========================================
 
+# =========================================
+# STUDENT DASHBOARD
+# =========================================
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, get_object_or_404
+from .models import StudentProfile, Exam, Result
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, get_object_or_404
+
+from .models import StudentProfile, Exam, Result
+
+
 @login_required
 def student_dashboard(request):
 
@@ -151,50 +165,65 @@ def student_dashboard(request):
         user=request.user
     )
 
-    quizzes = ActiveQuiz.objects.filter(
+    exams = Exam.objects.filter(
         course=student.course,
-        semester=student.semester,
-        is_active=True
+        is_published=True
     )
+
+    print("=" * 50)
+    print("Logged in user :", request.user.username)
+    print("Student course :", student.course)
+    print("Course ID      :", student.course.id)
+    print("Exam Count     :", exams.count())
+
+    for exam in exams:
+        print(exam.id, exam.exam_name)
+
+    print("=" * 50)
 
     results = Result.objects.filter(
         student=request.user
-    ).order_by("-completed_at")
+    )
 
     return render(
         request,
         "student/dashboard.html",
         {
             "student": student,
-            "quizzes": quizzes,
+            "exams": exams,
             "results": results,
-        },
+        }
     )
-
-
 # =========================================
 # TAKE QUIZ
 # =========================================
 
+# =========================================
+# TAKE EXAM
+# =========================================
+
 @login_required
-def take_quiz(request, exam_id):
+def take_exam(request, exam_id):
 
-    quiz = get_object_or_404(
-        ActiveQuiz,
-        id=exam_id
+    exam = get_object_or_404(
+        Exam,
+        id=exam_id,
+        is_published=True
     )
 
-    questions = Question.objects.filter(
-        subject=quiz.subject
-    )
+
+    exam_questions = exam.exam_questions.select_related(
+        "question"
+    ).all()
+
 
     return render(
         request,
-        "student/take_quiz.html",
+        "student/take_exam.html",
         {
-            "quiz": quiz,
-            "questions": questions,
-            "duration_seconds": quiz.duration_minutes * 60,
+            "exam": exam,
+            "exam_questions": exam_questions,
+            "duration_seconds": exam.duration * 60,
         },
     )
 
@@ -203,60 +232,88 @@ def take_quiz(request, exam_id):
 # SUBMIT QUIZ
 # =========================================
 
+# =========================================
+# SUBMIT EXAM
+# =========================================
+
 @login_required
-def submit_quiz(request):
+def submit_exam(request):
 
     if request.method != "POST":
         return redirect("student_dashboard")
 
-    quiz = get_object_or_404(
-        ActiveQuiz,
-        id=request.POST.get("quiz_id")
+
+    exam = get_object_or_404(
+        Exam,
+        id=request.POST.get("exam_id"),
+        is_published=True
     )
 
-    questions = Question.objects.filter(
-        subject=quiz.subject
-    )
+
+    exam_questions = exam.exam_questions.select_related(
+        "question"
+    ).all()
+
 
     score = 0
     total_marks = 0
 
-    for q in questions:
+
+    for eq in exam_questions:
+
+        q = eq.question
 
         total_marks += q.marks
 
-        answer = request.POST.get(f"q_{q.id}")
+
+        answer = request.POST.get(
+            f"q_{q.id}"
+        )
+
 
         if answer:
 
-            selected_option = getattr(q, f"option{answer}")
+            selected_option = getattr(
+    q,
+    answer
+
+)
+
 
             if selected_option == q.correct_answer:
+
                 score += q.marks
+
+
 
     percentage = 0
 
     if total_marks:
-        percentage = round((score / total_marks) * 100, 2)
+
+        percentage = round(
+            (score / total_marks) * 100,
+            2
+        )
+
 
     Result.objects.create(
         student=request.user,
-        quiz=quiz,
+        exam=exam,
         score=score,
         total_marks=total_marks,
     )
+
 
     return render(
         request,
         "student/result.html",
         {
-            "subject": quiz.subject,
+            "subject": exam.subject,
             "score": score,
             "total": total_marks,
             "percentage": percentage,
         },
     )
-
 
 # =========================================
 # VIEW QUESTIONS

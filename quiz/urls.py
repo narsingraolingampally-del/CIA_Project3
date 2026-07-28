@@ -40,17 +40,17 @@ urlpatterns = [
     # QUIZ
     # =====================================================
 
-    path(
-        'take-quiz/<int:exam_id>/',
-        views.take_quiz,
-        name='take_quiz'
-    ),
+   path(
+    'take-exam/<int:exam_id>/',
+    views.take_exam,
+    name='take_exam'
+),
 
-    path(
-        'submit-quiz/',
-        views.submit_quiz,
-        name='submit_quiz'
-    ),
+   path(
+    'submit-exam/',
+    views.submit_exam,
+    name='submit_exam'
+),
 
     # =====================================================
     # FACULTY MODULE

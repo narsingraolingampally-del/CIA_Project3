@@ -92,20 +92,15 @@ class StudentProfile(models.Model):
         null=True
     )
 
-    course = models.CharField(
-        max_length=100
+    course = models.ForeignKey(
+    Course,
+    on_delete=models.CASCADE
+
     )
 
     semester = models.IntegerField(
         default=1
     )
-
-
-    def __str__(self):
-        return self.name or self.user.username
-
-
-
 # ==================================================
 # FACULTY PROFILE
 # ==================================================
@@ -242,36 +237,6 @@ class ActiveQuiz(models.Model):
     def __str__(self):
         return f"{self.subject.name} - {self.course.name}"
 
-# ==================================================
-# RESULT
-# ==================================================
-
-class Result(models.Model):
-
-    student = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE
-    )
-
-
-    quiz = models.ForeignKey(
-        ActiveQuiz,
-        on_delete=models.CASCADE,
-        null=True
-    )
-
-
-    score = models.IntegerField()
-
-
-    total_marks = models.IntegerField(
-        default=0
-    )
-
-
-    completed_at = models.DateTimeField(
-        auto_now_add=True
-    )
 
 
 
@@ -319,6 +284,11 @@ class CourseConfig(models.Model):
 
     def __str__(self):
         return str(self.course)
+    
+
+
+ 
+
 # ==================================================
 # EXAM
 # ==================================================
@@ -329,44 +299,100 @@ class Exam(models.Model):
         max_length=100
     )
 
-
     course = models.ForeignKey(
         Course,
         on_delete=models.CASCADE
     )
-
 
     subject = models.ForeignKey(
         Subject,
         on_delete=models.CASCADE
     )
 
-
     duration = models.IntegerField(
         default=60
     )
 
-
     number_of_questions = models.IntegerField()
-
 
     start_time = models.DateTimeField()
 
-
     end_time = models.DateTimeField()
-
 
     is_published = models.BooleanField(
         default=False
     )
 
-
     created_at = models.DateTimeField(
         auto_now_add=True
     )
+
+
     def __str__(self):
         return self.exam_name
 
+
+# ==================================================
+# EXAM QUESTIONS
+# ==================================================
+
+class ExamQuestion(models.Model):
+
+    exam = models.ForeignKey(
+        Exam,
+        on_delete=models.CASCADE,
+        related_name="exam_questions"
+    )
+
+    question = models.ForeignKey(
+        Question,
+        on_delete=models.CASCADE
+    )
+
+
+    class Meta:
+        unique_together = (
+            "exam",
+            "question",
+        )
+
+
+    def __str__(self):
+        return self.exam.exam_name
+
+
+
+# ==================================================
+# RESULT
+# ==================================================
+
+class Result(models.Model):
+
+    student = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE
+    )
+
+    exam = models.ForeignKey(
+        Exam,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+
+    score = models.IntegerField()
+
+    total_marks = models.IntegerField(
+        default=0
+    )
+
+    completed_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+
+    def __str__(self):
+        return f"{self.student.username} - {self.exam.exam_name}"
 
 
 
@@ -411,33 +437,4 @@ class StudentAnswer(models.Model):
     def __str__(self):
         return f"{self.student.username} - {self.question.id}"
     
-    # ==================================================
-# EXAM QUESTIONS
-# ==================================================
-
-class ExamQuestion(models.Model):
-
-    exam = models.ForeignKey(
-        Exam,
-        on_delete=models.CASCADE,
-        related_name="exam_questions"
-    )
-
-    question = models.ForeignKey(
-        Question,
-        on_delete=models.CASCADE
-    )
-
-    class Meta:
-        unique_together = (
-            "exam",
-            "question",
-        )
-
-    def __str__(self):
-        return f"{self.exam.exam_name} - {self.question.question_text[:40]}"
-
-
-
-
-
+   

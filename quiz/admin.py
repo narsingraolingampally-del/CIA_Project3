@@ -154,7 +154,7 @@ class ResultAdmin(admin.ModelAdmin):
 
     list_display = (
         "student",
-        "quiz",
+        "exam",
         "score",
         "total_marks",
         "completed_at",
