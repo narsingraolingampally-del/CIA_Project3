@@ -1,31 +1,176 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Student Login</title>
-</head>
+{% extends "base.html" %}
 
-<body>
+{% block content %}
 
-<h2>Student Login</h2>
+<div class="container mt-5">
 
-<form method="post">
-    {% csrf_token %}
+    <div class="row justify-content-center">
 
-    <label>Username</label>
-    <input type="text" name="username">
 
-    <br><br>
+        <div class="col-md-5">
 
-    <label>Password</label>
-    <input type="password" name="password">
 
-    <br><br>
+            <div class="card shadow-lg border-0">
 
-    <button type="submit">
-        Login
-    </button>
 
-</form>
+                <div class="card-header bg-primary text-white text-center">
 
-</body>
-</html>
+                    <h3 class="mb-0">
+
+                        <i class="fas fa-user-graduate"></i>
+
+                        Candidate Login
+
+                    </h3>
+
+                    <p class="mb-0">
+                        Online Assessment Portal
+                    </p>
+
+                </div>
+
+
+
+                <div class="card-body p-4">
+
+
+                    <form method="POST">
+
+                        {% csrf_token %}
+
+
+
+                        <div class="mb-3">
+
+
+                            <label class="form-label">
+
+                                Username
+
+                            </label>
+
+
+                            <div class="input-group">
+
+
+                                <span class="input-group-text">
+
+                                    <i class="fas fa-user"></i>
+
+                                </span>
+
+
+                                <input type="text"
+
+                                name="username"
+
+                                class="form-control"
+
+                                placeholder="Enter Username"
+
+                                required>
+
+
+                            </div>
+
+
+                        </div>
+
+
+
+
+
+                        <div class="mb-3">
+
+
+                            <label class="form-label">
+
+                                Password
+
+                            </label>
+
+
+                            <div class="input-group">
+
+
+                                <span class="input-group-text">
+
+                                    <i class="fas fa-lock"></i>
+
+                                </span>
+
+
+                                <input type="password"
+
+                                name="password"
+
+                                class="form-control"
+
+                                placeholder="Enter Password"
+
+                                required>
+
+
+                            </div>
+
+
+                        </div>
+
+
+
+
+
+                        <div class="d-grid">
+
+
+                            <button type="submit"
+
+                            class="btn btn-primary btn-lg">
+
+
+                                Login to Assessment
+
+
+                            </button>
+
+
+                        </div>
+
+
+
+                    </form>
+
+
+
+                </div>
+
+
+
+
+                <div class="card-footer text-center">
+
+
+                    <small class="text-muted">
+
+                        Secure Candidate Authentication
+
+                    </small>
+
+
+                </div>
+
+
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+
+</div>
+
+
+{% endblock %}

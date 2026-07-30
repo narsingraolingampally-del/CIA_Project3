@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 
+
 # ==================================================
 # CUSTOM USER
 # ==================================================
@@ -112,89 +113,77 @@ class FacultyProfile(models.Model):
         on_delete=models.CASCADE
     )
 
-    name = models.CharField(max_length=100)
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE
+    )
 
-    department = models.CharField(
-    max_length=100,
-    blank=True,
-    null=True
-)
+    subjects = models.ManyToManyField(
+        Subject,
+        blank=True
+    )
 
     def __str__(self):
-        return self.name
-
-
+        return self.user.username
 # ==================================================
 # QUESTION BANK
 # ==================================================
 
 class Question(models.Model):
 
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE
+    )
+
     subject = models.ForeignKey(
         Subject,
         on_delete=models.CASCADE
     )
 
+    academic_year = models.CharField(
+        max_length=20
+    )
+
+    semester = models.IntegerField()
+
     question_text = models.TextField()
 
+    option1 = models.CharField(max_length=200)
+    option2 = models.CharField(max_length=200)
+    option3 = models.CharField(max_length=200)
+    option4 = models.CharField(max_length=200)
 
-    option1 = models.CharField(
-        max_length=200
-    )
+    correct_answer = models.CharField(max_length=10)
 
-    option2 = models.CharField(
-        max_length=200
-    )
-
-    option3 = models.CharField(
-        max_length=200
-    )
-
-    option4 = models.CharField(
-        max_length=200
-    )
-
-
-    correct_answer = models.CharField(
-        max_length=200
-    )
-
-
-    marks = models.IntegerField(
-        default=1
-    )
-
+    marks = models.IntegerField(default=1)
 
     def __str__(self):
         return self.question_text[:50]
-    
-
-    
-
-
-
 # ==================================================
 # QUESTION PAPER UPLOAD
 # ==================================================
 
 class QuestionPaper(models.Model):
 
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE
+    )
+
     subject = models.ForeignKey(
         Subject,
         on_delete=models.CASCADE
     )
 
-    course = models.ForeignKey(
-    Course,
-    on_delete=models.CASCADE,
-    null=True,
-    blank=True
-)
+    academic_year = models.CharField(
+        max_length=20
+    )
 
     semester = models.IntegerField()
 
     duration_minutes = models.IntegerField(
-        default=30
+        default=60
     )
 
     file = models.FileField(
@@ -206,8 +195,11 @@ class QuestionPaper(models.Model):
     )
 
     def __str__(self):
-        return self.subject.name
-
+        return (
+            f"{self.course.name} - "
+            f"{self.subject.name} - "
+            f"Sem {self.semester}"
+        )
 # ==================================================
 # ACTIVE QUIZ
 # ==================================================

@@ -2,34 +2,346 @@
 
 {% block content %}
 
-<h1 style="color:red;">
-    THIS IS MY TEMPLATE
-</h1>
+<div class="container mt-5">
 
-<p>
-Number of exams: {{ exams|length }}
-</p>
+
+<!-- Candidate Profile -->
+
+<div class="card shadow mb-4">
+
+    <div class="card-body">
+
+        <h3 class="text-primary">
+            Candidate Dashboard
+        </h3>
+
+        <hr>
+
+        <div class="row">
+
+            <div class="col-md-6">
+
+                <p>
+                    <b>Name:</b>
+                    {{ student.user.username }}
+                </p>
+
+                <p>
+                    <b>Course:</b>
+                    {{ student.course.name }}
+                </p>
+
+            </div>
+
+
+            <div class="col-md-6">
+
+                <p>
+                    <b>Semester:</b>
+                    {{ student.semester }}
+                </p>
+
+
+                <p>
+                    <b>Status:</b>
+
+                    <span class="badge bg-success">
+                        Active Candidate
+                    </span>
+
+                </p>
+
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+
+
+
+<!-- Assessment Section -->
+
+
+<h3 class="mb-3">
+
+    Available Assessments
+
+</h3>
+
+
 
 {% for exam in exams %}
 
-<h3>
-{{ exam.exam_name }}
-</h3>
 
-<p>
-Subject: {{ exam.subject.name }}
-</p>
+<div class="card shadow mb-4">
 
-<a href="{% url 'take_exam' exam.id %}">
-Start Exam
-</a>
+
+    <div class="card-header bg-dark text-white">
+
+
+        <h4 class="mb-0">
+
+            {{ exam.exam_name }}
+
+        </h4>
+
+
+    </div>
+
+
+
+    <div class="card-body">
+
+
+        <div class="row">
+
+
+            <div class="col-md-8">
+
+
+                <h5>
+                    Assessment Details
+                </h5>
+
+
+                <p>
+
+                    <b>Subject:</b>
+                    {{ exam.subject.name }}
+
+                </p>
+
+
+                <p>
+
+                    <b>Duration:</b>
+                    {{ exam.duration }} Minutes
+
+                </p>
+
+
+                <p>
+
+                    <b>Assessment Type:</b>
+
+                    Online Technical Assessment
+
+                </p>
+
+
+
+            </div>
+
+
+
+
+            <div class="col-md-4">
+
+
+                <div class="alert alert-info">
+
+
+                    <h6>
+                        Instructions
+                    </h6>
+
+
+                    <ul>
+
+                        <li>
+                            Do not refresh the page
+                        </li>
+
+                        <li>
+                            Select one answer
+                        </li>
+
+                        <li>
+                            Complete before time expires
+                        </li>
+
+                        <li>
+                            Submit after completion
+                        </li>
+
+
+                    </ul>
+
+
+                </div>
+
+
+            </div>
+
+
+
+        </div>
+
+
+
+        <hr>
+
+
+
+        <a href="{% url 'take_exam' exam.id %}"
+           class="btn btn-primary btn-lg">
+
+
+            Start Assessment
+
+
+        </a>
+
+
+
+    </div>
+
+
+</div>
+
 
 {% empty %}
 
-<h3>
-NO EXAMS FOUND
-</h3>
+
+<div class="alert alert-warning">
+
+No assessments available.
+
+</div>
+
 
 {% endfor %}
+
+
+
+
+
+<!-- Previous Results -->
+
+
+<div class="card shadow mt-5">
+
+
+<div class="card-header bg-secondary text-white">
+
+
+<h4>
+Assessment History
+</h4>
+
+
+</div>
+
+
+
+<div class="card-body">
+
+
+<table class="table table-bordered">
+
+
+<thead>
+
+<tr>
+
+<th>
+Assessment
+</th>
+
+<th>
+Score
+</th>
+
+<th>
+Status
+</th>
+
+</tr>
+
+</thead>
+
+
+
+<tbody>
+
+
+{% for result in results %}
+
+
+<tr>
+
+
+<td>
+{{ result.exam.exam_name }}
+</td>
+
+
+<td>
+{{ result.score }}/{{ result.total_marks }}
+</td>
+
+
+<td>
+
+{% if result.score >= result.total_marks|divisibleby:2 %}
+
+<span class="badge bg-success">
+Completed
+</span>
+
+{% else %}
+
+<span class="badge bg-danger">
+Needs Improvement
+</span>
+
+{% endif %}
+
+</td>
+
+
+</tr>
+
+
+{% empty %}
+
+
+<tr>
+
+<td colspan="3"
+class="text-center">
+
+No previous assessments
+
+</td>
+
+</tr>
+
+
+{% endfor %}
+
+
+</tbody>
+
+
+</table>
+
+
+</div>
+
+
+</div>
+
+
+
+</div>
+
 
 {% endblock %}

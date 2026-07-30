@@ -86,16 +86,24 @@ class StudentProfileAdmin(admin.ModelAdmin):
 # FACULTY PROFILE
 # ==================================================
 
+# ==================================================
+# FACULTY PROFILE
+# ==================================================
+
+# ==================================================
+# FACULTY PROFILE
+# ==================================================
+
 @admin.register(FacultyProfile)
 class FacultyProfileAdmin(admin.ModelAdmin):
-
     list_display = (
         "user",
-        "name",
+        "course",
     )
 
-
-
+    filter_horizontal = (
+        "subjects",
+    )
 # ==================================================
 # QUESTION
 # ==================================================

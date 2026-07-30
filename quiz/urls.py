@@ -282,13 +282,32 @@ urlpatterns = [
 path(
     "faculty/password-generator/",
     views.password_generator,
-    name="password_generator"
+    name="password_generator",
 ),
+
+# ==========================
+# FACULTY CREATE ASSESSMENT
+# ==========================
 path(
-    "admin-panel/exams/create/",
+    "faculty/create-exam/",
     views.create_exam,
     name="create_exam",
 ),
+
+# ==========================
+# ADMIN CREATE EXAM
+# ==========================
+path(
+    "admin-panel/exams/create/",
+    views.admin_create_exam,
+    name="admin_create_exam",
+),
+path(
+    "faculty/upload-questions/",
+    views.faculty_upload_questions,
+    name="faculty_upload_questions",
+),
+
 ]
 
 if settings.DEBUG:

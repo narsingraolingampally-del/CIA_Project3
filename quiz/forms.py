@@ -189,16 +189,26 @@ class QuestionPaperForm(forms.ModelForm):
 # QUESTION UPLOAD FORM
 # =========================================
 
+from django import forms
+from .models import Subject, Course
+
 class QuestionUploadForm(forms.Form):
 
-    subject = forms.ModelChoiceField(
-        queryset=Subject.objects.all(),
-        empty_label="Select Subject"
+    course = forms.ModelChoiceField(
+        queryset=Course.objects.all()
     )
 
-    excel_file = forms.FileField(
-        label="Excel File"
+    subject = forms.ModelChoiceField(
+        queryset=Subject.objects.all()
     )
+
+    academic_year = forms.CharField(
+        max_length=20
+    )
+
+    semester = forms.IntegerField()
+
+    excel_file = forms.FileField()
 
     # =========================================
 # EXAM FORM
@@ -218,6 +228,7 @@ class ExamForm(forms.ModelForm):
             "number_of_questions",
             "start_time",
             "end_time",
+            "is_published",
         ]
 
         widgets = {
@@ -227,11 +238,11 @@ class ExamForm(forms.ModelForm):
             }),
 
             "course": forms.Select(attrs={
-                "class": "form-control"
+                "class": "form-select"
             }),
 
             "subject": forms.Select(attrs={
-                "class": "form-control"
+                "class": "form-select"
             }),
 
             "duration": forms.NumberInput(attrs={
@@ -256,5 +267,10 @@ class ExamForm(forms.ModelForm):
                 }
             ),
 
+            "is_published": forms.CheckboxInput(
+                attrs={
+                    "class": "form-check-input"
+                }
+            ),
+
         }
-        # ==================================================

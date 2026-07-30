@@ -125,20 +125,42 @@ def is_faculty(user):
 @user_passes_test(is_faculty)
 def faculty_dashboard(request):
 
-    papers = QuestionPaper.objects.all().order_by("-id")
+    print("LOGGED USER:", request.user.username)
 
-    published = PublishedExam.objects.all().order_by("-id")
+    faculty = get_object_or_404(
+        FacultyProfile,
+        user=request.user
+    )
+
+    total_questions = Question.objects.filter(
+        course=faculty.course
+    ).count()
+
+    total_exams = Exam.objects.filter(
+        course=faculty.course
+    ).count()
+
+    total_students = StudentProfile.objects.filter(
+        course=faculty.course
+    ).count()
+
+    total_results = Result.objects.filter(
+        exam__course=faculty.course
+    ).count()
+
+    context = {
+        "faculty": faculty,
+        "total_questions": total_questions,
+        "total_exams": total_exams,
+        "total_students": total_students,
+        "total_results": total_results,
+    }
 
     return render(
         request,
         "faculty/dashboard.html",
-        {
-            "papers": papers,
-            "published": published,
-        },
+        context
     )
-
-
 # =========================================
 # STUDENT DASHBOARD
 # =========================================
@@ -273,14 +295,7 @@ def submit_exam(request):
 
         if answer:
 
-            selected_option = getattr(
-    q,
-    answer
-
-)
-
-
-            if selected_option == q.correct_answer:
+            if answer.strip().lower() == q.correct_answer.strip().lower():
 
                 score += q.marks
 
@@ -296,7 +311,7 @@ def submit_exam(request):
         )
 
 
-    Result.objects.create(
+    result = Result.objects.create(
         student=request.user,
         exam=exam,
         score=score,
@@ -312,6 +327,7 @@ def submit_exam(request):
             "score": score,
             "total": total_marks,
             "percentage": percentage,
+            "result": result,
         },
     )
 
@@ -586,12 +602,16 @@ def delete_faculty(request, id):
 # =========================================
 
 @login_required
-@user_passes_test(is_faculty)
 def create_exam(request):
+
+    if not (request.user.is_faculty or request.user.is_superuser):
+        return redirect("faculty_login")
+
 
     if request.method == "POST":
 
         form = ExamForm(request.POST)
+
 
         if form.is_valid():
 
@@ -602,13 +622,35 @@ def create_exam(request):
             exam.save()
 
 
+            # =====================================
+            # RANDOM QUESTION SELECTION
+            # =====================================
+
+            questions = Question.objects.filter(
+                course=exam.course,
+                subject=exam.subject
+            ).order_by("?")[:exam.number_of_questions]
+
+
+            # Create ExamQuestion records
+
+            for q in questions:
+
+                ExamQuestion.objects.create(
+                    exam=exam,
+                    question=q
+                )
+
+
             messages.success(
                 request,
-                "Exam created successfully."
+                f"Exam created successfully with {questions.count()} questions."
             )
 
 
-            return redirect("faculty_dashboard")
+            return redirect(
+                "faculty_dashboard"
+            )
 
 
     else:
@@ -1052,52 +1094,70 @@ def delete_subject(request, id):
 # =========================================
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(lambda user: user.is_faculty or user.is_superuser)
 def question_bank(request):
 
     questions = Question.objects.select_related(
-        "subject",
-        "subject__course"
-    ).all().order_by("-id")
+        "course",
+        "subject"
+    ).order_by("-id")
 
 
     search = request.GET.get("search")
+    course = request.GET.get("course")
+    subject = request.GET.get("subject")
+    semester = request.GET.get("semester")
+    academic_year = request.GET.get("academic_year")
 
 
     if search:
-
         questions = questions.filter(
             question_text__icontains=search
         )
 
 
-    subjects = Subject.objects.all()
-
-
-    subject_id = request.GET.get("subject")
-
-
-    if subject_id:
-
+    if course:
         questions = questions.filter(
-            subject_id=subject_id
+            course_id=course
         )
+
+
+    if subject:
+        questions = questions.filter(
+            subject_id=subject
+        )
+
+
+    if semester:
+        questions = questions.filter(
+            semester=semester
+        )
+
+
+    if academic_year:
+        questions = questions.filter(
+            academic_year=academic_year
+        )
+
+
+    context = {
+        "questions": questions,
+        "courses": Course.objects.all(),
+        "subjects": Subject.objects.all(),
+    }
 
 
     return render(
         request,
         "admin_panel/question_bank.html",
-        {
-            "questions": questions,
-            "subjects": subjects
-        }
+        context
     )
 # =========================================
 # UPLOAD QUESTIONS
 # =========================================
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_faculty)
 def upload_questions(request):
 
     if request.method == "POST":
@@ -1109,7 +1169,13 @@ def upload_questions(request):
 
         if form.is_valid():
 
+            print("FORM IS VALID")
+
+            course = form.cleaned_data["course"]
             subject = form.cleaned_data["subject"]
+            academic_year = form.cleaned_data["academic_year"]
+            semester = form.cleaned_data["semester"]
+
             excel_file = request.FILES["excel_file"]
 
             df = pd.read_excel(excel_file)
@@ -1117,7 +1183,10 @@ def upload_questions(request):
             for _, row in df.iterrows():
 
                 Question.objects.create(
+                    course=course,
                     subject=subject,
+                    academic_year=academic_year,
+                    semester=semester,
                     question_text=row["question_text"],
                     option1=row["option1"],
                     option2=row["option2"],
@@ -1133,6 +1202,10 @@ def upload_questions(request):
             )
 
             return redirect("question_bank")
+
+        else:
+            print("FORM ERRORS:")
+            print(form.errors)
 
     else:
 
@@ -1224,41 +1297,86 @@ def upload_question_paper(request):
 
     if request.method == "POST":
 
+        faculty = get_object_or_404(
+            FacultyProfile,
+            user=request.user
+        )
+
         form = QuestionUploadForm(
             request.POST,
-            request.FILES
+            request.FILES,
+            faculty=faculty
         )
 
         if form.is_valid():
 
+            course = form.cleaned_data["course"]
             subject = form.cleaned_data["subject"]
+            academic_year = form.cleaned_data["academic_year"]
+            semester = form.cleaned_data["semester"]
             excel_file = form.cleaned_data["excel_file"]
 
+            # Save uploaded Excel file information
+            question_paper = QuestionPaper.objects.create(
+                course=course,
+                subject=subject,
+                academic_year=academic_year,
+                semester=semester,
+                duration_minutes=60,
+                file=excel_file
+            )
+
             df = pd.read_excel(excel_file)
+
+            imported = 0
 
             for _, row in df.iterrows():
 
                 Question.objects.create(
+
+                    course=course,
+
                     subject=subject,
+
+                    academic_year=academic_year,
+
+                    semester=semester,
+
                     question_text=row["question_text"],
+
                     option1=row["option1"],
+
                     option2=row["option2"],
+
                     option3=row["option3"],
+
                     option4=row["option4"],
-                    correct_answer=row["correct_answer"],
-                    marks=row["marks"],
+
+                    correct_answer=str(row["correct_answer"]),
+
+                    marks=int(row["marks"]),
+
                 )
+
+                imported += 1
 
             messages.success(
                 request,
-                "Questions uploaded successfully."
+                f"{imported} questions uploaded successfully."
             )
 
             return redirect("faculty_dashboard")
 
     else:
 
-        form = QuestionUploadForm()
+        faculty = get_object_or_404(
+            FacultyProfile,
+            user=request.user
+        )
+
+        form = QuestionUploadForm(
+            faculty=faculty
+        )
 
     return render(
         request,
@@ -1267,7 +1385,6 @@ def upload_question_paper(request):
             "form": form
         }
     )
-
 # =========================================
 # PUBLISH EXAM
 # =========================================
@@ -1429,7 +1546,7 @@ def password_generator(request):
     )
 @login_required
 @user_passes_test(is_admin)
-def create_exam(request):
+def admin_create_exam(request):
 
     if request.method == "POST":
 
@@ -1457,4 +1574,123 @@ def create_exam(request):
             "form": form,
         }
     )
+@login_required
+@user_passes_test(is_faculty)
+def faculty_upload_questions(request):
 
+    if request.method == "POST":
+
+        form = QuestionUploadForm(
+            request.POST,
+            request.FILES
+        )
+
+        if form.is_valid():
+
+            course = form.cleaned_data["course"]
+            subject = form.cleaned_data["subject"]
+            academic_year = form.cleaned_data["academic_year"]
+            semester = form.cleaned_data["semester"]
+
+            excel_file = request.FILES["excel_file"]
+
+            try:
+
+                df = pd.read_excel(excel_file)
+
+                # Remove extra spaces from column names
+                df.columns = df.columns.str.strip()
+
+                print("Excel Columns:", df.columns.tolist())
+
+                required_columns = [
+                    "question_text",
+                    "option1",
+                    "option2",
+                    "option3",
+                    "option4",
+                    "correct_answer",
+                    "marks",
+                ]
+
+                missing = [
+                    col for col in required_columns
+                    if col not in df.columns
+                ]
+
+                if missing:
+                    messages.error(
+                        request,
+                        f"Missing columns in Excel: {', '.join(missing)}"
+                    )
+                    return render(
+                        request,
+                        "faculty/upload_questions.html",
+                        {"form": form}
+                    )
+
+                for _, row in df.iterrows():
+
+                    Question.objects.create(
+                        course=course,
+                        subject=subject,
+                        academic_year=academic_year,
+                        semester=semester,
+                        question_text=str(row["question_text"]).strip(),
+                        option1=str(row["option1"]).strip(),
+                        option2=str(row["option2"]).strip(),
+                        option3=str(row["option3"]).strip(),
+                        option4=str(row["option4"]).strip(),
+                        correct_answer=str(row["correct_answer"]).strip(),
+                        marks=int(row["marks"]),
+                    )
+
+                messages.success(
+                    request,
+                    "Questions uploaded successfully."
+                )
+
+                return redirect("faculty_dashboard")
+
+            except Exception as e:
+
+                print("UPLOAD ERROR:", e)
+
+                messages.error(
+                    request,
+                    f"Upload failed: {e}"
+                )
+
+        else:
+
+            print(form.errors)
+
+    else:
+
+        form = QuestionUploadForm()
+
+    return render(
+        request,
+        "faculty/upload_questions.html",
+        {
+            "form": form
+        }
+    )
+@login_required
+@user_passes_test(lambda u: u.is_faculty or u.is_superuser)
+def faculty_question_bank(request):
+
+    questions = Question.objects.select_related(
+        "course",
+        "subject"
+    ).order_by("-id")
+
+    return render(
+        request,
+        "faculty/question_bank.html",
+        {
+            "questions": questions,
+            "courses": Course.objects.all(),
+            "subjects": Subject.objects.all(),
+        }
+    )

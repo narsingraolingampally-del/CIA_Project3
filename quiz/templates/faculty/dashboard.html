@@ -1,77 +1,191 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% load static %}
 
 {% block content %}
-<div style="display: flex; min-height: 100vh;">
-    
-    {% include 'faculty/sidebar.html' %} 
 
-    <main class="main-canvas" style="flex: 1; display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch; padding: 40px; background-color: #f4f7f6;">
-        
-        {% block dashboard_body %}
-            {% if papers %}
-                <h4 style="color: #2c75ff; margin-bottom: 20px; font-weight: bold; border-bottom: 2px solid #75dec9; padding-bottom: 10px;">
-                    Uploaded Question Papers
-                </h4>
-                
-                <div style="background: white; border: 1px solid #ccc; border-radius: 4px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                    <table class="table table-hover mb-0">
-                        <thead style="background-color: #2c75ff; color: white;">
-                            <tr>
-                                <th style="padding: 12px;">Subject</th>
-                                <th>Course</th>
-                                <th>Semester</th>
-                                <th>Date</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for paper in papers %}
-                            <tr>
-                                <td style="padding: 12px; vertical-align: middle;">{{ paper.subject }}</td>
-                                <td style="vertical-align: middle;">{{ paper.course }}</td>
-                                <td style="vertical-align: middle;">{{ paper.semester }}</td>
-                                <td style="vertical-align: middle;">{{ paper.uploaded_at|date:"d/m/Y" }}</td>
-                                <td style="vertical-align: middle;">
-                                    {% if not paper.is_active %}
-                                      <a href="{% url 'publish_exam' paper.id %}" 
-           class="btn btn-success">
-            Publish Exam
-        </a>
-                                        <span class="badge bg-primary" style="padding: 8px; margin-right: 5px; color: white;">Published</span>
-                                    {% endif %}
+<div class="container mt-4">
 
-                                    {% if paper.file %}
-                                        <a href="{{ paper.file.url }}" class="btn btn-sm" style="background-color: #75dec9; font-weight: bold; margin-right: 5px;" target="_blank">View File</a>
-                                    {% endif %}
+<div class="d-flex justify-content-between align-items-center mb-4">
 
-                                    <a href="{% url 'delete_paper' paper.pk %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a> 
-                                <a href="{% url 'delete_paper' paper.pk %}"
-   class="btn btn-sm btn-danger"
-   onclick="return confirm('Are you sure?')">
-    Delete
-</a><a href="{% url 'create_exam' %}"
-class="btn btn-primary">
+<div>
+<h2>Faculty Dashboard</h2>
+<p class="text-muted">
+Welcome, {{ faculty.user.get_full_name|default:faculty.user.username }}
+</p>
+</div>
 
-<i class="fas fa-plus"></i>
-Create Exam
+<a href="{% url 'create_exam' %}" class="btn btn-primary">
+➕ Create Assessment
+</a>
+
+</div>
+
+
+<div class="row">
+
+<div class="col-md-3 mb-3">
+<div class="card shadow border-0 bg-primary text-white">
+<div class="card-body text-center">
+<h5>Total Questions</h5>
+<h2>{{ total_questions }}</h2>
+</div>
+</div>
+</div>
+
+<div class="col-md-3 mb-3">
+<div class="card shadow border-0 bg-success text-white">
+<div class="card-body text-center">
+<h5>Assessments</h5>
+<h2>{{ total_exams }}</h2>
+</div>
+</div>
+</div>
+
+<div class="col-md-3 mb-3">
+<div class="card shadow border-0 bg-warning text-dark">
+<div class="card-body text-center">
+<h5>Students</h5>
+<h2>{{ total_students }}</h2>
+</div>
+</div>
+</div>
+
+<div class="col-md-3 mb-3">
+<div class="card shadow border-0 bg-danger text-white">
+<div class="card-body text-center">
+<h5>Results</h5>
+<h2>{{ total_results }}</h2>
+</div>
+</div>
+</div>
+
+</div>
+
+
+<div class="row mt-4">
+
+<div class="col-md-8">
+
+<div class="card shadow">
+
+<div class="card-header bg-dark text-white">
+Recent Assessments
+</div>
+
+<div class="card-body">
+
+<table class="table table-hover">
+
+<thead>
+
+<tr>
+<th>Assessment</th>
+<th>Subject</th>
+<th>Duration</th>
+<th>Status</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for exam in recent_exams %}
+
+<tr>
+
+<td>{{ exam.exam_name }}</td>
+
+<td>{{ exam.subject.name }}</td>
+
+<td>{{ exam.duration }} mins</td>
+
+<td>
+
+{% if exam.is_published %}
+
+<span class="badge bg-success">
+Published
+</span>
+
+{% else %}
+
+<span class="badge bg-secondary">
+Draft
+</span>
+
+{% endif %}
+
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+
+<td colspan="4">
+
+No Assessments Found.
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="col-md-4">
+
+<div class="card shadow">
+
+<div class="card-header bg-primary text-white">
+
+Quick Actions
+
+</div>
+
+<div class="card-body d-grid gap-2">
+
+<a href="{% url 'faculty_upload_questions' %}" class="btn btn-outline-primary">
+    📤 Upload Questions
+</a>
+
+<a href="{% url 'create_exam' %}" class="btn btn-outline-success">
+
+📝 Create Assessment
 
 </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% else %}
-                <div style="text-align: center; margin-top: 80px;">
-                    <img src="{% static 'images/examination_logo.png' %}" style="max-width: 300px; opacity: 0.5;">
-                    <p style="color: #888; margin-top: 20px; font-size: 1.1rem;">No question papers found.</p>
-                    <a href="{% url 'upload_question_paper' %}" class="btn btn-primary">Upload Your First Paper</a>
-                </div>
-            {% endif %}
-        {% endblock %}
-        
-    </main>
+
+<a href="{% url 'question_bank' %}" class="btn btn-outline-warning">
+
+📚 Question Bank
+
+</a>
+
+<a href="#" class="btn btn-outline-danger">
+
+📊 View Results
+
+</a>
+
 </div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
 {% endblock %}
