@@ -1,15 +1,16 @@
 
-from .models import (
+from .models import(
     User,
-    FacultyProfile,
-    StudentProfile,
     Course,
     Subject,
+    StudentProfile,
+    FacultyProfile,
     Question,
     QuestionPaper,
     Exam,
+    Result,
+    ExamQuestion,
 )
-
 # =========================================
 # FACULTY FORM
 # =========================================
@@ -231,46 +232,73 @@ class ExamForm(forms.ModelForm):
             "is_published",
         ]
 
+
         widgets = {
 
-            "exam_name": forms.TextInput(attrs={
-                "class": "form-control"
-            }),
+            "exam_name": forms.TextInput(
+                attrs={
+                    "class":"form-control",
+                    "placeholder":"Enter Exam Name"
+                }
+            ),
 
-            "course": forms.Select(attrs={
-                "class": "form-select"
-            }),
 
-            "subject": forms.Select(attrs={
-                "class": "form-select"
-            }),
+            "course": forms.Select(
+                attrs={
+                    "class":"form-select"
+                }
+            ),
 
-            "duration": forms.NumberInput(attrs={
-                "class": "form-control"
-            }),
 
-            "number_of_questions": forms.NumberInput(attrs={
-                "class": "form-control"
-            }),
+            "subject": forms.Select(
+                attrs={
+                    "class":"form-select"
+                }
+            ),
+
+
+            "duration": forms.NumberInput(
+                attrs={
+                    "class":"form-control"
+                }
+            ),
+
+
+            "number_of_questions": forms.NumberInput(
+                attrs={
+                    "class":"form-control"
+                }
+            ),
+
 
             "start_time": forms.DateTimeInput(
                 attrs={
-                    "class": "form-control",
-                    "type": "datetime-local"
+                    "class":"form-control",
+                    "type":"datetime-local"
                 }
             ),
+
 
             "end_time": forms.DateTimeInput(
                 attrs={
-                    "class": "form-control",
-                    "type": "datetime-local"
+                    "class":"form-control",
+                    "type":"datetime-local"
                 }
             ),
+
 
             "is_published": forms.CheckboxInput(
                 attrs={
-                    "class": "form-check-input"
+                    "class":"form-check-input"
                 }
             ),
-
         }
+
+
+    def __init__(self,*args,**kwargs):
+
+        super().__init__(*args,**kwargs)
+
+        self.fields["course"].queryset = Course.objects.all()
+
+        self.fields["subject"].queryset = Subject.objects.all()

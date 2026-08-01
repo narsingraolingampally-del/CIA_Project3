@@ -9,20 +9,23 @@ import random
 import string
 from .forms import QuestionForm
 from .models import Question, Subject
-from .models import (
+import random
+
+
+from .models import(
     User,
-    StudentProfile,
-    FacultyProfile,
     Course,
     Subject,
+    StudentProfile,
+    FacultyProfile,
     Question,
     QuestionPaper,
-    ActiveQuiz,
-    PublishedExam,
-    Result,
     Exam,
-    ExamQuestion,
+    Result,
+     ExamQuestion,
 )
+
+
 
 from .forms import (
     FacultyForm,
@@ -104,12 +107,17 @@ def logout_view(request):
     return redirect("index")
 
 
-# =========================================
-# PERMISSIONS
-# =========================================
+# ===========================================
+# USER ROLE CHECKS
+# ===========================================
 
 def is_admin(user):
-    return user.is_staff or user.is_superuser
+    return user.is_authenticated and user.is_superuser
+
+
+
+def is_student(user):
+    return user.is_authenticated and user.is_student
 
 
 def is_faculty(user):
@@ -132,29 +140,47 @@ def faculty_dashboard(request):
         user=request.user
     )
 
-    total_questions = Question.objects.filter(
-        course=faculty.course
-    ).count()
+    # Total questions in question bank
+    total_questions = Question.objects.count()
 
-    total_exams = Exam.objects.filter(
-        course=faculty.course
-    ).count()
 
-    total_students = StudentProfile.objects.filter(
-        course=faculty.course
-    ).count()
+    # Total exams created
+    total_exams = Exam.objects.count()
 
-    total_results = Result.objects.filter(
-        exam__course=faculty.course
-    ).count()
+
+    # Total registered students
+    total_students = StudentProfile.objects.count()
+
+
+    # Total exam results
+    total_results = Result.objects.count()
+
+
+    # Recent exams
+    recent_exams = Exam.objects.select_related(
+        "course",
+        "subject"
+    ).order_by(
+        "-created_at"
+    )[:5]
+
 
     context = {
+
         "faculty": faculty,
+
         "total_questions": total_questions,
+
         "total_exams": total_exams,
+
         "total_students": total_students,
+
         "total_results": total_results,
+
+        "recent_exams": recent_exams,
+
     }
+
 
     return render(
         request,
@@ -169,52 +195,48 @@ def faculty_dashboard(request):
 # STUDENT DASHBOARD
 # =========================================
 
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, get_object_or_404
-from .models import StudentProfile, Exam, Result
-
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import render, get_object_or_404
 
 from .models import StudentProfile, Exam, Result
 
 
 @login_required
+@user_passes_test(is_student)
 def student_dashboard(request):
 
+    # Get logged in student's profile
     student = get_object_or_404(
         StudentProfile,
         user=request.user
     )
 
+    # Published exams for the student's course
     exams = Exam.objects.filter(
         course=student.course,
         is_published=True
-    )
+    ).select_related(
+        "course",
+        "subject"
+    ).order_by("-created_at")
 
-    print("=" * 50)
-    print("Logged in user :", request.user.username)
-    print("Student course :", student.course)
-    print("Course ID      :", student.course.id)
-    print("Exam Count     :", exams.count())
-
-    for exam in exams:
-        print(exam.id, exam.exam_name)
-
-    print("=" * 50)
-
+    # Student's previous results
     results = Result.objects.filter(
-        student=request.user
-    )
+        student=request.user      # <-- FIXED
+    ).select_related(
+        "exam"
+    ).order_by("-completed_at")
+
+    context = {
+        "student": student,
+        "exams": exams,
+        "results": results,
+    }
 
     return render(
         request,
         "student/dashboard.html",
-        {
-            "student": student,
-            "exams": exams,
-            "results": results,
-        }
+        context
     )
 # =========================================
 # TAKE QUIZ
@@ -225,6 +247,7 @@ def student_dashboard(request):
 # =========================================
 
 @login_required
+@user_passes_test(is_student)
 def take_exam(request, exam_id):
 
     exam = get_object_or_404(
@@ -232,6 +255,25 @@ def take_exam(request, exam_id):
         id=exam_id,
         is_published=True
     )
+
+
+    student = get_object_or_404(
+        StudentProfile,
+        user=request.user
+    )
+
+
+    # Check student belongs to exam course
+    if student.course != exam.course:
+
+        messages.error(
+            request,
+            "You are not allowed to attend this exam."
+        )
+
+        return redirect(
+            "student_dashboard"
+        )
 
 
     exam_questions = exam.exam_questions.select_related(
@@ -248,8 +290,6 @@ def take_exam(request, exam_id):
             "duration_seconds": exam.duration * 60,
         },
     )
-
-
 # =========================================
 # SUBMIT QUIZ
 # =========================================
@@ -259,78 +299,98 @@ def take_exam(request, exam_id):
 # =========================================
 
 @login_required
+@user_passes_test(is_student)
 def submit_exam(request):
 
     if request.method != "POST":
         return redirect("student_dashboard")
 
-
     exam = get_object_or_404(
         Exam,
-        id=request.POST.get("exam_id"),
-        is_published=True
+        id=request.POST.get("exam_id")
     )
 
+    if Result.objects.filter(
+        student=request.user,
+        exam=exam
+    ).exists():
 
-    exam_questions = exam.exam_questions.select_related(
-        "question"
-    ).all()
+        messages.warning(
+            request,
+            "You have already attempted this exam."
+        )
 
+        return redirect("student_dashboard")
+
+    exam_questions = ExamQuestion.objects.filter(
+        exam=exam
+    ).select_related("question")
 
     score = 0
     total_marks = 0
 
-
     for eq in exam_questions:
 
-        q = eq.question
+        question = eq.question
 
-        total_marks += q.marks
+        total_marks += question.marks
 
-
-        answer = request.POST.get(
-            f"q_{q.id}"
+        selected = request.POST.get(
+            f"q_{question.id}"
         )
 
+        if not selected:
+            continue
 
-        if answer:
+        if selected == "1":
+            selected_answer = question.option1
+        elif selected == "2":
+            selected_answer = question.option2
+        elif selected == "3":
+            selected_answer = question.option3
+        elif selected == "4":
+            selected_answer = question.option4
+        else:
+            selected_answer = ""
 
-            if answer.strip().lower() == q.correct_answer.strip().lower():
+        selected_answer = str(selected_answer).strip().lower()
+        correct_answer = str(question.correct_answer).strip().lower()
 
-                score += q.marks
+        print("--------------------------------")
+        print("Question :", question.question_text)
+        print("Selected :", repr(selected_answer))
+        print("Correct  :", repr(correct_answer))
 
-
+        if selected_answer == correct_answer:
+            score += question.marks
+            print("CORRECT")
+        else:
+            print("WRONG")
 
     percentage = 0
 
-    if total_marks:
+    if total_marks > 0:
+        percentage = (score / total_marks) * 100
 
-        percentage = round(
-            (score / total_marks) * 100,
-            2
-        )
-
-
-    result = Result.objects.create(
+    Result.objects.create(
         student=request.user,
         exam=exam,
         score=score,
         total_marks=total_marks,
+        percentage=percentage
     )
-
 
     return render(
         request,
         "student/result.html",
         {
-            "subject": exam.subject,
+            "exam": exam,
+            "subject": exam.subject.name,
             "score": score,
             "total": total_marks,
-            "percentage": percentage,
-            "result": result,
-        },
+            "percentage": round(percentage, 2),
+        }
     )
-
 # =========================================
 # VIEW QUESTIONS
 # =========================================
@@ -380,27 +440,64 @@ def view_results(request):
 @user_passes_test(is_admin)
 def admin_dashboard(request):
 
+    student_count = StudentProfile.objects.count()
+    faculty_count = FacultyProfile.objects.count()
+    course_count = Course.objects.count()
+    subject_count = Subject.objects.count()
+    question_count = Question.objects.count()
+    exam_count = Exam.objects.count()
+    published_exam_count = Exam.objects.filter(
+        is_published=True
+    ).count()
+    result_count = Result.objects.count()
+
+    recent_exams = Exam.objects.select_related(
+        "course",
+        "subject"
+    ).order_by("-id")[:5]
+
+    # Students by Course
+    courses = Course.objects.all()
+
+    course_names = []
+    course_students = []
+
+    for course in courses:
+
+        course_names.append(course.name)
+
+        course_students.append(
+            StudentProfile.objects.filter(
+                course=course
+            ).count()
+        )
+
+    # Pass / Fail
+    pass_count = Result.objects.filter(
+        percentage__gte=50
+    ).count()
+
+    fail_count = Result.objects.filter(
+        percentage__lt=50
+    ).count()
+
     context = {
 
-        "student_count": User.objects.filter(
-            is_student=True
-        ).count(),
+        "student_count": student_count,
+        "faculty_count": faculty_count,
+        "course_count": course_count,
+        "subject_count": subject_count,
+        "question_count": question_count,
+        "exam_count": exam_count,
+        "published_exam_count": published_exam_count,
+        "result_count": result_count,
+        "recent_exams": recent_exams,
 
-        "faculty_count": User.objects.filter(
-            is_faculty=True
-        ).count(),
+        "course_names": course_names,
+        "course_students": course_students,
 
-        "course_count": Course.objects.count(),
-
-        "subject_count": Subject.objects.count(),
-
-        "question_count": Question.objects.count(),
-
-        "active_exam_count": ActiveQuiz.objects.filter(
-            is_active=True
-        ).count(),
-
-        "result_count": Result.objects.count(),
+        "pass_count": pass_count,
+        "fail_count": fail_count,
 
     }
 
@@ -409,7 +506,6 @@ def admin_dashboard(request):
         "admin_panel/dashboard.html",
         context
     )
-
 # ==================================================
 # ADD QUESTION
 # ==================================================
@@ -452,20 +548,38 @@ def add_question(request):
 # FACULTY MANAGEMENT
 # =========================================
 
+from django.db.models import Q
+
 @login_required
 @user_passes_test(is_admin)
 def manage_faculty(request):
 
+    search = request.GET.get("search", "")
+
     faculty = FacultyProfile.objects.select_related(
-        "user"
-    ).all().order_by("user__username")
+        "user",
+        "course"
+    ).prefetch_related(
+        "subjects"
+    )
+
+    if search:
+        faculty = faculty.filter(
+            Q(user__username__icontains=search) |
+            Q(user__first_name__icontains=search) |
+            Q(user__last_name__icontains=search) |
+            Q(user__email__icontains=search)
+        )
+
+    faculty = faculty.order_by("user__username")
 
     return render(
         request,
         "admin_panel/faculty_list.html",
         {
-            "faculty": faculty
-        }
+            "faculty": faculty,
+            "search": search,
+        },
     )
 
 
@@ -600,57 +714,97 @@ def delete_faculty(request, id):
 # =========================================
 # CREATE EXAM
 # =========================================
+# =========================================
+# FACULTY CREATE EXAM
+# =========================================
 
 @login_required
+@user_passes_test(is_faculty)
 def create_exam(request):
-
-    if not (request.user.is_faculty or request.user.is_superuser):
-        return redirect("faculty_login")
-
 
     if request.method == "POST":
 
         form = ExamForm(request.POST)
 
-
         if form.is_valid():
 
             exam = form.save(commit=False)
 
+            # Faculty should create unpublished exam
             exam.is_published = False
 
             exam.save()
 
 
-            # =====================================
-            # RANDOM QUESTION SELECTION
-            # =====================================
+            print("======================")
+            print("EXAM CREATED")
+            print("ID:", exam.id)
+            print("COURSE:", exam.course)
+            print("COURSE ID:", exam.course_id)
+            print("SUBJECT:", exam.subject)
+            print("SUBJECT ID:", exam.subject_id)
+            print("======================")
 
+
+            # Get questions
             questions = Question.objects.filter(
-                course=exam.course,
-                subject=exam.subject
-            ).order_by("?")[:exam.number_of_questions]
+                course_id=exam.course_id,
+                subject_id=exam.subject_id
+            )
 
 
-            # Create ExamQuestion records
+            print(
+                "AVAILABLE QUESTIONS:",
+                questions.count()
+            )
 
-            for q in questions:
+
+            if questions.count() < exam.number_of_questions:
+
+                messages.error(
+                    request,
+                    f"Only {questions.count()} questions available."
+                )
+
+                exam.delete()
+
+                return redirect(
+                    "create_exam"
+                )
+
+
+            # Select random questions
+
+            selected_questions = random.sample(
+                list(questions),
+                exam.number_of_questions
+            )
+
+
+            # Insert into ExamQuestion table
+
+            for question in selected_questions:
 
                 ExamQuestion.objects.create(
                     exam=exam,
-                    question=q
+                    question=question
                 )
 
 
             messages.success(
                 request,
-                f"Exam created successfully with {questions.count()} questions."
+                "Exam created successfully."
             )
 
 
             return redirect(
                 "faculty_dashboard"
             )
+
+
+        else:
+
+            print(form.errors)
 
 
     else:
@@ -662,31 +816,9 @@ def create_exam(request):
         request,
         "faculty/create_exam.html",
         {
-            "form": form
+            "form":form
         }
-    )
-# =========================================
-# STUDENT MANAGEMENT
-# =========================================
-
-@login_required
-@user_passes_test(is_admin)
-def manage_students(request):
-
-    students = StudentProfile.objects.select_related(
-        "user"
-    ).all().order_by("user__username")
-
-    return render(
-        request,
-        "admin_panel/student_list.html",
-        {
-            "students": students
-        }
-    )
-
-
-# =========================================
+    )# =========================================
 # ADD STUDENT
 # =========================================
 
@@ -727,43 +859,90 @@ def add_student(request):
 # =========================================
 
 @login_required
-@user_passes_test(is_admin)
-def edit_student(request, id):
+@user_passes_test(is_student)
+def submit_exam(request):
 
-    student = get_object_or_404(
-        StudentProfile,
-        id=id
+    if request.method != "POST":
+        return redirect("student_dashboard")
+
+    exam = get_object_or_404(
+        Exam,
+        id=request.POST.get("exam_id")
     )
 
-    if request.method == "POST":
+    # Prevent multiple attempts
+    if Result.objects.filter(
+        student=request.user,
+        exam=exam
+    ).exists():
 
-        form = StudentRegistrationForm(
-            request.POST,
-            instance=student
+        messages.warning(
+            request,
+            "You have already attempted this exam."
         )
 
-        if form.is_valid():
+        return redirect("student_dashboard")
 
-            form.save()
+    exam_questions = ExamQuestion.objects.filter(
+        exam=exam
+    ).select_related("question")
 
-            messages.success(
-                request,
-                "Student updated successfully."
-            )
+    score = 0
+    total_marks = 0
 
-            return redirect("manage_students")
+    for eq in exam_questions:
 
-    else:
+        question = eq.question
 
-        form = StudentRegistrationForm(
-            instance=student
-        )
+        total_marks += question.marks
+
+        selected = request.POST.get(f"q_{question.id}")
+
+        if not selected:
+            continue
+
+        option_map = {
+            "1": question.option1,
+            "2": question.option2,
+            "3": question.option3,
+            "4": question.option4,
+        }
+
+        selected_answer = option_map.get(selected, "").strip().lower()
+        correct_answer = str(question.correct_answer).strip().lower()
+
+        print("--------------------------------")
+        print("Question :", question.question_text)
+        print("Selected :", selected_answer)
+        print("Correct  :", correct_answer)
+
+        if selected_answer == correct_answer:
+            score += question.marks
+            print("✓ Correct")
+        else:
+            print("✗ Wrong")
+
+    percentage = (
+        (score / total_marks) * 100
+        if total_marks > 0 else 0
+    )
+
+    Result.objects.create(
+        student=request.user,
+        exam=exam,
+        score=score,
+        total_marks=total_marks,
+        percentage=percentage
+    )
 
     return render(
         request,
-        "admin_panel/add_student.html",
+        "student/result.html",
         {
-            "form": form
+            "exam": exam,
+            "score": score,
+            "total_marks": total_marks,
+            "percentage": round(percentage, 2),
         }
     )
 
@@ -802,72 +981,228 @@ def upload_students(request):
     if request.method == "POST":
 
         excel_file = request.FILES.get("excel_file")
+        course_id = request.POST.get("course")
+        semester = request.POST.get("semester")
+
 
         if not excel_file:
-
             messages.error(
                 request,
-                "Please choose an Excel file."
+                "Please select an Excel file."
             )
-
             return redirect("upload_students")
+
+
+        if not course_id or not semester:
+            messages.error(
+                request,
+                "Please select Course and Semester."
+            )
+            return redirect("upload_students")
+
 
         try:
 
-            df = pd.read_excel(excel_file)
+            course = get_object_or_404(
+                Course,
+                id=course_id
+            )
+
+
+            df = pd.read_excel(
+                excel_file
+            )
+
+
+            # Remove empty rows
+            df.dropna(
+                how="all",
+                inplace=True
+            )
+
+
+            required_columns = [
+                "roll_number",
+                "aadhaar",
+                "name",
+                "email"
+            ]
+
+
+            # Validate Excel headers
+
+            for column in required_columns:
+
+                if column not in df.columns:
+
+                    messages.error(
+                        request,
+                        f"Missing column: {column}"
+                    )
+
+                    return redirect(
+                        "upload_students"
+                    )
+
 
             imported = 0
             skipped = 0
 
+
             for _, row in df.iterrows():
 
-                username = str(row["Username"]).strip()
 
-                if User.objects.filter(username=username).exists():
+                # Convert Excel values safely
+
+                roll_number = str(
+                    int(row["roll_number"])
+                ).strip()
+
+
+                aadhaar = str(
+                    int(row["aadhaar"])
+                ).strip()
+
+
+                name = str(
+                    row["name"]
+                ).strip()
+
+
+                email = str(
+                    row["email"]
+                ).strip()
+
+
+
+                # Skip duplicate username
+
+                if User.objects.filter(
+                    username=roll_number
+                ).exists():
+
                     skipped += 1
                     continue
 
+
+
+                # Create User account
+
                 user = User.objects.create_user(
-                    username=username,
-                    password=str(row["Password"]),
-                    first_name=str(row["First Name"]),
-                    last_name=str(row["Last Name"]),
-                    email=str(row["Email"]),
+
+                    username=roll_number,
+
+                    password=aadhaar,
+
+                    first_name=name,
+
+                    email=email
+
                 )
+
+
+                # Custom User fields
 
                 user.is_student = True
+
+                # User.course is CharField
+                user.course = course.name
+
+                user.semester = int(
+                    semester
+                )
+
                 user.save()
 
+
+
+                # Create Student Profile
+
                 StudentProfile.objects.create(
+
                     user=user,
-                    course=row["Course"],
-                    semester=int(row["Semester"])
+
+                    name=name,
+
+                    course=course,
+
+                    semester=int(
+                        semester
+                    )
+
                 )
+
 
                 imported += 1
 
+
+
             messages.success(
+
                 request,
-                f"{imported} students imported successfully."
+
+                f"{imported} students uploaded successfully."
+
             )
 
+
             if skipped:
+
                 messages.warning(
+
                     request,
+
                     f"{skipped} duplicate students skipped."
+
                 )
 
-            return redirect("manage_students")
+
+            return redirect(
+                "manage_students"
+            )
+
+
 
         except Exception as e:
 
-            messages.error(request, str(e))
+
+            import traceback
+
+            print(
+                traceback.format_exc()
+            )
+
+
+            messages.error(
+
+                request,
+
+                f"Upload failed: {str(e)}"
+
+            )
+
+
+            return redirect(
+                "upload_students"
+            )
+
+
+
+    courses = Course.objects.all()
+
 
     return render(
+
         request,
-        "admin_panel/upload_students.html"
-    )
-# =========================================
+
+        "admin_panel/upload_students.html",
+
+        {
+            "courses": courses
+        }
+
+    
+    )# =========================================
 # COURSE MANAGEMENT
 # =========================================
 
@@ -1390,21 +1725,29 @@ def upload_question_paper(request):
 # =========================================
 
 @login_required
-@user_passes_test(is_faculty)
+@user_passes_test(is_admin)
 def publish_exam(request, id):
 
-    paper = get_object_or_404(
-        QuestionPaper,
+    exam = get_object_or_404(
+        Exam,
         id=id
     )
 
+
+    exam.is_published = True
+
+    exam.save()
+
+
     messages.success(
         request,
-        f"{paper.subject} published successfully."
+        f"{exam.exam_name} published successfully."
     )
 
-    return redirect("faculty_dashboard")
 
+    return redirect(
+        "manage_exams"
+    )
 
 # =========================================
 # DELETE QUESTION PAPER
@@ -1554,24 +1897,73 @@ def admin_create_exam(request):
 
         if form.is_valid():
 
-            form.save()
+            exam = form.save(commit=False)
+
+            exam.is_published = False
+
+            # Check available questions first
+            questions = list(
+                Question.objects.filter(
+                    course=exam.course,
+                    subject=exam.subject,
+                    semester=exam.subject.semester,
+                )
+            )
+
+
+            if len(questions) < exam.number_of_questions:
+
+                messages.error(
+                    request,
+                    f"Only {len(questions)} questions available."
+                )
+
+                return redirect(
+                    "admin_create_exam"
+                )
+
+
+            # Save exam
+            exam.save()
+
+
+            # Random question selection
+            selected_questions = random.sample(
+                questions,
+                exam.number_of_questions
+            )
+
+
+            # Create ExamQuestion records
+            for q in selected_questions:
+
+                ExamQuestion.objects.get_or_create(
+                    exam=exam,
+                    question=q
+                )
+
 
             messages.success(
                 request,
                 "Exam created successfully."
             )
 
-            return redirect("manage_exams")
+
+            return redirect(
+                "manage_exams"
+            )
+
 
     else:
 
         form = ExamForm()
 
+
     return render(
         request,
         "admin_panel/create_exam.html",
         {
-            "form": form,
+            "form": form
         }
     )
 @login_required
@@ -1692,5 +2084,103 @@ def faculty_question_bank(request):
             "questions": questions,
             "courses": Course.objects.all(),
             "subjects": Subject.objects.all(),
+        }
+    )
+@login_required
+@user_passes_test(is_admin)
+def edit_exam(request, id):
+
+    exam = get_object_or_404(
+        Exam,
+        id=id
+    )
+
+    if request.method == "POST":
+
+        form = ExamForm(
+            request.POST,
+            instance=exam
+        )
+
+        if form.is_valid():
+
+            form.save()
+
+            messages.success(
+                request,
+                "Exam updated successfully."
+            )
+
+            return redirect("manage_exams")
+
+    else:
+
+        form = ExamForm(
+            instance=exam
+        )
+
+    return render(
+        request,
+        "admin_panel/edit_exam.html",
+        {
+            "form": form,
+            "exam": exam
+        }
+    )
+@login_required
+@user_passes_test(is_admin)
+def manage_students(request):
+
+    students = StudentProfile.objects.select_related(
+        "user",
+        "course"
+    ).all()
+
+    return render(
+        request,
+        "admin_panel/student_list.html",
+        {
+            "students": students
+        }
+    )
+@login_required
+@user_passes_test(is_admin)
+def edit_student(request, id):
+
+    student = get_object_or_404(
+        StudentProfile,
+        id=id
+    )
+
+    if request.method == "POST":
+
+        form = StudentRegistrationForm(
+            request.POST,
+            instance=student.user
+        )
+
+        if form.is_valid():
+
+            form.save()
+
+            messages.success(
+                request,
+                "Student updated successfully."
+            )
+
+            return redirect("manage_students")
+
+    else:
+
+        form = StudentRegistrationForm(
+            instance=student.user
+        )
+
+    return render(
+        request,
+        "admin_panel/edit_student.html",
+        {
+            "form": form,
+            "student": student
         }
     )

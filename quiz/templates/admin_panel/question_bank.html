@@ -2,179 +2,381 @@
 
 {% block content %}
 
-<div class="container mt-4">
+<div class="container-fluid">
 
-    <h3 class="mb-4">Question Bank</h3>
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
 
-    <div class="card shadow">
+        <div>
+
+            <h2 class="fw-bold">
+                <i class="fas fa-database text-primary"></i>
+                Question Bank
+            </h2>
+
+            <p class="text-muted mb-0">
+                Total Questions :
+                <strong>{{ questions|length }}</strong>
+            </p>
+
+        </div>
+
+        <div>
+
+            <a href="{% url 'add_question' %}"
+               class="btn btn-primary">
+
+                <i class="fas fa-plus"></i>
+                Add Question
+
+            </a>
+
+            <a href="{% url 'upload_questions' %}"
+               class="btn btn-success">
+
+                <i class="fas fa-upload"></i>
+                Upload Excel
+
+            </a>
+
+        </div>
+
+    </div>
+
+    <!-- Messages -->
+
+    {% if messages %}
+
+        {% for message in messages %}
+
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+
+                {{ message }}
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert">
+                </button>
+
+            </div>
+
+        {% endfor %}
+
+    {% endif %}
+
+    <!-- Filter Card -->
+
+    <div class="card shadow mb-4">
+
+        <div class="card-header bg-dark text-white">
+
+            <h5 class="mb-0">
+
+                <i class="fas fa-filter"></i>
+                Search & Filter Questions
+
+            </h5>
+
+        </div>
 
         <div class="card-body">
 
-            <!-- FILTER FORM -->
-            <form method="GET" class="row g-3 mb-4">
+            <form method="GET">
 
-                <div class="col-md-3">
-                    <label class="form-label">Search</label>
-                    <input
-                        type="text"
-                        name="search"
-                        value="{{ request.GET.search }}"
-                        class="form-control"
-                        placeholder="Search Question">
-                </div>
+                <div class="row g-3">
 
-                <div class="col-md-2">
-                    <label class="form-label">Course</label>
-                    <select name="course" class="form-select">
-                        <option value="">All Courses</option>
+                    <div class="col-lg-3">
 
-                        {% for course in courses %}
-                        <option value="{{ course.id }}"
-                        {% if request.GET.course == course.id|stringformat:"s" %}
-                            selected
-                        {% endif %}
-                        >
-                            {{ course.name }}
-                        </option>
-                        {% endfor %}
+                        <label class="form-label">
 
-                    </select>
-                </div>
+                            Search
 
-                <div class="col-md-2">
-                    <label class="form-label">Subject</label>
+                        </label>
 
-                    <select name="subject" class="form-select">
+                        <input
+                            type="text"
+                            name="search"
+                            value="{{ request.GET.search }}"
+                            class="form-control"
+                            placeholder="Search Question">
 
-                        <option value="">All Subjects</option>
+                    </div>
 
-                        {% for subject in subjects %}
-                        <option value="{{ subject.id }}"
-                        {% if request.GET.subject == subject.id|stringformat:"s" %}
-                            selected
-                        {% endif %}
-                        >
-                            {{ subject.name }}
-                        </option>
-                        {% endfor %}
+                    <div class="col-lg-2">
 
-                    </select>
+                        <label class="form-label">
 
-                </div>
+                            Course
 
-                <div class="col-md-2">
-                    <label class="form-label">Semester</label>
+                        </label>
 
-                    <input
-                        type="number"
-                        name="semester"
-                        value="{{ request.GET.semester }}"
-                        class="form-control">
+                        <select
+                            name="course"
+                            class="form-select">
 
-                </div>
+                            <option value="">
 
-                <div class="col-md-2">
-                    <label class="form-label">Academic Year</label>
+                                All Courses
 
-                    <input
-                        type="text"
-                        name="academic_year"
-                        value="{{ request.GET.academic_year }}"
-                        class="form-control"
-                        placeholder="2025-26">
+                            </option>
 
-                </div>
+                            {% for course in courses %}
 
-                <div class="col-md-1 d-grid">
+                            <option
+                                value="{{ course.id }}"
+                                {% if request.GET.course == course.id|stringformat:"s" %}
+                                selected
+                                {% endif %}>
 
-                    <label>&nbsp;</label>
+                                {{ course.name }}
 
-                    <button class="btn btn-primary">
-                        Filter
-                    </button>
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-lg-2">
+
+                        <label class="form-label">
+
+                            Subject
+
+                        </label>
+
+                        <select
+                            name="subject"
+                            class="form-select">
+
+                            <option value="">
+
+                                All Subjects
+
+                            </option>
+
+                            {% for subject in subjects %}
+
+                            <option
+                                value="{{ subject.id }}"
+                                {% if request.GET.subject == subject.id|stringformat:"s" %}
+                                selected
+                                {% endif %}>
+
+                                {{ subject.name }}
+
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-lg-2">
+
+                        <label class="form-label">
+
+                            Semester
+
+                        </label>
+
+                        <input
+                            type="number"
+                            name="semester"
+                            value="{{ request.GET.semester }}"
+                            class="form-control">
+
+                    </div>
+
+                    <div class="col-lg-2">
+
+                        <label class="form-label">
+
+                            Academic Year
+
+                        </label>
+
+                        <input
+                            type="text"
+                            name="academic_year"
+                            value="{{ request.GET.academic_year }}"
+                            class="form-control"
+                            placeholder="2025-26">
+
+                    </div>
+
+                    <div class="col-lg-1 d-grid">
+
+                        <label>&nbsp;</label>
+
+                        <button
+                            class="btn btn-primary">
+
+                            <i class="fas fa-filter"></i>
+
+                        </button>
+
+                    </div>
 
                 </div>
 
             </form>
 
-            <a href="{% url 'question_bank' %}" class="btn btn-secondary mb-3">
-                Reset
-            </a>
+            <div class="mt-3">
 
-            <!-- TABLE -->
+                <a href="{% url 'question_bank' %}"
+                   class="btn btn-outline-secondary">
 
-            <table class="table table-bordered table-hover">
+                    <i class="fas fa-rotate-left"></i>
 
-                <thead class="table-dark">
+                    Reset
 
-                    <tr>
+                </a>
 
-                        <th>ID</th>
-                        <th>Question</th>
-                        <th>Course</th>
-                        <th>Subject</th>
-                        <th>Semester</th>
-                        <th>Academic Year</th>
-                        <th>Marks</th>
-                        <th>Action</th>
+            </div>
 
-                    </tr>
+        </div>
 
-                </thead>
+    </div>
 
-                <tbody>
+    <!-- Question Table -->
 
-                    {% for q in questions %}
+    <div class="card shadow">
 
-                    <tr>
+        <div class="card-header bg-primary text-white">
 
-                        <td>{{ q.id }}</td>
+            <h5 class="mb-0">
 
-                        <td>{{ q.question_text|truncatechars:70 }}</td>
+                <i class="fas fa-list"></i>
 
-                        <td>{{ q.course.name }}</td>
+                Question List
 
-                        <td>{{ q.subject.name }}</td>
+            </h5>
 
-                        <td>{{ q.semester }}</td>
+        </div>
 
-                        <td>{{ q.academic_year }}</td>
+        <div class="card-body">
 
-                        <td>{{ q.marks }}</td>
+            <div class="table-responsive">
 
-                        <td>
+                <table class="table table-hover table-bordered align-middle">
 
-                            <a href="{% url 'edit_question' q.id %}"
-                               class="btn btn-warning btn-sm">
-                                Edit
-                            </a>
+                    <thead class="table-dark">
 
-                            <a href="{% url 'delete_question' q.id %}"
-                               class="btn btn-danger btn-sm">
-                                Delete
-                            </a>
+                        <tr>
 
-                        </td>
+                            <th>ID</th>
+                            <th>Question</th>
+                            <th>Course</th>
+                            <th>Subject</th>
+                            <th>Semester</th>
+                            <th>Academic Year</th>
+                            <th>Marks</th>
+                            <th width="140">Actions</th>
 
-                    </tr>
+                        </tr>
 
-                    {% empty %}
+                    </thead>
 
-                    <tr>
+                    <tbody>
 
-                        <td colspan="8" class="text-center">
+                        {% for q in questions %}
 
-                            No Questions Found
+                        <tr>
 
-                        </td>
+                            <td>
 
-                    </tr>
+                                {{ q.id }}
 
-                    {% endfor %}
+                            </td>
 
-                </tbody>
+                            <td>
 
-            </table>
+                                {{ q.question_text|truncatechars:80 }}
+
+                            </td>
+
+                            <td>
+
+                                {{ q.course.name }}
+
+                            </td>
+
+                            <td>
+
+                                {{ q.subject.name }}
+
+                            </td>
+
+                            <td>
+
+                                <span class="badge bg-primary">
+
+                                    Semester {{ q.semester }}
+
+                                </span>
+
+                            </td>
+
+                            <td>
+
+                                {{ q.academic_year }}
+
+                            </td>
+
+                            <td>
+
+                                <span class="badge bg-success">
+
+                                    {{ q.marks }}
+
+                                </span>
+
+                            </td>
+
+                            <td>
+
+                                <a href="{% url 'edit_question' q.id %}"
+                                   class="btn btn-outline-warning btn-sm">
+
+                                    <i class="fas fa-edit"></i>
+
+                                </a>
+
+                                <a href="{% url 'delete_question' q.id %}"
+                                   class="btn btn-outline-danger btn-sm"
+                                   onclick="return confirm('Delete this question?')">
+
+                                    <i class="fas fa-trash"></i>
+
+                                </a>
+
+                            </td>
+
+                        </tr>
+
+                        {% empty %}
+
+                        <tr>
+
+                            <td colspan="8"
+                                class="text-center text-muted">
+
+                                No Questions Found
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
 
         </div>
 

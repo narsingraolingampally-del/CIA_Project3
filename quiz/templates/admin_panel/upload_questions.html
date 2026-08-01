@@ -1,116 +1,219 @@
-{% extends 'base_admin.html' %}
+{% extends "base_admin.html" %}
 
 {% block content %}
 
 <div class="container-fluid">
 
-    <div class="row justify-content-center">
+    <!-- Header -->
 
-        <div class="col-lg-7">
+    <div class="d-flex justify-content-between align-items-center mb-4">
 
-            <div class="card shadow">
+        <div>
 
-                <div class="card-header bg-danger text-white">
+            <h2 class="fw-bold">
 
-                    <h4 class="mb-0">
-                        <i class="fas fa-file-excel"></i>
-                        Upload Question Paper
-                    </h4>
+                <i class="fas fa-upload text-success"></i>
 
-                </div>
+                Upload Question Bank
 
-                <div class="card-body">
+            </h2>
 
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }}">
-                                {{ message }}
-                            </div>
-                        {% endfor %}
-                    {% endif %}
+            <p class="text-muted">
 
-                    <form method="POST"
-                          enctype="multipart/form-data">
+                Upload Questions using Excel (.xlsx)
 
-                        {% csrf_token %}
+            </p>
 
-                        <div class="mb-3">
+        </div>
 
-                            <label class="form-label">
-                                Subject
-                            </label>
+        <a href="{% url 'question_bank' %}"
+           class="btn btn-outline-secondary">
 
-                            {{ form.subject }}
+            <i class="fas fa-arrow-left"></i>
 
-                        </div>
+            Back
 
-                        <div class="mb-3">
+        </a>
 
-                            <label class="form-label">
-                                Course
-                            </label>
+    </div>
 
-                            {{ form.course }}
+    <!-- Messages -->
 
-                        </div>
+    {% if messages %}
 
-                        <div class="mb-3">
+        {% for message in messages %}
 
-                            <label class="form-label">
-                                Semester
-                            </label>
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
 
-                            {{ form.semester }}
+                {{ message }}
 
-                        </div>
-
-                        <div class="mb-3">
-
-                            <label class="form-label">
-                                Exam Duration (Minutes)
-                            </label>
-
-                            {{ form.duration_minutes }}
-
-                        </div>
-
-                        <div class="mb-4">
-
-                            <label class="form-label">
-                                Excel File
-                            </label>
-
-                            <input
-                                type="file"
-                                name="excel_file"
-                                class="form-control"
-                                required>
-
-                            <small class="text-muted">
-                                Upload only .xlsx files.
-                            </small>
-
-                        </div>
-
-                        <div class="d-grid">
-
-                            <button
-                                type="submit"
-                                class="btn btn-danger btn-lg">
-
-                                <i class="fas fa-upload"></i>
-
-                                Upload Question Paper
-
-                            </button>
-
-                        </div>
-
-                    </form>
-
-                </div>
+                <button
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+                </button>
 
             </div>
+
+        {% endfor %}
+
+    {% endif %}
+
+    <div class="card shadow">
+
+        <div class="card-header bg-success text-white">
+
+            <h5>
+
+                <i class="fas fa-file-excel"></i>
+
+                Excel Upload
+
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <form method="POST"
+                  enctype="multipart/form-data">
+
+                {% csrf_token %}
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="form-label">
+
+                            Course
+
+                        </label>
+
+                        {{ form.course }}
+
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="form-label">
+
+                            Subject
+
+                        </label>
+
+                        {{ form.subject }}
+
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="form-label">
+
+                            Academic Year
+
+                        </label>
+
+                        {{ form.academic_year }}
+
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="form-label">
+
+                            Semester
+
+                        </label>
+
+                        {{ form.semester }}
+
+                    </div>
+
+                    <div class="col-12 mb-3">
+
+                        <label class="form-label">
+
+                            Excel File
+
+                        </label>
+
+                        {{ form.excel_file }}
+
+                    </div>
+
+                </div>
+
+                <hr>
+
+                <button
+                    class="btn btn-success">
+
+                    <i class="fas fa-upload"></i>
+
+                    Upload Questions
+
+                </button>
+
+                <a href="{% url 'question_bank' %}"
+                   class="btn btn-secondary">
+
+                    Cancel
+
+                </a>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <br>
+
+    <div class="card border-primary">
+
+        <div class="card-header bg-primary text-white">
+
+            Excel Format
+
+        </div>
+
+        <div class="card-body">
+
+            <table class="table table-bordered">
+
+                <thead>
+
+                    <tr>
+
+                        <th>question_text</th>
+                        <th>option1</th>
+                        <th>option2</th>
+                        <th>option3</th>
+                        <th>option4</th>
+                        <th>correct_answer</th>
+                        <th>marks</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td>What is Python?</td>
+                        <td>Language</td>
+                        <td>Animal</td>
+                        <td>Car</td>
+                        <td>Fruit</td>
+                        <td>1</td>
+                        <td>1</td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
 
         </div>
 

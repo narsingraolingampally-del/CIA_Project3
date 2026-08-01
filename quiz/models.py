@@ -144,6 +144,11 @@ class Question(models.Model):
     academic_year = models.CharField(
         max_length=20
     )
+    uploaded_by = models.ForeignKey(
+    User,
+    on_delete=models.CASCADE,
+    null=True
+)
 
     semester = models.IntegerField()
 
@@ -304,6 +309,11 @@ class Exam(models.Model):
     duration = models.IntegerField(
         default=60
     )
+    created_by = models.ForeignKey(
+    User,
+    on_delete=models.CASCADE,
+    null=True
+)
 
     number_of_questions = models.IntegerField()
 
@@ -378,6 +388,10 @@ class Result(models.Model):
         default=0
     )
 
+    percentage = models.FloatField(
+        default=0
+    )
+
     completed_at = models.DateTimeField(
         auto_now_add=True
     )
@@ -385,7 +399,6 @@ class Result(models.Model):
 
     def __str__(self):
         return f"{self.student.username} - {self.exam.exam_name}"
-
 
 
         # ==================================================

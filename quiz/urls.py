@@ -18,7 +18,12 @@ urlpatterns = [
     # =====================================================
 
     path('faculty-login/', views.faculty_login, name='faculty_login'),
-    path('student-login/', views.student_login, name='student_login'),
+    
+    path(
+    'student/login/',
+    views.student_login,
+    name='student_login'
+),
 
     # =====================================================
     # DASHBOARDS
@@ -79,6 +84,8 @@ urlpatterns = [
         views.publish_exam,
         name='publish_exam'
     ),
+
+    
 
     path(
         'delete-paper/<int:pk>/',
@@ -157,6 +164,11 @@ urlpatterns = [
         views.upload_students,
         name='upload_students'
     ),
+    path(
+    'admin-panel/students/delete/<int:id>/',
+    views.delete_student,
+    name='delete_student'
+),
 
     # =====================================================
     # COURSE MANAGEMENT
@@ -251,6 +263,11 @@ urlpatterns = [
         views.manage_exams,
         name='manage_exams'
     ),
+    path(
+    "faculty/create-exam/",
+    views.create_exam,
+    name="create_exam",
+),
 
     # =====================================================
     # REPORTS
@@ -307,7 +324,11 @@ path(
     views.faculty_upload_questions,
     name="faculty_upload_questions",
 ),
-
+path(
+    "admin-panel/exams/edit/<int:id>/",
+    views.edit_exam,
+    name="edit_exam",
+),
 ]
 
 if settings.DEBUG:

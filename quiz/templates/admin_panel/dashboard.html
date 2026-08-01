@@ -1,22 +1,20 @@
-{% extends 'base_admin.html' %}
+{% extends "base_admin.html" %}
 
 {% block content %}
 
 <div class="container-fluid">
 
-    <!-- Page Heading -->
-
+    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
 
         <div>
 
             <h2 class="fw-bold">
-                <i class="fas fa-gauge-high text-primary"></i>
-                Dashboard
+                CIA Examination Dashboard
             </h2>
 
             <p class="text-muted">
-                Welcome to CIA Examination Administration Portal
+                Welcome Administrator
             </p>
 
         </div>
@@ -29,15 +27,13 @@
 
         <div class="col-lg-3 col-md-6 mb-4">
 
-            <div class="card dashboard-card bg-primary text-white">
+            <div class="card bg-primary text-white shadow">
 
-                <div class="card-body">
+                <div class="card-body text-center">
 
-                    <h5>Students</h5>
+                    <h1>{{ student_count }}</h1>
 
-                    <h2>{{ student_count }}</h2>
-
-                    <i class="fas fa-user-graduate fa-3x float-end"></i>
+                    <h5>Total Students</h5>
 
                 </div>
 
@@ -47,15 +43,13 @@
 
         <div class="col-lg-3 col-md-6 mb-4">
 
-            <div class="card dashboard-card bg-success text-white">
+            <div class="card bg-success text-white shadow">
 
-                <div class="card-body">
+                <div class="card-body text-center">
 
-                    <h5>Faculty</h5>
+                    <h1>{{ faculty_count }}</h1>
 
-                    <h2>{{ faculty_count }}</h2>
-
-                    <i class="fas fa-chalkboard-teacher fa-3x float-end"></i>
+                    <h5>Total Faculty</h5>
 
                 </div>
 
@@ -65,15 +59,13 @@
 
         <div class="col-lg-3 col-md-6 mb-4">
 
-            <div class="card dashboard-card bg-warning text-dark">
+            <div class="card bg-warning shadow">
 
-                <div class="card-body">
+                <div class="card-body text-center">
 
-                    <h5>Courses</h5>
+                    <h1>{{ course_count }}</h1>
 
-                    <h2>{{ course_count }}</h2>
-
-                    <i class="fas fa-book fa-3x float-end"></i>
+                    <h5>Total Courses</h5>
 
                 </div>
 
@@ -83,15 +75,13 @@
 
         <div class="col-lg-3 col-md-6 mb-4">
 
-            <div class="card dashboard-card bg-danger text-white">
+            <div class="card bg-info text-white shadow">
 
-                <div class="card-body">
+                <div class="card-body text-center">
 
-                    <h5>Subjects</h5>
+                    <h1>{{ subject_count }}</h1>
 
-                    <h2>{{ subject_count }}</h2>
-
-                    <i class="fas fa-book-open fa-3x float-end"></i>
+                    <h5>Total Subjects</h5>
 
                 </div>
 
@@ -105,15 +95,13 @@
 
         <div class="col-lg-3 col-md-6 mb-4">
 
-            <div class="card dashboard-card bg-info text-white">
+            <div class="card bg-dark text-white shadow">
 
-                <div class="card-body">
+                <div class="card-body text-center">
 
-                    <h5>Questions</h5>
+                    <h1>{{ question_count }}</h1>
 
-                    <h2>{{ question_count }}</h2>
-
-                    <i class="fas fa-circle-question fa-3x float-end"></i>
+                    <h5>Question Bank</h5>
 
                 </div>
 
@@ -123,15 +111,13 @@
 
         <div class="col-lg-3 col-md-6 mb-4">
 
-            <div class="card dashboard-card bg-secondary text-white">
+            <div class="card bg-secondary text-white shadow">
 
-                <div class="card-body">
+                <div class="card-body text-center">
 
-                    <h5>Question Papers</h5>
+                    <h1>{{ exam_count }}</h1>
 
-                    <h2>{{ paper_count }}</h2>
-
-                    <i class="fas fa-file-lines fa-3x float-end"></i>
+                    <h5>Total Exams</h5>
 
                 </div>
 
@@ -141,16 +127,14 @@
 
         <div class="col-lg-3 col-md-6 mb-4">
 
-            <div class="card dashboard-card bg-dark text-white">
+            <div class="card bg-danger text-white shadow">
 
-                <div class="card-body">
+                <div class="card-body text-center">
+
+                    <h1>{{ published_exam_count }}</h1>
 
                     <h5>Published Exams</h5>
 
-                    <h2>{{ published_exam_count }}</h2>
-
-                    <i class="fas fa-file-circle-check fa-3x float-end"></i>
-
                 </div>
 
             </div>
@@ -159,15 +143,13 @@
 
         <div class="col-lg-3 col-md-6 mb-4">
 
-            <div class="card dashboard-card bg-success text-white">
+            <div class="card bg-success text-white shadow">
 
-                <div class="card-body">
+                <div class="card-body text-center">
+
+                    <h1>{{ result_count }}</h1>
 
                     <h5>Results</h5>
-
-                    <h2>{{ result_count }}</h2>
-
-                    <i class="fas fa-chart-line fa-3x float-end"></i>
 
                 </div>
 
@@ -177,13 +159,103 @@
 
     </div>
 
-    <!-- Bottom Section -->
+    <!-- Recent Exams -->
 
-    <div class="row mt-4">
+    <div class="card shadow mb-4">
 
-        <!-- Latest Exams -->
+        <div class="card-header bg-primary text-white">
 
-        <div class="col-lg-8">
+            <h5 class="mb-0">
+
+                Recent CIA Exams
+
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <table class="table table-bordered table-hover">
+
+                <thead class="table-dark">
+
+                    <tr>
+
+                        <th>Exam</th>
+
+                        <th>Course</th>
+
+                        <th>Subject</th>
+
+                        <th>Status</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                {% for exam in recent_exams %}
+
+                    <tr>
+
+                        <td>{{ exam.exam_name }}</td>
+
+                        <td>{{ exam.course }}</td>
+
+                        <td>{{ exam.subject }}</td>
+
+                        <td>
+
+                            {% if exam.is_published %}
+
+                                <span class="badge bg-success">
+
+                                    Published
+
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-warning text-dark">
+
+                                    Draft
+
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+
+                        <td colspan="4" class="text-center">
+
+                            No Exams Found
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    <!-- Charts -->
+
+    <div class="row">
+
+        <div class="col-lg-6 mb-4">
 
             <div class="card shadow">
 
@@ -191,9 +263,7 @@
 
                     <h5 class="mb-0">
 
-                        <i class="fas fa-file-circle-check"></i>
-
-                        Recently Published Exams
+                        Students by Course
 
                     </h5>
 
@@ -201,77 +271,7 @@
 
                 <div class="card-body">
 
-                    <table class="table table-bordered table-hover">
-
-                        <thead class="table-dark">
-
-                            <tr>
-
-                                <th>Exam</th>
-
-                                <th>Course</th>
-
-                                <th>Subject</th>
-
-                                <th>Start Time</th>
-
-                                <th>Status</th>
-
-                            </tr>
-
-                        </thead>
-
-                        <tbody>
-
-                        {% for exam in exams %}
-
-                        <tr>
-
-                            <td>{{ exam.exam_name }}</td>
-
-                            <td>{{ exam.course }}</td>
-
-                            <td>{{ exam.subject }}</td>
-
-                            <td>{{ exam.start_time }}</td>
-
-                            <td>
-
-                                {% if exam.is_published %}
-
-                                    <span class="badge bg-success">
-                                        Published
-                                    </span>
-
-                                {% else %}
-
-                                    <span class="badge bg-warning text-dark">
-                                        Draft
-                                    </span>
-
-                                {% endif %}
-
-                            </td>
-
-                        </tr>
-
-                        {% empty %}
-
-                        <tr>
-
-                            <td colspan="5" class="text-center">
-
-                                No Exams Created
-
-                            </td>
-
-                        </tr>
-
-                        {% endfor %}
-
-                        </tbody>
-
-                    </table>
+                    <canvas id="courseChart"></canvas>
 
                 </div>
 
@@ -279,9 +279,7 @@
 
         </div>
 
-        <!-- Quick Actions -->
-
-        <div class="col-lg-4">
+        <div class="col-lg-6 mb-4">
 
             <div class="card shadow">
 
@@ -289,9 +287,7 @@
 
                     <h5 class="mb-0">
 
-                        <i class="fas fa-bolt"></i>
-
-                        Quick Actions
+                        Pass / Fail Analysis
 
                     </h5>
 
@@ -299,72 +295,7 @@
 
                 <div class="card-body">
 
-                    <div class="d-grid gap-3">
-
-                        <a href="{% url 'manage_faculty' %}"
-                           class="btn btn-primary">
-
-                            <i class="fas fa-chalkboard-teacher"></i>
-
-                            Manage Faculty
-
-                        </a>
-
-                        <a href="{% url 'manage_students' %}"
-                           class="btn btn-primary">
-
-                            <i class="fas fa-user-graduate"></i>
-
-                            Manage Students
-
-                        </a>
-
-                        <a href="{% url 'manage_courses' %}"
-                           class="btn btn-primary">
-
-                            <i class="fas fa-book"></i>
-
-                            Manage Courses
-
-                        </a>
-
-                        <a href="{% url 'manage_subjects' %}"
-                           class="btn btn-primary">
-
-                            <i class="fas fa-book-open"></i>
-
-                            Manage Subjects
-
-                        </a>
-
-                        <a href="{% url 'question_bank' %}"
-                           class="btn btn-success">
-
-                            <i class="fas fa-database"></i>
-
-                            Question Bank
-
-                        </a>
-
-                        <a href="{% url 'manage_exams' %}"
-                           class="btn btn-warning">
-
-                            <i class="fas fa-file-circle-plus"></i>
-
-                            Create Exam
-
-                        </a>
-
-                        <a href="{% url 'admin_reports' %}"
-                           class="btn btn-info text-white">
-
-                            <i class="fas fa-chart-column"></i>
-
-                            Reports
-
-                        </a>
-
-                    </div>
+                    <canvas id="resultChart"></canvas>
 
                 </div>
 
@@ -375,5 +306,115 @@
     </div>
 
 </div>
+
+<script>
+
+const courseLabels = JSON.parse('{{ course_names|escapejs }}');
+
+const courseData = JSON.parse('{{ course_students|escapejs }}');
+
+new Chart(
+
+    document.getElementById("courseChart"),
+
+    {
+
+        type: "bar",
+
+        data: {
+
+            labels: courseLabels,
+
+            datasets: [
+
+                {
+
+                    label: "Students",
+
+                    data: courseData,
+
+                    backgroundColor: "#0d6efd"
+
+                }
+
+            ]
+
+        },
+
+        options: {
+
+            responsive: true,
+
+            plugins: {
+
+                legend: {
+
+                    display: false
+
+                }
+
+            }
+
+        }
+
+    }
+
+);
+
+new Chart(
+
+    document.getElementById("resultChart"),
+
+    {
+
+        type: "pie",
+
+        data: {
+
+            labels: [
+
+                "Pass",
+
+                "Fail"
+
+            ],
+
+            datasets: [
+
+                {
+
+                    data: [
+
+                        {{ pass_count }},
+
+                        {{ fail_count }}
+
+                    ],
+
+                    backgroundColor: [
+
+                        "#198754",
+
+                        "#dc3545"
+
+                    ]
+
+                }
+
+            ]
+
+        },
+
+        options: {
+
+            responsive: true
+
+        }
+
+    }
+
+);
+
+</script>
 
 {% endblock %}
