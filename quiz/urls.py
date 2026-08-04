@@ -420,6 +420,11 @@ path(
     views.delete_selected_students,
     name="delete_selected_students"
 ),
+path(
+    "bulk-upload-students/",
+    views.upload_students,
+    name="upload_students",
+),
 ]
 
 if settings.DEBUG:

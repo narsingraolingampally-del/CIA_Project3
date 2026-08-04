@@ -74,11 +74,16 @@ class SubjectAdmin(admin.ModelAdmin):
 class StudentProfileAdmin(admin.ModelAdmin):
 
     list_display = (
-        "user",
-        "name",
+        "id",
+        "get_name",
         "course",
         "semester",
     )
+
+    def get_name(self, obj):
+        return f"{obj.user.first_name} {obj.user.last_name}"
+
+    get_name.short_description = "Name"
 
 
 

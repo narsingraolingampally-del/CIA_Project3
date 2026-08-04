@@ -14,6 +14,7 @@ from .forms import QuestionForm
 from .models import Question, Subject
 import random
 from .models import Course, Subject, Exam, Result
+from django.contrib.auth import get_user_model
 
 from django.db.models import Q
 
@@ -2948,3 +2949,83 @@ def delete_selected_students(request):
 
 
     return redirect("manage_students")
+
+
+User = get_user_model()
+
+
+
+@login_required
+@user_passes_test(is_admin)
+def upload_students(request):
+
+    courses = Course.objects.all()
+
+    if request.method == "POST":
+
+        course_id = request.POST.get("course")
+        semester = request.POST.get("semester")
+        academic_year = request.POST.get("academic_year")
+        excel_file = request.FILES.get("excel_file")
+
+        if not excel_file:
+            messages.error(request, "Please select an Excel file.")
+            return redirect("upload_students")
+
+        course = Course.objects.get(id=course_id)
+
+        df = pd.read_excel(excel_file)
+
+        imported = 0
+        skipped = 0
+
+        for _, row in df.iterrows():
+
+            username = str(row["Username"]).strip()
+
+            if User.objects.filter(username=username).exists():
+                skipped += 1
+                continue
+
+            password = str(row["Password"]).strip()
+
+            first_name = str(row["First Name"]).strip()
+
+            last_name = str(row["Last Name"]).strip()
+
+            email = str(row["Email"]).strip()
+
+            user = User.objects.create_user(
+                username=username,
+                password=password,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                is_student=True,
+                course=course,
+                semester=int(semester)
+            )
+
+            StudentProfile.objects.create(
+                user=user,
+                course=course,
+                semester=int(semester),
+                academic_year=academic_year
+            )
+
+            imported += 1
+
+        messages.success(
+            request,
+            f"{imported} students uploaded successfully. {skipped} skipped."
+        )
+
+        return redirect("manage_students")
+
+    return render(
+        request,
+        "admin_panel/student_upload.html",
+        {
+            "courses": courses
+        }
+    )

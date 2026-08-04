@@ -85,21 +85,19 @@ class StudentProfile(models.Model):
         on_delete=models.CASCADE
     )
 
-    name = models.CharField(
-        max_length=100,
-        blank=True,
-        null=True
-    )
-
     course = models.ForeignKey(
-    Course,
-    on_delete=models.CASCADE
-
+        Course,
+        on_delete=models.CASCADE
     )
 
-    semester = models.IntegerField(
-        default=1
+    semester = models.IntegerField()
+
+    academic_year = models.CharField(
+        max_length=20
     )
+
+    def __str__(self):
+        return self.user.username
 # ==================================================
 # FACULTY PROFILE
 # ==================================================
