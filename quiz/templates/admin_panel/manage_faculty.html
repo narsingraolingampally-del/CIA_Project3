@@ -1,0 +1,118 @@
+{% extends "admin_panel/base.html" %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+        <h2 class="fw-bold">Faculty Management</h2>
+        <p class="text-muted">
+            Manage all faculty members
+        </p>
+    </div>
+
+    <div>
+
+        <a href="{% url 'add_faculty' %}" class="btn btn-primary">
+            <i class="fas fa-user-plus"></i>
+            Add Faculty
+        </a>
+
+        <a href="{% url 'upload_faculty' %}" class="btn btn-success">
+            <i class="fas fa-file-excel"></i>
+            Upload Excel
+        </a>
+
+    </div>
+
+</div>
+
+
+<div class="card shadow-sm">
+
+    <div class="card-body">
+
+        <table class="table table-hover align-middle">
+
+            <thead class="table-dark">
+
+            <tr>
+
+                <th>ID</th>
+
+                <th>Name</th>
+
+                <th>Username</th>
+
+                <th>Email</th>
+
+                <th>Department</th>
+
+                <th width="180">
+                    Action
+                </th>
+
+            </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for faculty in faculty %}
+
+            <tr>
+
+                <td>{{ faculty.id }}</td>
+
+                <td>{{ faculty.user.get_full_name }}</td>
+
+                <td>{{ faculty.user.username }}</td>
+
+                <td>{{ faculty.user.email }}</td>
+
+                <td>{{ faculty.department }}</td>
+
+                <td>
+
+                    <a href="{% url 'edit_faculty' faculty.id %}"
+                       class="btn btn-warning btn-sm">
+
+                        <i class="fas fa-edit"></i>
+
+                    </a>
+
+                    <a href="{% url 'delete_faculty' faculty.id %}"
+                       class="btn btn-danger btn-sm"
+                       onclick="return confirm('Delete this faculty?')">
+
+                        <i class="fas fa-trash"></i>
+
+                    </a>
+
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+
+                <td colspan="6" class="text-center text-muted">
+
+                    No Faculty Available
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

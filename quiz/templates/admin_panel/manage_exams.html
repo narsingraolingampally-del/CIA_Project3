@@ -4,160 +4,386 @@
 
 <div class="container-fluid">
 
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
 
-        <div>
-            <h2 class="fw-bold">
-                <i class="fas fa-file-circle-check text-primary"></i>
-                Examination Management
-            </h2>
+<!-- Header -->
 
-            <p class="text-muted mb-0">
-                Total Exams :
-                <strong>{{ exams|length }}</strong>
-            </p>
-        </div>
+<div class="d-flex justify-content-between align-items-center mb-4">
 
-        <a href="{% url 'admin_create_exam' %}" class="btn btn-primary">
-            <i class="fas fa-plus"></i>
-            Create Examination
-        </a>
+    <div>
+
+        <h2 class="fw-bold">
+            Examination Management
+        </h2>
+
+        <p class="text-muted">
+            Manage created examinations
+        </p>
 
     </div>
 
-    <!-- Messages -->
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
-                {{ message }}
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="alert"></button>
-            </div>
-        {% endfor %}
-    {% endif %}
 
-    <!-- Table -->
-    <div class="card shadow">
+    <a href="{% url 'admin_create_exam' %}"
+       class="btn btn-primary">
 
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">
-                <i class="fas fa-list"></i>
-                Examination List
-            </h5>
-        </div>
+        <i class="fas fa-plus-circle"></i>
+        Create Exam
 
-        <div class="card-body">
+    </a>
 
-            <div class="table-responsive">
 
-                <table class="table table-striped table-hover align-middle">
+</div>
 
-                    <thead class="table-dark">
 
-                        <tr>
-                            <th>ID</th>
-                            <th>Exam Name</th>
-                            <th>Course</th>
-                            <th>Subject</th>
-                            <th>Questions</th>
-                            <th>Duration</th>
-                            <th>Start Time</th>
-                            <th>End Time</th>
-                            <th>Status</th>
-<th>Action</th>
-                        </tr>
 
-                    </thead>
+<!-- Statistics -->
 
-                    <tbody>
+<div class="row mb-4">
 
-                    {% for exam in exams %}
 
-                        <tr>
+<div class="col-md-3">
 
-                            <td>{{ exam.id }}</td>
+<div class="card shadow bg-primary text-white">
 
-                            <td>
-                                <strong>{{ exam.exam_name }}</strong>
-                            </td>
+<div class="card-body">
 
-                            <td>{{ exam.course.name }}</td>
+<h6>
+Total Exams
+</h6>
 
-                            <td>{{ exam.subject.name }}</td>
+<h2>
+{{ exams|length }}
+</h2>
 
-                            <td>
-                                <span class="badge bg-info">
-                                    {{ exam.number_of_questions }}
-                                </span>
-                            </td>
+</div>
 
-                            <td>
-                                <span class="badge bg-warning text-dark">
-                                    {{ exam.duration }} Minutes
-                                </span>
-                            </td>
+</div>
 
-                            <td>{{ exam.start_time }}</td>
+</div>
 
-                            <td>{{ exam.end_time }}</td>
 
-                            <td>
 
-{% if exam.is_published %}
 
-    <span class="badge bg-success">
-        Published
-    </span>
+<div class="col-md-3">
 
-{% else %}
+<div class="card shadow bg-success text-white">
 
-    <span class="badge bg-secondary">
-        Draft
-    </span>
+<div class="card-body">
 
-{% endif %}
+<h6>
+Published
+</h6>
 
+<h2>
+
+{{ exams|dictsort:"is_published"|length }}
+
+</h2>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+
+<div class="col-md-3">
+
+<div class="card shadow bg-warning">
+
+<div class="card-body">
+
+<h6>
+Draft Exams
+</h6>
+
+<h2>
+-
+</h2>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+
+<div class="col-md-3">
+
+<div class="card shadow bg-dark text-white">
+
+<div class="card-body">
+
+<h6>
+Questions
+</h6>
+
+<h2>
+-
+</h2>
+
+</div>
+
+</div>
+
+</div>
+
+
+</div>
+
+
+
+
+
+<!-- Exam Table -->
+
+
+<div class="card shadow">
+
+
+<div class="card-header bg-primary text-white">
+
+<h5 class="mb-0">
+
+Exam List
+
+</h5>
+
+</div>
+
+
+
+
+<div class="card-body">
+
+
+<div class="table-responsive">
+
+
+<table class="table table-hover align-middle">
+
+
+<thead class="table-dark">
+
+
+<tr>
+
+<th>ID</th>
+
+<th>Exam</th>
+
+<th>Course</th>
+
+<th>Subject</th>
+
+<th>Semester</th>
+
+<th>Questions</th>
+
+<th>Duration</th>
+
+<th>Status</th>
+
+<th width="260">
+Action
+</th>
+
+
+</tr>
+
+
+</thead>
+
+
+
+<tbody>
+
+
+
+{% for exam in exams %}
+
+
+<tr>
+
+
+<td>
+{{ exam.id }}
 </td>
+
+
+
+<td>
+{{ exam.exam_name }}
+</td>
+
+
+
+<td>
+{{ exam.course.name }}
+</td>
+
+
+
+<td>
+{{ exam.subject.name }}
+</td>
+
 
 
 <td>
 
-{% if not exam.is_published %}
+Semester {{ exam.semester }}
 
-<a href="{% url 'publish_exam' exam.id %}"
-   class="btn btn-success btn-sm">
+</td>
 
-    <i class="fas fa-upload"></i>
-    Publish
 
-</a>
+
+<td>
+
+<span class="badge bg-info">
+
+{{ exam.number_of_questions }}
+
+</span>
+
+</td>
+
+
+
+<td>
+
+{{ exam.duration }} Minutes
+
+</td>
+
+
+
+
+<td>
+
+
+{% if exam.is_published %}
+
+
+<span class="badge bg-success">
+
+Published
+
+</span>
+
 
 {% else %}
 
-<span class="text-success">
-    <i class="fas fa-check-circle"></i>
-    Done
+
+<span class="badge bg-warning text-dark">
+
+Draft
+
 </span>
+
 
 {% endif %}
 
 
-</td>                        </tr>
+</td>
 
-                    {% endfor %}
 
-                    </tbody>
 
-                </table>
 
-            </div>
+<td>
 
-        </div>
 
-    </div>
+
+<a href="{% url 'view_exam_questions' exam.id %}"
+
+class="btn btn-info btn-sm">
+
+
+<i class="fas fa-eye"></i>
+
+Questions
+
+</a>
+
+
+
+<a href="{% url 'edit_exam' exam.id %}"
+
+class="btn btn-warning btn-sm">
+
+
+<i class="fas fa-edit"></i>
+
+</a>
+
+
+
+
+{% if not exam.is_published %}
+
+
+<a href="{% url 'publish_exam' exam.id %}"
+
+class="btn btn-success btn-sm">
+
+
+<i class="fas fa-upload"></i>
+
+Publish
+
+</a>
+
+
+{% endif %}
+
+
+
+</td>
+
+
+</tr>
+
+
+
+{% empty %}
+
+
+<tr>
+
+<td colspan="9"
+class="text-center text-muted">
+
+No Exams Found
+
+</td>
+
+</tr>
+
+
+{% endfor %}
+
+
+
+</tbody>
+
+
+</table>
+
 
 </div>
+
+
+</div>
+
+
+</div>
+
+
+
+</div>
+
 
 {% endblock %}

@@ -1,74 +1,226 @@
-{% extends 'base_admin.html' %}
+{% extends 'faculty/base_faculty.html' %}
 
 {% block content %}
 
-<div class="container-fluid">
+<div class="container mt-4">
 
-    <div class="row justify-content-center">
 
-        <div class="col-lg-7">
+    <div class="card shadow border-0">
 
-            <div class="card shadow">
 
-                <div class="card-header bg-danger text-white">
-                    <h4 class="mb-0">
-                        Upload Question Paper
-                    </h4>
-                </div>
+        <div class="card-header bg-primary text-white">
 
-                <div class="card-body">
-
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }}">
-                                {{ message }}
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-
-                    <form method="POST" enctype="multipart/form-data">
-
-                        {% csrf_token %}
-
-                        <div class="mb-3">
-                            <label>Course</label>
-                            {{ form.course }}
-                        </div>
-
-                        <div class="mb-3">
-                            <label>Subject</label>
-                            {{ form.subject }}
-                        </div>
-
-                        <div class="mb-3">
-                            <label>Academic Year</label>
-                            {{ form.academic_year }}
-                        </div>
-
-                        <div class="mb-3">
-                            <label>Semester</label>
-                            {{ form.semester }}
-                        </div>
-
-                        <div class="mb-3">
-                            <label>Excel File</label>
-                            {{ form.excel_file }}
-                        </div>
-
-                        <button type="submit" class="btn btn-danger w-100">
-                            Upload Question Paper
-                        </button>
-
-                    </form>
-
-                </div>
-
-            </div>
+            <h4 class="mb-0">
+                <i class="fas fa-file-upload"></i>
+                Upload Question Paper
+            </h4>
 
         </div>
 
+
+
+        <div class="card-body">
+
+
+            <form method="POST"
+                  enctype="multipart/form-data">
+
+                {% csrf_token %}
+
+
+
+                <!-- Form Errors -->
+
+                {% if form.errors %}
+
+                <div class="alert alert-danger">
+
+                    <strong>Please fix the following errors:</strong>
+
+                    {{ form.errors }}
+
+                </div>
+
+                {% endif %}
+
+
+
+
+
+                <!-- Course -->
+
+                <div class="mb-3">
+
+                    <label class="form-label fw-bold">
+                        Course
+                    </label>
+
+                    {{ form.course }}
+
+                </div>
+
+
+
+
+
+                <!-- Subject -->
+
+                <div class="mb-3">
+
+                    <label class="form-label fw-bold">
+                        Subject
+                    </label>
+
+                    {{ form.subject }}
+
+                </div>
+
+
+
+
+
+                <!-- Academic Year -->
+
+                <div class="mb-3">
+
+                    <label class="form-label fw-bold">
+                        Academic Year
+                    </label>
+
+                    {{ form.academic_year }}
+
+                </div>
+
+
+
+
+
+                <!-- Semester -->
+
+                <div class="mb-3">
+
+                    <label class="form-label fw-bold">
+                        Semester
+                    </label>
+
+                    {{ form.semester }}
+
+                </div>
+
+
+
+
+
+
+                <!-- Excel File -->
+
+                <div class="mb-3">
+
+                    <label class="form-label fw-bold">
+                        Upload Excel File
+                    </label>
+
+
+                    {{ form.excel_file }}
+
+
+
+                    <div class="alert alert-info mt-3">
+
+
+                        <h6>
+                            <i class="fas fa-info-circle"></i>
+                            Excel Format
+                        </h6>
+
+
+                        <p class="mb-1">
+                            Excel file must contain these columns:
+                        </p>
+
+
+                        <code>
+                        question_text,
+                        option1,
+                        option2,
+                        option3,
+                        option4,
+                        correct_answer,
+                        marks
+                        </code>
+
+
+                    </div>
+
+
+
+                    <a href="{% url 'download_question_template' %}"
+                       class="btn btn-outline-primary btn-sm">
+
+
+                        <i class="fas fa-download"></i>
+
+                        Download Sample Excel
+
+
+                    </a>
+
+
+
+                </div>
+
+
+
+
+
+
+                <!-- Buttons -->
+
+
+                <div class="mt-4">
+
+
+                    <button type="submit"
+                            class="btn btn-success">
+
+
+                        <i class="fas fa-upload"></i>
+
+                        Upload Questions
+
+
+                    </button>
+
+
+
+
+                    <a href="{% url 'faculty_dashboard' %}"
+                       class="btn btn-secondary">
+
+
+                        <i class="fas fa-arrow-left"></i>
+
+                        Back
+
+
+                    </a>
+
+
+                </div>
+
+
+
+
+            </form>
+
+
+        </div>
+
+
     </div>
 
+
 </div>
+
 
 {% endblock %}

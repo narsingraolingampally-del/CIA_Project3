@@ -4,71 +4,764 @@
 
 <div class="container-fluid">
 
-    <h2 class="mb-4">
-        <i class="fas fa-chart-bar"></i>
-        Exam Reports
-    </h2>
 
-    <div class="card shadow">
+<!-- PAGE HEADER -->
 
-        <div class="card-body">
+<div class="d-flex justify-content-between align-items-center mb-4">
 
-            <table class="table table-bordered table-hover">
+    <div>
 
-                <thead class="table-dark">
+        <h2 class="fw-bold">
 
-                    <tr>
+            <i class="fas fa-chart-bar"></i>
 
-                        <th>Student</th>
-                        <th>Exam</th>
-                        <th>Score</th>
-                        <th>Total Marks</th>
-                        <th>Date</th>
+            Exam Reports
 
-                    </tr>
+        </h2>
 
-                </thead>
+        <p class="text-muted">
 
-                <tbody>
+            Analyze student examination performance
 
-                {% for result in results %}
+        </p>
 
-                <tr>
+    </div>
 
-                    <td>{{ result.student.username }}</td>
 
-                    <td>{{ result.quiz.subject }}</td>
+</div>
 
-                    <td>{{ result.score }}</td>
 
-                    <td>{{ result.total_marks }}</td>
 
-                    <td>{{ result.completed_at }}</td>
+<!-- STATISTICS CARDS -->
 
-                </tr>
 
-                {% empty %}
+<div class="row mb-4">
 
-                <tr>
 
-                    <td colspan="5" class="text-center">
+    <div class="col-md-3">
 
-                        No Results Available
+        <div class="card shadow bg-primary text-white">
 
-                    </td>
+            <div class="card-body">
 
-                </tr>
+                <h6>
+                    Total Results
+                </h6>
 
-                {% endfor %}
+                <h2>
+                    {{ total_results }}
+                </h2>
 
-                </tbody>
-
-            </table>
+            </div>
 
         </div>
 
     </div>
 
+
+
+    <div class="col-md-3">
+
+        <div class="card shadow bg-success text-white">
+
+            <div class="card-body">
+
+                <h6>
+                    Students
+                </h6>
+
+                <h2>
+                    {{ total_students }}
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="col-md-3">
+
+        <div class="card shadow bg-warning text-dark">
+
+            <div class="card-body">
+
+                <h6>
+                    Average Percentage
+                </h6>
+
+                <h2>
+                    {{ average_percentage }}%
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="col-md-3">
+
+        <div class="card shadow bg-danger text-white">
+
+            <div class="card-body">
+
+                <h6>
+                    Pass / Fail
+                </h6>
+
+                <h2>
+
+                    {{ pass_count }}
+                    /
+                    {{ fail_count }}
+
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
 </div>
+
+
+
+
+
+<!-- FILTER CARD -->
+
+
+<div class="card shadow mb-4">
+
+
+<div class="card-header bg-primary text-white">
+
+
+<h5 class="mb-0">
+
+<i class="fas fa-filter"></i>
+
+Filter Reports
+
+</h5>
+
+
+</div>
+
+
+
+<div class="card-body">
+
+
+<form method="get" class="row g-3">
+
+
+
+<!-- COURSE -->
+
+<div class="col-md-3">
+
+
+<label class="form-label">
+
+Course
+
+</label>
+
+
+<select name="course" class="form-select">
+
+
+<option value="">
+
+All Courses
+
+</option>
+
+
+{% for course in courses %}
+
+
+<option value="{{ course.id }}"
+
+{% if selected_course == course.id|stringformat:"s" %}
+selected
+{% endif %}
+
+>
+
+{{ course.name }}
+
+</option>
+
+
+{% endfor %}
+
+
+</select>
+
+
+</div>
+
+
+
+
+
+<!-- SUBJECT -->
+
+
+<div class="col-md-3">
+
+
+<label class="form-label">
+
+Subject
+
+</label>
+
+
+<select name="subject" class="form-select">
+
+
+<option value="">
+
+All Subjects
+
+</option>
+
+
+
+{% for subject in subjects %}
+
+
+<option value="{{ subject.id }}"
+
+{% if selected_subject == subject.id|stringformat:"s" %}
+selected
+{% endif %}
+
+>
+
+{{ subject.name }}
+
+</option>
+
+
+{% endfor %}
+
+
+</select>
+
+
+</div>
+
+
+
+
+
+<!-- EXAM -->
+
+
+<div class="col-md-3">
+
+
+<label class="form-label">
+
+Exam
+
+</label>
+
+
+<select name="exam" class="form-select">
+
+
+<option value="">
+
+All Exams
+
+</option>
+
+
+{% for exam in exams %}
+
+
+<option value="{{ exam.id }}"
+
+{% if selected_exam == exam.id|stringformat:"s" %}
+selected
+{% endif %}
+
+>
+
+{{ exam.exam_name }}
+
+</option>
+
+
+{% endfor %}
+
+
+</select>
+
+
+</div>
+
+
+
+
+
+<!-- SEMESTER -->
+
+
+<div class="col-md-3">
+
+
+<label class="form-label">
+
+Semester
+
+</label>
+
+
+<select name="semester" class="form-select">
+
+
+<option value="">
+
+All Semesters
+
+</option>
+
+
+
+{% for sem in semesters %}
+
+
+<option value="{{ sem }}"
+
+{% if selected_semester == sem|stringformat:"s" %}
+selected
+{% endif %}
+
+>
+
+Semester {{ sem }}
+
+</option>
+
+
+{% endfor %}
+
+
+</select>
+
+
+</div>
+
+
+
+
+
+<!-- BUTTONS -->
+
+
+<div class="col-md-12">
+
+
+<button class="btn btn-primary">
+
+<i class="fas fa-search"></i>
+
+Filter
+
+</button>
+
+
+
+<a href="{% url 'admin_reports' %}"
+
+class="btn btn-secondary">
+
+Reset
+
+</a>
+
+
+</div>
+
+
+
+</form>
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+<!-- EXPORT BUTTONS -->
+
+
+<div class="mb-3">
+
+
+<a href="{% url 'export_reports_excel' %}"
+
+class="btn btn-success">
+
+
+<i class="fas fa-file-excel"></i>
+
+Export Excel
+
+
+</a>
+
+
+
+
+<a href="{% url 'export_reports_pdf' %}"
+
+class="btn btn-danger">
+
+
+<i class="fas fa-file-pdf"></i>
+
+Export PDF
+
+
+</a>
+
+
+</div>
+
+
+
+
+
+
+
+<!-- HIGHEST SCORE -->
+
+
+{% if highest_score %}
+
+
+<div class="alert alert-info shadow">
+
+
+<i class="fas fa-trophy"></i>
+
+
+Highest Score:
+
+
+<strong>
+
+{{ highest_score.student.studentprofile.name }}
+
+</strong>
+
+
+-
+
+{{ highest_score.percentage }}%
+
+
+</div>
+
+
+{% endif %}
+
+
+
+
+
+
+
+<!-- RESULTS TABLE -->
+
+
+<div class="card shadow">
+
+
+<div class="card-header bg-dark text-white">
+
+
+<h5 class="mb-0">
+
+Student Examination Results
+
+</h5>
+
+
+</div>
+
+
+
+
+
+<div class="card-body">
+
+
+<div class="table-responsive">
+
+
+
+<table class="table table-bordered table-hover align-middle">
+
+
+<thead class="table-dark">
+
+
+<tr>
+
+<th>
+Student
+</th>
+
+
+<th>
+Exam
+</th>
+
+
+<th>
+Course
+</th>
+
+
+<th>
+Subject
+</th>
+
+
+<th>
+Score
+</th>
+
+
+<th>
+Total Marks
+</th>
+
+
+<th>
+Percentage
+</th>
+
+
+<th>
+Status
+</th>
+
+
+<th>
+Date
+</th>
+
+
+</tr>
+
+
+</thead>
+
+
+
+
+
+<tbody>
+
+
+
+{% for result in results %}
+
+
+
+<tr>
+
+
+<td>
+
+
+{{ result.student.studentprofile.name }}
+
+
+<br>
+
+
+<small class="text-muted">
+
+{{ result.student.username }}
+
+</small>
+
+
+</td>
+
+
+
+
+<td>
+
+{{ result.exam.exam_name }}
+
+</td>
+
+
+
+
+<td>
+
+{{ result.exam.course.name }}
+
+</td>
+
+
+
+
+<td>
+
+{{ result.exam.subject.name }}
+
+</td>
+
+
+
+
+<td>
+
+{{ result.score }}
+
+</td>
+
+
+
+
+<td>
+
+{{ result.total_marks }}
+
+</td>
+
+
+
+
+<td>
+
+{{ result.percentage }} %
+
+</td>
+
+
+
+
+<td>
+
+
+
+{% if result.percentage >= 40 %}
+
+
+<span class="badge bg-success">
+
+PASS
+
+</span>
+
+
+{% else %}
+
+
+<span class="badge bg-danger">
+
+FAIL
+
+</span>
+
+
+{% endif %}
+
+
+
+</td>
+
+
+
+
+
+<td>
+
+{{ result.completed_at|date:"d M Y, h:i A" }}
+
+</td>
+
+
+
+</tr>
+
+
+
+
+{% empty %}
+
+
+
+<tr>
+
+
+<td colspan="9"
+
+class="text-center text-muted">
+
+
+No Results Available
+
+
+</td>
+
+
+</tr>
+
+
+
+
+{% endfor %}
+
+
+
+</tbody>
+
+
+
+</table>
+
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+</div>
+
 
 {% endblock %}

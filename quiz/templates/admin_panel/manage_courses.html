@@ -1,0 +1,157 @@
+{% extends "admin_panel/base.html" %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <!-- Page Header -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold">Course Management</h2>
+            <p class="text-muted">
+                Manage all UG & PG Courses
+            </p>
+        </div>
+
+        <a href="{% url 'add_course' %}" class="btn btn-primary">
+            <i class="fas fa-plus-circle"></i>
+            Add Course
+        </a>
+
+    </div>
+
+    <!-- Statistics -->
+
+    <div class="row mb-4">
+
+        <div class="col-md-3">
+
+            <div class="card dashboard-card bg-info text-white">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+
+                            <h6>Total Courses</h6>
+
+                            <h2>{{ total_courses }}</h2>
+
+                        </div>
+
+                        <i class="fas fa-book fa-3x opacity-50"></i>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Table -->
+
+    <div class="card shadow-sm">
+
+        <div class="card-header bg-primary text-white">
+
+            <h5 class="mb-0">
+
+                Course List
+
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle">
+
+                    <thead class="table-dark">
+
+                        <tr>
+
+                            <th>ID</th>
+
+                            <th>Course Name</th>
+
+                            <th width="180">
+
+                                Action
+
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                    {% for course in courses %}
+
+                        <tr>
+
+                            <td>{{ course.id }}</td>
+
+                            <td>
+
+                                <strong>{{ course.name }}</strong>
+
+                            </td>
+
+                            <td>
+
+                                <a href="{% url 'edit_course' course.id %}"
+                                   class="btn btn-warning btn-sm">
+
+                                    <i class="fas fa-edit"></i>
+
+                                </a>
+
+                                <a href="{% url 'delete_course' course.id %}"
+                                   class="btn btn-danger btn-sm"
+                                   onclick="return confirm('Delete this course?')">
+
+                                    <i class="fas fa-trash"></i>
+
+                                </a>
+
+                            </td>
+
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+
+                            <td colspan="3"
+                                class="text-center text-muted">
+
+                                No Courses Available
+
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

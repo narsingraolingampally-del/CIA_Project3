@@ -1,55 +1,59 @@
-{% extends "base_admin.html" %}
+{% extends "admin_panel/base.html" %}
 
 {% block content %}
 
 <div class="container-fluid">
 
-    <!-- Header -->
+    <!-- Page Header -->
+
     <div class="d-flex justify-content-between align-items-center mb-4">
 
         <div>
 
             <h2 class="fw-bold">
-                CIA Examination Dashboard
+                Dashboard
             </h2>
 
-            <p class="text-muted">
-                Welcome Administrator
+            <p class="text-muted mb-0">
+                Welcome to CIA Examination Management System
             </p>
 
         </div>
+
+        <a href="{% url 'admin_create_exam' %}"
+           class="btn btn-primary">
+
+            <i class="fas fa-plus-circle"></i>
+
+            Create Exam
+
+        </a>
 
     </div>
 
     <!-- Statistics -->
 
-    <div class="row">
+    <div class="row g-4">
 
-        <div class="col-lg-3 col-md-6 mb-4">
+        <div class="col-lg-3 col-md-6">
 
-            <div class="card bg-primary text-white shadow">
+            <div class="card dashboard-card bg-primary text-white">
 
-                <div class="card-body text-center">
+                <div class="card-body">
 
-                    <h1>{{ student_count }}</h1>
+                    <div class="d-flex justify-content-between">
 
-                    <h5>Total Students</h5>
+                        <div>
 
-                </div>
+                            <h6>Total Students</h6>
 
-            </div>
+                            <h2>{{ student_count }}</h2>
 
-        </div>
+                        </div>
 
-        <div class="col-lg-3 col-md-6 mb-4">
+                        <i class="fas fa-user-graduate fa-3x opacity-50"></i>
 
-            <div class="card bg-success text-white shadow">
-
-                <div class="card-body text-center">
-
-                    <h1>{{ faculty_count }}</h1>
-
-                    <h5>Total Faculty</h5>
+                    </div>
 
                 </div>
 
@@ -57,31 +61,25 @@
 
         </div>
 
-        <div class="col-lg-3 col-md-6 mb-4">
+        <div class="col-lg-3 col-md-6">
 
-            <div class="card bg-warning shadow">
+            <div class="card dashboard-card bg-success text-white">
 
-                <div class="card-body text-center">
+                <div class="card-body">
 
-                    <h1>{{ course_count }}</h1>
+                    <div class="d-flex justify-content-between">
 
-                    <h5>Total Courses</h5>
+                        <div>
 
-                </div>
+                            <h6>Total Faculty</h6>
 
-            </div>
+                            <h2>{{ faculty_count }}</h2>
 
-        </div>
+                        </div>
 
-        <div class="col-lg-3 col-md-6 mb-4">
+                        <i class="fas fa-chalkboard-teacher fa-3x opacity-50"></i>
 
-            <div class="card bg-info text-white shadow">
-
-                <div class="card-body text-center">
-
-                    <h1>{{ subject_count }}</h1>
-
-                    <h5>Total Subjects</h5>
+                    </div>
 
                 </div>
 
@@ -89,35 +87,25 @@
 
         </div>
 
-    </div>
+        <div class="col-lg-3 col-md-6">
 
-    <div class="row">
+            <div class="card dashboard-card bg-warning text-dark">
 
-        <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card-body">
 
-            <div class="card bg-dark text-white shadow">
+                    <div class="d-flex justify-content-between">
 
-                <div class="card-body text-center">
+                        <div>
 
-                    <h1>{{ question_count }}</h1>
+                            <h6>Total Exams</h6>
 
-                    <h5>Question Bank</h5>
+                            <h2>{{ exam_count }}</h2>
 
-                </div>
+                        </div>
 
-            </div>
+                        <i class="fas fa-file-alt fa-3x opacity-50"></i>
 
-        </div>
-
-        <div class="col-lg-3 col-md-6 mb-4">
-
-            <div class="card bg-secondary text-white shadow">
-
-                <div class="card-body text-center">
-
-                    <h1>{{ exam_count }}</h1>
-
-                    <h5>Total Exams</h5>
+                    </div>
 
                 </div>
 
@@ -125,31 +113,25 @@
 
         </div>
 
-        <div class="col-lg-3 col-md-6 mb-4">
+        <div class="col-lg-3 col-md-6">
 
-            <div class="card bg-danger text-white shadow">
+            <div class="card dashboard-card bg-danger text-white">
 
-                <div class="card-body text-center">
+                <div class="card-body">
 
-                    <h1>{{ published_exam_count }}</h1>
+                    <div class="d-flex justify-content-between">
 
-                    <h5>Published Exams</h5>
+                        <div>
 
-                </div>
+                            <h6>Total Questions</h6>
 
-            </div>
+                            <h2>{{ question_count }}</h2>
 
-        </div>
+                        </div>
 
-        <div class="col-lg-3 col-md-6 mb-4">
+                        <i class="fas fa-question-circle fa-3x opacity-50"></i>
 
-            <div class="card bg-success text-white shadow">
-
-                <div class="card-body text-center">
-
-                    <h1>{{ result_count }}</h1>
-
-                    <h5>Results</h5>
+                    </div>
 
                 </div>
 
@@ -159,93 +141,111 @@
 
     </div>
 
-    <!-- Recent Exams -->
+    <!-- Second Row -->
 
-    <div class="card shadow mb-4">
+    <div class="row g-4 mt-1">
 
-        <div class="card-header bg-primary text-white">
+        <div class="col-lg-3 col-md-6">
 
-            <h5 class="mb-0">
+            <div class="card dashboard-card bg-info text-white">
 
-                Recent CIA Exams
+                <div class="card-body">
 
-            </h5>
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+
+                            <h6>Courses</h6>
+
+                            <h2>{{ course_count }}</h2>
+
+                        </div>
+
+                        <i class="fas fa-book fa-3x opacity-50"></i>
+
+                    </div>
+
+                </div>
+
+            </div>
 
         </div>
 
-        <div class="card-body">
+        <div class="col-lg-3 col-md-6">
 
-            <table class="table table-bordered table-hover">
+            <div class="card dashboard-card bg-secondary text-white">
 
-                <thead class="table-dark">
+                <div class="card-body">
 
-                    <tr>
+                    <div class="d-flex justify-content-between">
 
-                        <th>Exam</th>
+                        <div>
 
-                        <th>Course</th>
+                            <h6>Subjects</h6>
 
-                        <th>Subject</th>
+                            <h2>{{ subject_count }}</h2>
 
-                        <th>Status</th>
+                        </div>
 
-                    </tr>
+                        <i class="fas fa-book-open fa-3x opacity-50"></i>
 
-                </thead>
+                    </div>
 
-                <tbody>
+                </div>
 
-                {% for exam in recent_exams %}
+            </div>
 
-                    <tr>
+        </div>
 
-                        <td>{{ exam.exam_name }}</td>
+        <div class="col-lg-3 col-md-6">
 
-                        <td>{{ exam.course }}</td>
+            <div class="card dashboard-card bg-dark text-white">
 
-                        <td>{{ exam.subject }}</td>
+                <div class="card-body">
 
-                        <td>
+                    <div class="d-flex justify-content-between">
 
-                            {% if exam.is_published %}
+                        <div>
 
-                                <span class="badge bg-success">
+                            <h6>Published Exams</h6>
 
-                                    Published
+                            <h2>{{ published_exam_count }}</h2>
 
-                                </span>
+                        </div>
 
-                            {% else %}
+                        <i class="fas fa-check-circle fa-3x opacity-50"></i>
 
-                                <span class="badge bg-warning text-dark">
+                    </div>
 
-                                    Draft
+                </div>
 
-                                </span>
+            </div>
 
-                            {% endif %}
+        </div>
 
-                        </td>
+        <div class="col-lg-3 col-md-6">
 
-                    </tr>
+            <div class="card dashboard-card bg-success text-white">
 
-                {% empty %}
+                <div class="card-body">
 
-                    <tr>
+                    <div class="d-flex justify-content-between">
 
-                        <td colspan="4" class="text-center">
+                        <div>
 
-                            No Exams Found
+                            <h6>Results</h6>
 
-                        </td>
+                            <h2>{{ result_count }}</h2>
 
-                    </tr>
+                        </div>
 
-                {% endfor %}
+                        <i class="fas fa-chart-line fa-3x opacity-50"></i>
 
-                </tbody>
+                    </div>
 
-            </table>
+                </div>
+
+            </div>
 
         </div>
 
@@ -253,13 +253,13 @@
 
     <!-- Charts -->
 
-    <div class="row">
+    <div class="row mt-5">
 
-        <div class="col-lg-6 mb-4">
+        <div class="col-lg-8">
 
-            <div class="card shadow">
+            <div class="card">
 
-                <div class="card-header bg-primary text-white">
+                <div class="card-header bg-white">
 
                     <h5 class="mb-0">
 
@@ -279,15 +279,15 @@
 
         </div>
 
-        <div class="col-lg-6 mb-4">
+        <div class="col-lg-4">
 
-            <div class="card shadow">
+            <div class="card">
 
-                <div class="card-header bg-success text-white">
+                <div class="card-header bg-white">
 
                     <h5 class="mb-0">
 
-                        Pass / Fail Analysis
+                        Result Statistics
 
                     </h5>
 
@@ -305,115 +305,143 @@
 
     </div>
 
+    <!-- Recent Exams -->
+
+    <div class="card mt-5">
+
+        <div class="card-header bg-primary text-white">
+
+            <h5 class="mb-0">
+
+                Recent Examinations
+
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <table class="table table-hover">
+
+                <thead>
+
+                    <tr>
+
+                        <th>ID</th>
+
+                        <th>Exam</th>
+
+                        <th>Course</th>
+
+                        <th>Subject</th>
+
+                        <th>Status</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                {% for exam in recent_exams %}
+
+                    <tr>
+
+                        <td>{{ exam.id }}</td>
+
+                        <td>{{ exam.exam_name }}</td>
+
+                        <td>{{ exam.course.name }}</td>
+
+                        <td>{{ exam.subject.name }}</td>
+
+                        <td>
+
+                            {% if exam.is_published %}
+
+                            <span class="badge bg-success">
+
+                                Published
+
+                            </span>
+
+                            {% else %}
+
+                            <span class="badge bg-warning">
+
+                                Draft
+
+                            </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+
+                        <td colspan="5" class="text-center">
+
+                            No Exams Available
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
 </div>
 
 <script>
 
-const courseLabels = JSON.parse('{{ course_names|escapejs }}');
+new Chart(document.getElementById("courseChart"),{
 
-const courseData = JSON.parse('{{ course_students|escapejs }}');
+type:"bar",
 
-new Chart(
+data:{
 
-    document.getElementById("courseChart"),
+labels:{{ course_names|safe }},
 
-    {
+datasets:[{
 
-        type: "bar",
+label:"Students",
 
-        data: {
+data:{{ course_students|safe }}
 
-            labels: courseLabels,
+}]
 
-            datasets: [
+}
 
-                {
+});
 
-                    label: "Students",
+new Chart(document.getElementById("resultChart"),{
 
-                    data: courseData,
+type:"pie",
 
-                    backgroundColor: "#0d6efd"
+data:{
 
-                }
+labels:["Pass","Fail"],
 
-            ]
+datasets:[{
 
-        },
+data:[{{ pass_count }},{{ fail_count }}]
 
-        options: {
+}]
 
-            responsive: true,
+}
 
-            plugins: {
-
-                legend: {
-
-                    display: false
-
-                }
-
-            }
-
-        }
-
-    }
-
-);
-
-new Chart(
-
-    document.getElementById("resultChart"),
-
-    {
-
-        type: "pie",
-
-        data: {
-
-            labels: [
-
-                "Pass",
-
-                "Fail"
-
-            ],
-
-            datasets: [
-
-                {
-
-                    data: [
-
-                        {{ pass_count }},
-
-                        {{ fail_count }}
-
-                    ],
-
-                    backgroundColor: [
-
-                        "#198754",
-
-                        "#dc3545"
-
-                    ]
-
-                }
-
-            ]
-
-        },
-
-        options: {
-
-            responsive: true
-
-        }
-
-    }
-
-);
+});
 
 </script>
 

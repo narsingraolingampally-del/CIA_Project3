@@ -2,6 +2,7 @@ from django.urls import path
 from django.contrib.auth.views import LogoutView
 from django.conf import settings
 from django.conf.urls.static import static
+from .views import export_results
 
 from . import views
 
@@ -78,6 +79,11 @@ urlpatterns = [
         views.view_results,
         name='view_results'
     ),
+    path(
+    "export-results/",
+    export_results,
+    name="export_results"
+),
 
     path(
         'publish-exam/<int:id>/',
@@ -137,6 +143,7 @@ urlpatterns = [
     name="upload_faculty",
 ),
 
+
     # =====================================================
     # STUDENT MANAGEMENT
     # =====================================================
@@ -168,6 +175,11 @@ urlpatterns = [
     'admin-panel/students/delete/<int:id>/',
     views.delete_student,
     name='delete_student'
+),
+path(
+    "delete-student/<int:id>/",
+    views.delete_student,
+    name="delete_student"
 ),
 
     # =====================================================
@@ -253,6 +265,11 @@ urlpatterns = [
         views.delete_question,
         name='delete_question'
     ),
+    path(
+    "faculty/delete-question/<int:pk>/",
+    views.delete_question,
+    name="delete_question"
+),
 
     # =====================================================
     # EXAMS
@@ -268,6 +285,12 @@ urlpatterns = [
     views.create_exam,
     name="create_exam",
 ),
+path(
+    "admin-panel/exams/<int:exam_id>/questions/",
+    views.view_exam_questions,
+    name="view_exam_questions",
+),
+
 
     # =====================================================
     # REPORTS
@@ -328,6 +351,74 @@ path(
     "admin-panel/exams/edit/<int:id>/",
     views.edit_exam,
     name="edit_exam",
+),
+path(
+    "ajax/load-subjects/",
+    views.load_subjects,
+    name="ajax_load_subjects",
+),
+path(
+    "admin-panel/reports/export/excel/",
+    views.export_reports_excel,
+    name="export_reports_excel",
+),
+
+path(
+    "admin-panel/reports/export/pdf/",
+    views.export_reports_pdf,
+    name="export_reports_pdf",
+),
+path(
+    "faculty/edit-question/<int:pk>/",
+    views.faculty_edit_question,
+    name="faculty_edit_question",
+),
+path(
+    "download-question-template/",
+    views.download_question_template,
+    name="download_question_template",
+),
+path(
+    "admin-panel/published-exams/",
+    views.published_exams,
+    name="published_exams"
+),
+
+
+path(
+    "admin-panel/unpublish-exam/<int:id>/",
+    views.unpublish_exam,
+    name="unpublish_exam"
+),
+# ==========================
+# STUDENT EXAMS
+# ==========================
+
+path(
+    "student/upcoming-exams/",
+    views.student_upcoming_exams,
+    name="student_upcoming_exams"
+),
+
+path(
+    "student/results/",
+    views.student_results,
+    name="student_results"
+),
+path(
+    "faculty/delete-all-questions/",
+    views.delete_all_questions,
+    name="delete_all_questions"
+),
+path(
+    "edit-student/<int:id>/",
+    views.edit_student,
+    name="edit_student"
+),
+path(
+    "admin-panel/students/delete-selected/",
+    views.delete_selected_students,
+    name="delete_selected_students"
 ),
 ]
 

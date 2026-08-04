@@ -1,8 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
-
-
 # ==================================================
 # CUSTOM USER
 # ==================================================
@@ -292,28 +290,27 @@ class CourseConfig(models.Model):
 
 class Exam(models.Model):
 
-    exam_name = models.CharField(
-        max_length=100
-    )
+    exam_name = models.CharField(max_length=100)
 
     course = models.ForeignKey(
         Course,
         on_delete=models.CASCADE
     )
 
+    semester = models.IntegerField(default=1)
+
     subject = models.ForeignKey(
         Subject,
         on_delete=models.CASCADE
     )
 
-    duration = models.IntegerField(
-        default=60
-    )
+    duration = models.IntegerField(default=60)
+
     created_by = models.ForeignKey(
-    User,
-    on_delete=models.CASCADE,
-    null=True
-)
+        User,
+        on_delete=models.CASCADE,
+        null=True
+    )
 
     number_of_questions = models.IntegerField()
 
@@ -321,14 +318,9 @@ class Exam(models.Model):
 
     end_time = models.DateTimeField()
 
-    is_published = models.BooleanField(
-        default=False
-    )
+    is_published = models.BooleanField(default=False)
 
-    created_at = models.DateTimeField(
-        auto_now_add=True
-    )
-
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.exam_name
@@ -439,7 +431,4 @@ class StudentAnswer(models.Model):
     )
 
 
-    def __str__(self):
-        return f"{self.student.username} - {self.question.id}"
     
-   

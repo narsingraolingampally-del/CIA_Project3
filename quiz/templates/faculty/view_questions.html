@@ -1,67 +1,444 @@
-{% extends 'base.html' %}
+{% extends 'faculty/base_faculty.html' %}
 
 {% block content %}
+
 <div class="container mt-4">
+
+
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold">📚 Question Bank</h2>
-        <a href="{% url 'upload_question_paper' %}" class="btn btn-success shadow-sm">+ Add New Questions</a>
+
+
+        <h2 class="fw-bold">
+            📚 Question Bank
+        </h2>
+
+
+        <a href="{% url 'upload_question_paper' %}"
+           class="btn btn-success shadow-sm">
+
+            <i class="fas fa-plus"></i>
+            Add New Questions
+
+        </a>
+
+
     </div>
 
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-dark">
-                        <tr>
-                            <th class="ps-3">Course</th>
-                            <th>Sem</th>
-                            <th>Subject</th>
-                            <th>Question Preview</th>
-                            <th>Correct Ans</th>
-                            <th class="text-center">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for q in questions %}
-                        <tr>
-                            <td class="ps-3 fw-bold text-uppercase">{{ q.course }}</td>
-                            <td>{{ q.semester }}</td>
-                            <td>
-                                <span class="fw-bold text-dark">{{ q.subject }}</span>
-                            </td>
-                            <td class="text-muted italic">{{ q.question_text|truncatechars:60 }}</td>
-                            <td>
-                                <span class="badge bg-info text-dark">Option {{ q.correct_ans }}</span>
-                            </td>
-                            <td class="text-center">
-                                <a href="{% url 'delete_question' q.id %}" 
-                                   class="btn btn-sm btn-outline-danger" 
-                                   onclick="return confirm('Are you sure you want to delete this question?')">
-                                   <i class="bi bi-trash"></i> Delete
-                                </a>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-center py-5 text-muted">
-                                No questions found. Start by uploading an Excel sheet!
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+
+
+
+
+    <div class="card shadow border-0">
+
+
+        <div class="card-header bg-primary text-white">
+
+            <h5 class="mb-0">
+                Uploaded Questions
+            </h5>
+
         </div>
-    </div>
+
+
+
+
+
+        <div class="card-body p-0">
+
+
+            <div class="table-responsive">
+                <!-- FILTER SECTION -->
+
+<div class="card shadow mb-4">
+
+<div class="card-body">
+
+
+<h4 class="text-primary">
+Filter Questions
+</h4>
+
+
+<form method="get">
+
+
+<div class="row">
+
+
+<div class="col-md-3">
+
+<label>
+Course
+</label>
+
+<select name="course"
+class="form-control">
+
+
+<option value="">
+All Courses
+</option>
+
+
+{% for course in courses %}
+
+<option value="{{course.id}}">
+
+{{course.name}}
+
+</option>
+
+{% endfor %}
+
+
+</select>
+
 </div>
 
-<style>
-    .table-hover tbody tr:hover {
-        background-color: #f8f9fa;
-        transition: 0.3s;
-    }
-    .italic {
-        font-style: italic;
-    }
-</style>
+
+
+<div class="col-md-2">
+
+
+<label>
+Semester
+</label>
+
+
+<select name="semester"
+class="form-control">
+
+
+<option value="">
+All
+</option>
+
+
+<option value="1">
+1
+</option>
+
+
+<option value="2">
+2
+</option>
+
+
+<option value="3">
+3
+</option>
+
+
+<option value="4">
+4
+</option>
+
+
+<option value="5">
+5
+</option>
+
+
+<option value="6">
+6
+</option>
+
+
+</select>
+
+
+</div>
+
+
+
+
+<div class="col-md-3">
+
+
+<label>
+Subject
+</label>
+
+
+<select name="subject"
+class="form-control">
+
+
+<option value="">
+All Subjects
+</option>
+
+
+
+{% for subject in subjects %}
+
+
+<option value="{{subject.id}}">
+
+{{subject.name}}
+
+</option>
+
+
+{% endfor %}
+
+
+</select>
+
+
+</div>
+
+
+
+
+<div class="col-md-3">
+
+
+<label>
+Search
+</label>
+
+
+<input type="text"
+name="search"
+class="form-control"
+placeholder="Search question">
+
+
+</div>
+
+
+
+
+<div class="col-md-1 mt-4">
+
+
+<button class="btn btn-primary">
+
+<i class="fas fa-search"></i>
+
+</button>
+
+
+</div>
+
+
+</div>
+
+
+</form>
+
+
+</div>
+
+</div>
+<div class="text-end mb-3">
+
+<form method="post"
+action="{% url 'delete_all_questions' %}"
+onsubmit="return confirm('Are you sure you want to delete ALL questions?');">
+
+{% csrf_token %}
+
+<button type="submit"
+class="btn btn-danger">
+
+<i class="fas fa-trash"></i>
+
+Delete All Questions
+
+</button>
+
+</form>
+
+</div>
+
+
+                <table class="table table-bordered table-hover mb-0">
+
+
+
+                    <thead class="table-dark">
+
+
+                        <tr>
+
+                            <th>Course</th>
+
+                            <th>Semester</th>
+
+                            <th>Subject</th>
+
+                            <th>Question</th>
+
+                            <th>Correct Answer</th>
+
+                            <th>Marks</th>
+
+                            <th width="120">
+                                Action
+                            </th>
+
+
+                        </tr>
+
+
+                    </thead>
+
+
+
+
+
+                    <tbody>
+
+
+                    {% for q in questions %}
+
+
+                    <tr>
+
+
+                        <td class="fw-bold">
+
+                            {{ q.course.name }}
+
+                        </td>
+
+
+
+
+                        <td>
+
+                            {{ q.semester }}
+
+                        </td>
+
+
+
+
+                        <td>
+
+                            {{ q.subject.name }}
+
+                        </td>
+
+
+
+
+                        <td>
+
+                            {{ q.question_text|truncatechars:70 }}
+
+                        </td>
+
+
+
+
+                        <td>
+
+                            <span class="badge bg-success">
+
+                                {{ q.correct_answer }}
+
+                            </span>
+
+                        </td>
+
+
+
+
+                        <td>
+
+                            {{ q.marks }}
+
+                        </td>
+
+
+
+
+                        <td class="text-center">
+
+
+                            <form method="POST"
+                                  action="{% url 'delete_question' q.id %}">
+
+                                {% csrf_token %}
+
+
+                                <button type="submit"
+                                        class="btn btn-sm btn-danger"
+                                        onclick="return confirm('Delete this question?');">
+
+
+                                    <i class="fas fa-trash"></i>
+
+                                    Delete
+
+
+                                </button>
+
+
+                            </form>
+
+
+                        </td>
+
+
+
+                    </tr>
+
+
+
+                    {% empty %}
+
+
+
+                    <tr>
+
+
+                        <td colspan="7"
+                            class="text-center py-5 text-muted">
+
+
+                            No questions uploaded yet.
+
+
+
+                        </td>
+
+
+                    </tr>
+
+
+
+                    {% endfor %}
+
+
+
+                    </tbody>
+
+
+
+                </table>
+
+
+
+            </div>
+
+
+
+        </div>
+
+
+
+    </div>
+
+
+
+
+</div>
+
+
+
+
 {% endblock %}
