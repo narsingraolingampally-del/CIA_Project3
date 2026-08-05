@@ -18,7 +18,23 @@ from .models import (
     StudentAnswer,
 )
 
+from django.contrib.admin import AdminSite
 
+
+class CIAAdminSite(AdminSite):
+    site_header = "CIA Examination Management System"
+    site_title = "CIA Admin"
+    index_title = "Administrator Dashboard"
+
+    def get_urls(self):
+        return super().get_urls()
+
+    def index(self, request, extra_context=None):
+        from django.shortcuts import redirect
+        return redirect("admin_dashboard")
+
+
+admin_site = CIAAdminSite(name="cia_admin")
 # ==================================================
 # USER ADMIN
 # ==================================================

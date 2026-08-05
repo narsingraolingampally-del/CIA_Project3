@@ -1,0 +1,229 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+<style>
+
+body.login{
+    background:linear-gradient(135deg,#0f172a,#2563eb);
+    font-family:'Segoe UI',sans-serif;
+}
+
+#container{
+    background:transparent;
+    width:100%;
+}
+
+#content{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:90vh;
+}
+
+#content-main{
+    width:430px;
+}
+
+.login-card{
+
+    background:white;
+
+    border-radius:18px;
+
+    padding:40px;
+
+    box-shadow:0 20px 40px rgba(0,0,0,.25);
+
+}
+
+.logo{
+
+    width:90px;
+    height:90px;
+
+    background:#2563eb;
+
+    border-radius:50%;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:white;
+
+    font-size:40px;
+
+    margin:auto;
+
+    margin-bottom:20px;
+
+}
+
+h1{
+
+    text-align:center;
+
+    font-size:30px;
+
+    color:#0f172a;
+
+    margin-bottom:5px;
+
+}
+
+.subtitle{
+
+    text-align:center;
+
+    color:#6c757d;
+
+    margin-bottom:30px;
+
+}
+
+.form-row{
+
+    margin-bottom:18px;
+
+}
+
+.form-row label{
+
+    display:block;
+
+    margin-bottom:6px;
+
+    font-weight:600;
+
+}
+
+.form-row input{
+
+    width:100%;
+
+    padding:12px;
+
+    border:1px solid #ccc;
+
+    border-radius:10px;
+
+    font-size:16px;
+
+}
+
+.submit-row{
+
+    padding:0;
+
+    border:none;
+
+    background:none;
+
+}
+
+.submit-row input{
+
+    width:100%;
+
+    background:#2563eb;
+
+    color:white;
+
+    border:none;
+
+    border-radius:10px;
+
+    padding:14px;
+
+    font-size:17px;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+}
+
+.submit-row input:hover{
+
+    background:#1d4ed8;
+
+}
+
+.errornote{
+
+    background:#ffe5e5;
+
+    color:#c0392b;
+
+    border:none;
+
+    border-radius:10px;
+
+    padding:12px;
+
+    margin-bottom:20px;
+
+}
+
+#header,
+#branding,
+#nav-sidebar,
+.breadcrumbs{
+
+    display:none;
+
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="login-card">
+
+    <div class="logo">
+        🔐
+    </div>
+
+    <h1>CIA Admin Portal</h1>
+
+    <div class="subtitle">
+        Examination Management System
+    </div>
+
+    {% if form.errors %}
+        <p class="errornote">
+            Invalid username or password.
+        </p>
+    {% endif %}
+
+    <form action="{{ app_path }}" method="post">
+
+        {% csrf_token %}
+
+        <div class="form-row">
+            {{ form.username.label_tag }}
+            {{ form.username }}
+        </div>
+
+        <div class="form-row">
+            {{ form.password.label_tag }}
+            {{ form.password }}
+        </div>
+
+        {% if next %}
+            <input type="hidden" name="next" value="{{ next }}">
+        {% endif %}
+
+        <div class="submit-row">
+            <input type="submit" value="Login">
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

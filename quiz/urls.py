@@ -4,6 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from .views import export_results
 
+
 from . import views
 
 urlpatterns = [
@@ -302,21 +303,19 @@ path(
         name='admin_reports'
     ),
     
-
-    # =====================================================
-    # LOGOUT
-    # =====================================================
-
     path(
-        'logout/',
-        LogoutView.as_view(next_page='index'),
-        name='logout'
-
+        "admin-login/",
+        views.admin_login,
+        name="admin_login",
     ),
-    path(
-    'admin-panel/question-bank/add/',
-    views.add_question,
-    name='add_question'
+
+    # =====================================================
+# LOGOUT
+# =====================================================
+path(
+    "logout/",
+    views.user_logout,
+    name="logout",
 ),
 
 path(

@@ -97,11 +97,12 @@ def student_login(request):
     return render(request, "student/login.html")
 
 
-# =========================================
-# FACULTY LOGIN
-# =========================================
+from django.contrib.auth import authenticate, login
+from django.contrib import messages
+from django.shortcuts import render, redirect
 
-def faculty_login(request):
+
+def admin_login(request):
 
     if request.method == "POST":
 
@@ -114,15 +115,89 @@ def faculty_login(request):
             password=password
         )
 
-        if user is not None and (user.is_faculty or user.is_superuser):
+        if user and user.is_superuser:
             login(request, user)
+            return redirect("admin_dashboard")   # redirects to /admin-panel/
+
+        messages.error(request, "Invalid Administrator Login")
+
+    return render(request, "admin_panel/login.html")
+
+# =========================================
+# FACULTY LOGIN
+# =========================================
+
+from django.contrib.auth import authenticate, login
+from django.shortcuts import render, redirect
+from django.contrib import messages
+
+
+def faculty_login(request):
+
+    # Already logged in
+    if request.user.is_authenticated:
+
+        if request.user.is_superuser:
+            return redirect("admin_dashboard")
+
+        if request.user.is_faculty:
             return redirect("faculty_dashboard")
 
-        messages.error(request, "Invalid Faculty Login")
+        if request.user.is_student:
+            return redirect("student_dashboard")
 
-    return render(request, "faculty/login.html")
+    if request.method == "POST":
 
+        username = request.POST.get("username")
+        password = request.POST.get("password")
 
+        user = authenticate(
+            request,
+            username=username,
+            password=password,
+        )
+
+        if user is None:
+            messages.error(
+                request,
+                "Invalid username or password."
+            )
+            return render(request, "faculty/login.html")
+
+        if not user.is_active:
+            messages.error(
+                request,
+                "Your account is disabled."
+            )
+            return render(request, "faculty/login.html")
+
+        login(request, user)
+
+        # Redirect back to the page the user originally requested
+        next_url = request.GET.get("next")
+        if next_url:
+            return redirect(next_url)
+
+        # Default redirects
+        if user.is_superuser:
+            return redirect("admin_dashboard")
+
+        if user.is_faculty:
+            return redirect("faculty_dashboard")
+
+        if user.is_student:
+            return redirect("student_dashboard")
+
+        messages.error(
+            request,
+            "You do not have permission to login."
+        )
+        return redirect("faculty_login")
+
+    return render(
+        request,
+        "faculty/login.html"
+    )
 # =========================================
 # LOGOUT
 # =========================================
@@ -2319,52 +2394,69 @@ def manage_students(request):
             "total_students": students.count()
         }
     )
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+
 @login_required
 def student_dashboard(request):
+
+    # Prevent admin/faculty access
+    if not request.user.is_student:
+        messages.error(
+            request,
+            "Only students can access Student Dashboard."
+        )
+
+        if request.user.is_superuser:
+            return redirect("admin_dashboard")
+
+        if request.user.is_faculty:
+            return redirect("faculty_dashboard")
+
+        return redirect("index")
 
     student = get_object_or_404(
         StudentProfile,
         user=request.user
     )
 
-
     exams = Exam.objects.filter(
         course=student.course,
         is_published=True
     )
 
-
     results = Result.objects.filter(
         student=request.user
     )
-
 
     attempted_exam_ids = results.values_list(
         "exam_id",
         flat=True
     )
 
-
     context = {
-
         "student": student,
-
         "exams": exams,
-
         "results": results,
-
-        "attempted_exam_ids": list(
-            attempted_exam_ids
-        ),
-
+        "attempted_exam_ids": list(attempted_exam_ids),
     }
-
 
     return render(
         request,
         "student/dashboard.html",
         context
     )
+
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+from django.contrib import messages
+
+def user_logout(request):
+    logout(request)
+    messages.success(request, "You have been logged out successfully.")
+    return redirect("index")
 
 @login_required
 @user_passes_test(is_admin)

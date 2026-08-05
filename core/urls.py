@@ -1,9 +1,14 @@
-from django.contrib import admin
 from django.urls import path, include
+from django.shortcuts import redirect
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    # Move quiz.urls ABOVE auth.urls so your custom login is found first
-    path('', include('quiz.urls')), 
-    path('', include('django.contrib.auth.urls')), 
+    # Redirect /admin/ to your custom admin dashboard
+    path(
+        "admin/",
+        lambda request: redirect("admin_dashboard"),
+        name="admin_redirect",
+    ),
+
+    # Your application URLs
+    path("", include("quiz.urls")),
 ]

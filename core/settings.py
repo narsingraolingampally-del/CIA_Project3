@@ -11,9 +11,9 @@ SECRET_KEY = os.environ.get(
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "cia-project3.onrender.com",
-    "localhost",
     "127.0.0.1",
+    "localhost",
+    "cia-project3.onrender.com",
 ]
 
 INSTALLED_APPS = [
@@ -44,7 +44,9 @@ ROOT_URLCONF = "core.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        "DIRS": [
+            BASE_DIR / "templates",
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -88,24 +90,20 @@ TIME_ZONE = "Asia/Kolkata"
 USE_I18N = True
 USE_TZ = True
 
+# Custom User Model
 AUTH_USER_MODEL = "quiz.User"
 
+# Authentication
 LOGIN_URL = "faculty_login"
-
-AUTH_USER_MODEL = "quiz.User"
-
-LOGIN_URL = "admin:login"
-LOGIN_REDIRECT_URL = "/"
-LOGOUT_REDIRECT_URL = "/"
-
-
-
-
+LOGIN_REDIRECT_URL = "admin_dashboard"
+LOGOUT_REDIRECT_URL = "index"
 
 STATIC_URL = "static/"
+
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "/media/"
