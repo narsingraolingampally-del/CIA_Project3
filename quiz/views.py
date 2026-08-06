@@ -2054,12 +2054,112 @@ def upload_faculty(request):
     )
 
 
+def is_admin_or_faculty(user):
+    return user.is_authenticated and (
+        user.is_superuser or user.is_faculty
+    )
+
+
+import random
+import string
+
+from django.contrib import messages
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.shortcuts import render
+
+from .models import Course, StudentProfile
+
+
+import random
+import string
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.shortcuts import render
+
+from .models import Course, StudentProfile
+
+
 @login_required
-@user_passes_test(is_faculty)
+@user_passes_test(is_admin_or_faculty)
 def password_generator(request):
+
+    courses = Course.objects.all().order_by("name")
+
+    students = None
+    generated_accounts = []
+
+    selected_course = ""
+    selected_semester = ""
+
+    # ===============================
+    # SHOW STUDENTS (GET)
+    # ===============================
+
+    if request.method == "GET":
+
+        selected_course = request.GET.get("course", "")
+        selected_semester = request.GET.get("semester", "")
+
+        if selected_course and selected_semester:
+
+            students = StudentProfile.objects.filter(
+                course_id=selected_course,
+                semester=selected_semester
+            ).select_related("user").order_by("user__username")
+
+    # ===============================
+    # GENERATE PASSWORDS (POST)
+    # ===============================
+
+    elif request.method == "POST":
+
+        selected_course = request.POST.get("course")
+        selected_semester = request.POST.get("semester")
+
+        students = StudentProfile.objects.filter(
+            course_id=selected_course,
+            semester=selected_semester
+        ).select_related("user").order_by("user__username")
+
+        for student in students:
+
+            password = "".join(
+                random.choices(
+                    string.ascii_uppercase + string.digits,
+                    k=8
+                )
+            )
+
+            # Save encrypted password
+            student.user.set_password(password)
+            student.user.save()
+
+            generated_accounts.append({
+                "roll_no": student.user.username,
+                "name": (
+                    student.user.get_full_name().strip()
+                    or student.user.username
+                ),
+                "password": password,
+            })
+
+        messages.success(
+            request,
+            f"{len(generated_accounts)} passwords generated successfully."
+        )
+
     return render(
         request,
-        "faculty/password_generator.html"
+        "admin_panel/password_generator.html",
+        {
+            "courses": courses,
+            "students": students,
+            "generated_accounts": generated_accounts,
+            "selected_course": selected_course,
+            "selected_semester": selected_semester,
+        }
     )
 @login_required
 @user_passes_test(is_admin)

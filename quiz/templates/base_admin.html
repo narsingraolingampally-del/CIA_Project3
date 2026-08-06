@@ -67,7 +67,7 @@ body{
 
 <div class="sidebar">
 
-<h3>CIA ADMIN</h3>
+<h3>NARSING ADMIN</h3>
 
 <a href="{% url 'admin_dashboard' %}">
 <i class="fas fa-gauge"></i>
@@ -80,13 +80,18 @@ body{
 </a>
 
 <a href="{% url 'manage_students' %}">
-<i class="fas fa-user-graduate"></i>
- Students
+    <i class="fas fa-user-graduate"></i>
+    Students
+</a>
+
+<a href="{% url 'password_generator' %}">
+    <i class="fas fa-key"></i>
+    Password Generator
 </a>
 
 <a href="{% url 'manage_courses' %}">
-<i class="fas fa-book"></i>
- Courses
+    <i class="fas fa-book"></i>
+    Courses
 </a>
 
 <a href="{% url 'manage_subjects' %}">
