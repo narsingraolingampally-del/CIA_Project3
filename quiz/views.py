@@ -117,7 +117,7 @@ def admin_login(request):
 
         if user and user.is_superuser:
             login(request, user)
-            return redirect("admin_dashboard")   # redirects to /admin-panel/
+            return redirect("admin_dashboard")
 
         messages.error(request, "Invalid Administrator Login")
 
