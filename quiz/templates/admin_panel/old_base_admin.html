@@ -10,22 +10,34 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1">
 
-    <title>CIA Examination Management System</title>
+    <title>
+        CIA Examination Management System
+    </title>
 
 
-    <!-- Bootstrap 5 -->
+    <!-- ================================================= -->
+    <!-- BOOTSTRAP -->
+    <!-- ================================================= -->
+
     <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
         rel="stylesheet"
     >
 
 
-    <!-- Font Awesome -->
+    <!-- ================================================= -->
+    <!-- FONT AWESOME -->
+    <!-- ================================================= -->
+
     <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
     >
 
+
+    <!-- ================================================= -->
+    <!-- CUSTOM CSS -->
+    <!-- ================================================= -->
 
     <style>
 
@@ -38,14 +50,14 @@
 
         body {
             background: #f4f6fb;
-            font-family: "Segoe UI", sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             overflow-x: hidden;
         }
 
 
-        /* ==========================================
+        /* ================================================
            SIDEBAR
-        ========================================== */
+        ================================================ */
 
         .sidebar {
 
@@ -63,9 +75,7 @@
 
             z-index: 999;
 
-            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.15);
-
-            transition: left 0.3s ease;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, .15);
         }
 
 
@@ -98,8 +108,6 @@
             font-weight: bold;
 
             color: white;
-
-            margin-bottom: 5px;
         }
 
 
@@ -119,7 +127,7 @@
 
             text-decoration: none;
 
-            transition: 0.3s;
+            transition: .3s;
 
             font-size: 15px;
         }
@@ -128,8 +136,6 @@
         .sidebar a i {
 
             width: 28px;
-
-            text-align: center;
         }
 
 
@@ -150,40 +156,28 @@
             color: white;
 
             border-left: 5px solid #facc15;
-
-            padding-left: 20px;
         }
 
 
-        .sidebar hr {
-
-            margin: 10px 20px;
-
-            opacity: 0.4;
-        }
-
-
-        /* ==========================================
+        /* ================================================
            MAIN
-        ========================================== */
+        ================================================ */
 
         .main {
 
             margin-left: 260px;
 
             min-height: 100vh;
-
-            transition: margin-left 0.3s ease;
         }
 
 
-        /* ==========================================
+        /* ================================================
            TOPBAR
-        ========================================== */
+        ================================================ */
 
         .topbar {
 
-            min-height: 75px;
+            height: 75px;
 
             background: white;
 
@@ -193,25 +187,9 @@
 
             align-items: center;
 
-            padding: 12px 30px;
+            padding: 0 30px;
 
-            gap: 20px;
-
-            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
-
-            position: sticky;
-
-            top: 0;
-
-            z-index: 900;
-        }
-
-
-        .topbar-title h4 {
-
-            font-weight: 700;
-
-            color: #0f172a;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, .08);
         }
 
 
@@ -224,24 +202,8 @@
         .search-box input {
 
             border-radius: 30px;
-
-            padding-left: 18px;
-
-            border: 1px solid #dee2e6;
         }
 
-
-        .search-box input:focus {
-
-            box-shadow: none;
-
-            border-color: #2563eb;
-        }
-
-
-        /* ==========================================
-           PROFILE
-        ========================================== */
 
         .profile {
 
@@ -249,9 +211,7 @@
 
             align-items: center;
 
-            gap: 15px;
-
-            white-space: nowrap;
+            gap: 20px;
         }
 
 
@@ -262,20 +222,8 @@
             height: 45px;
 
             border-radius: 50%;
-
-            object-fit: cover;
         }
 
-
-        .profile strong {
-
-            color: #0f172a;
-        }
-
-
-        /* ==========================================
-           NOTIFICATION
-        ========================================== */
 
         .notification {
 
@@ -284,8 +232,6 @@
             cursor: pointer;
 
             position: relative;
-
-            color: #334155;
         }
 
 
@@ -306,26 +252,22 @@
             padding: 2px 6px;
 
             font-size: 11px;
-
-            font-weight: bold;
         }
 
 
-        /* ==========================================
+        /* ================================================
            CONTENT
-        ========================================== */
+        ================================================ */
 
         .content {
 
             padding: 30px;
-
-            min-height: calc(100vh - 140px);
         }
 
 
-        /* ==========================================
+        /* ================================================
            CARDS
-        ========================================== */
+        ================================================ */
 
         .card {
 
@@ -333,13 +275,13 @@
 
             border-radius: 15px;
 
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, .08);
         }
 
 
         .dashboard-card {
 
-            transition: 0.3s;
+            transition: .3s;
         }
 
 
@@ -349,9 +291,9 @@
         }
 
 
-        /* ==========================================
+        /* ================================================
            TABLE
-        ========================================== */
+        ================================================ */
 
         .table {
 
@@ -364,8 +306,6 @@
             background: #0f172a;
 
             color: white;
-
-            vertical-align: middle;
         }
 
 
@@ -375,9 +315,9 @@
         }
 
 
-        /* ==========================================
+        /* ================================================
            BUTTONS
-        ========================================== */
+        ================================================ */
 
         .btn {
 
@@ -385,9 +325,9 @@
         }
 
 
-        /* ==========================================
+        /* ================================================
            FOOTER
-        ========================================== */
+        ================================================ */
 
         .footer {
 
@@ -403,9 +343,9 @@
         }
 
 
-        /* ==========================================
-           MOBILE
-        ========================================== */
+        /* ================================================
+           RESPONSIVE
+        ================================================ */
 
         @media (max-width: 991px) {
 
@@ -426,32 +366,6 @@
                 margin-left: 0;
             }
 
-
-            .topbar {
-
-                padding: 12px 15px;
-            }
-
-
-            .content {
-
-                padding: 20px 15px;
-            }
-        }
-
-
-        @media (max-width: 767px) {
-
-            .profile > div:last-child {
-
-                display: none;
-            }
-
-
-            .notification {
-
-                margin-right: 5px;
-            }
         }
 
     </style>
@@ -462,20 +376,20 @@
 <body>
 
 
-<!-- =========================================================
+<!-- =====================================================
      SIDEBAR
-========================================================= -->
+===================================================== -->
 
 <div class="sidebar" id="sidebar">
 
-
-    <!-- SIDEBAR HEADER -->
 
     <div class="sidebar-header">
 
         <i class="fas fa-graduation-cap"></i>
 
-        <h3>NARSING ADMIN</h3>
+        <h3>
+            NARSING ADMIN
+        </h3>
 
         <small>
             Examination Management
@@ -486,10 +400,8 @@
 
     <!-- DASHBOARD -->
 
-    <a
-        href="{% url 'admin_dashboard' %}"
-        class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}"
-    >
+    <a href="{% url 'admin_dashboard' %}"
+       class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
 
         <i class="fas fa-gauge-high"></i>
 
@@ -500,10 +412,8 @@
 
     <!-- FACULTY -->
 
-    <a
-        href="{% url 'manage_faculty' %}"
-        class="{% if request.resolver_match.url_name == 'manage_faculty' %}active{% endif %}"
-    >
+    <a href="{% url 'manage_faculty' %}"
+       class="{% if request.resolver_match.url_name == 'manage_faculty' %}active{% endif %}">
 
         <i class="fas fa-chalkboard-teacher"></i>
 
@@ -514,10 +424,8 @@
 
     <!-- STUDENTS -->
 
-    <a
-        href="{% url 'manage_students' %}"
-        class="{% if request.resolver_match.url_name == 'manage_students' %}active{% endif %}"
-    >
+    <a href="{% url 'manage_students' %}"
+       class="{% if request.resolver_match.url_name == 'manage_students' %}active{% endif %}">
 
         <i class="fas fa-user-graduate"></i>
 
@@ -528,10 +436,8 @@
 
     <!-- COURSES -->
 
-    <a
-        href="{% url 'manage_courses' %}"
-        class="{% if request.resolver_match.url_name == 'manage_courses' %}active{% endif %}"
-    >
+    <a href="{% url 'manage_courses' %}"
+       class="{% if request.resolver_match.url_name == 'manage_courses' %}active{% endif %}">
 
         <i class="fas fa-book"></i>
 
@@ -542,10 +448,8 @@
 
     <!-- SUBJECTS -->
 
-    <a
-        href="{% url 'manage_subjects' %}"
-        class="{% if request.resolver_match.url_name == 'manage_subjects' %}active{% endif %}"
-    >
+    <a href="{% url 'manage_subjects' %}"
+       class="{% if request.resolver_match.url_name == 'manage_subjects' %}active{% endif %}">
 
         <i class="fas fa-book-open"></i>
 
@@ -556,10 +460,8 @@
 
     <!-- QUESTION BANK -->
 
-    <a
-        href="{% url 'question_bank' %}"
-        class="{% if request.resolver_match.url_name == 'question_bank' %}active{% endif %}"
-    >
+    <a href="{% url 'question_bank' %}"
+       class="{% if request.resolver_match.url_name == 'question_bank' %}active{% endif %}">
 
         <i class="fas fa-database"></i>
 
@@ -570,10 +472,8 @@
 
     <!-- EXAMS -->
 
-    <a
-        href="{% url 'manage_exams' %}"
-        class="{% if request.resolver_match.url_name == 'manage_exams' %}active{% endif %}"
-    >
+    <a href="{% url 'manage_exams' %}"
+       class="{% if request.resolver_match.url_name == 'manage_exams' %}active{% endif %}">
 
         <i class="fas fa-file-circle-plus"></i>
 
@@ -584,10 +484,8 @@
 
     <!-- REPORTS -->
 
-    <a
-        href="{% url 'admin_reports' %}"
-        class="{% if request.resolver_match.url_name == 'admin_reports' %}active{% endif %}"
-    >
+    <a href="{% url 'admin_reports' %}"
+       class="{% if request.resolver_match.url_name == 'admin_reports' %}active{% endif %}">
 
         <i class="fas fa-chart-line"></i>
 
@@ -612,47 +510,41 @@
 </div>
 
 
-<!-- =========================================================
+
+<!-- =====================================================
      MAIN
-========================================================= -->
+===================================================== -->
 
 <div class="main">
 
 
-    <!-- =====================================================
+    <!-- =================================================
          TOPBAR
-    ===================================================== -->
+    ================================================== -->
 
     <div class="topbar">
 
 
-        <!-- LEFT SIDE -->
-
         <div class="d-flex align-items-center">
 
 
-            <!-- MOBILE SIDEBAR BUTTON -->
-
             <button
-                type="button"
                 class="btn btn-primary d-lg-none me-3"
-                onclick="toggleSidebar()"
-            >
+                onclick="toggleSidebar()">
 
                 <i class="fas fa-bars"></i>
 
             </button>
 
 
-            <!-- TITLE -->
-
-            <div class="topbar-title">
+            <div>
 
                 <h4 class="mb-0">
 
                     CIA Examination Management System
 
                 </h4>
+
 
                 <small class="text-muted">
 
@@ -663,6 +555,7 @@
             </div>
 
         </div>
+
 
 
         <!-- SEARCH -->
@@ -678,31 +571,28 @@
         </div>
 
 
+
         <!-- PROFILE -->
 
         <div class="profile">
 
 
-            <!-- NOTIFICATION -->
-
             <div class="notification">
 
                 <i class="fas fa-bell"></i>
 
-                <span>3</span>
+                <span>
+                    3
+                </span>
 
             </div>
 
-
-            <!-- AVATAR -->
 
             <img
                 src="https://ui-avatars.com/api/?name=Admin&background=0D8ABC&color=fff"
                 alt="Admin"
             >
 
-
-            <!-- USER -->
 
             <div>
 
@@ -725,35 +615,31 @@
     </div>
 
 
-    <!-- =====================================================
+
+    <!-- =================================================
          CONTENT
          
          IMPORTANT:
-         THERE IS ONLY ONE "content" BLOCK IN THIS FILE.
-    ===================================================== -->
+         THERE IS ONLY ONE CONTENT BLOCK IN THIS FILE.
+    ================================================== -->
 
     <div class="content">
 
 
-        <!-- DJANGO MESSAGES -->
+        <!-- Django messages -->
 
         {% if messages %}
 
             {% for message in messages %}
 
-                <div
-                    class="alert alert-{{ message.tags|default:'success' }} alert-dismissible fade show"
-                    role="alert"
-                >
+                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show">
 
                     {{ message }}
 
                     <button
                         type="button"
                         class="btn-close"
-                        data-bs-dismiss="alert"
-                        aria-label="Close"
-                    >
+                        data-bs-dismiss="alert">
                     </button>
 
                 </div>
@@ -764,7 +650,7 @@
 
 
         <!-- =================================================
-             SINGLE CONTENT BLOCK
+             ONLY ONE BLOCK CONTENT
         ================================================== -->
 
         {% block content %}
@@ -775,14 +661,15 @@
     </div>
 
 
-    <!-- =====================================================
+
+    <!-- =================================================
          FOOTER
-    ===================================================== -->
+    ================================================== -->
 
     <div class="footer">
 
-        © 2026 CIA Examination Management System |
-        All Rights Reserved
+        © 2026 CIA Examination Management System
+        | All Rights Reserved
 
     </div>
 
@@ -790,31 +677,29 @@
 </div>
 
 
-<!-- =========================================================
+
+<!-- =====================================================
      JAVASCRIPT
-========================================================= -->
+===================================================== -->
 
 <script>
 
-    function toggleSidebar() {
+function toggleSidebar() {
 
-        const sidebar = document.getElementById("sidebar");
+    document
+        .getElementById("sidebar")
+        .classList
+        .toggle("show");
 
-        sidebar.classList.toggle("show");
-
-    }
+}
 
 </script>
 
-
-<!-- Bootstrap JS -->
 
 <script
     src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
 </script>
 
-
-<!-- Chart.js -->
 
 <script
     src="https://cdn.jsdelivr.net/npm/chart.js">

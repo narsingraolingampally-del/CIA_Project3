@@ -1,190 +1,301 @@
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
 
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>CIA Examination Management System</title>
+    <title>CIA Examination Management System</title>
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
 
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+    <link
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        rel="stylesheet"
+    >
 
-<style>
+    <style>
 
-body{
-    background:#f4f6f9;
-    overflow-x:hidden;
-}
+        body {
+            background: #f4f6f9;
+            overflow-x: hidden;
+        }
 
-.sidebar{
-    position:fixed;
-    left:0;
-    top:0;
-    width:250px;
-    height:100vh;
-    background:#1f2937;
-    color:white;
-}
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background: #1f2937;
+            color: white;
+            overflow-y: auto;
+        }
 
-.sidebar h3{
-    padding:20px;
-    text-align:center;
-    border-bottom:1px solid #374151;
-}
+        .sidebar h3 {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #374151;
+            margin-bottom: 0;
+        }
 
-.sidebar a{
-    display:block;
-    color:white;
-    text-decoration:none;
-    padding:15px 20px;
-    transition:.3s;
-}
+        .sidebar a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 15px 20px;
+            transition: 0.3s;
+        }
 
-.sidebar a:hover{
-    background:#2563eb;
-}
+        .sidebar a:hover {
+            background: #2563eb;
+        }
 
-.content{
-    margin-left:250px;
-}
+        .sidebar a i {
+            width: 24px;
+            margin-right: 8px;
+        }
 
-.topbar{
-    background:white;
-    padding:15px 25px;
-    box-shadow:0 2px 10px rgba(0,0,0,.1);
-}
+        .content {
+            margin-left: 250px;
+            min-height: 100vh;
+        }
 
-.main-content{
-    padding:30px;
-}
+        .topbar {
+            background: white;
+            padding: 15px 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
 
-.card{
-    border:none;
-    border-radius:15px;
-}
+        .main-content {
+            padding: 30px;
+        }
 
-.card-body{
-    padding:25px;
-}
+        .card {
+            border: none;
+            border-radius: 15px;
+        }
 
-</style>
+        .card-body {
+            padding: 25px;
+        }
+
+    </style>
 
 </head>
 
+
 <body>
 
-<div class="sidebar">
 
-<h3>
-<i class="fas fa-graduation-cap"></i>
-CIA Portal
-</h3>
+    <!-- ================================= -->
+    <!-- SIDEBAR -->
+    <!-- ================================= -->
 
-<a href="{% url 'admin_dashboard' %}">
-<i class="fas fa-home"></i>
-Dashboard
-</a>
+    <div class="sidebar">
 
-<a href="{% url 'manage_students' %}">
-    <i class="fas fa-user-graduate"></i>
-    Students
-</a>
-
-<a href="{% url 'password_generator' %}">
-    <i class="fas fa-key"></i>
-    Password Generator
-</a>
+        <h3>
+            <i class="fas fa-graduation-cap me-2"></i>
+            CIA Portal
+        </h3>
 
 
-<a href="{% url 'manage_faculty' %}">
-<i class="fas fa-chalkboard-teacher"></i>
-Faculty
-</a>
+        <!-- DASHBOARD -->
 
-<a href="{% url 'manage_courses' %}">
-<i class="fas fa-book"></i>
-Courses
-</a>
+        <a href="{% url 'admin_dashboard' %}">
 
-<a href="{% url 'manage_subjects' %}">
-<i class="fas fa-book-open"></i>
-Subjects
-</a>
+            <i class="fas fa-home"></i>
 
-<a href="{% url 'question_bank' %}">
-<i class="fas fa-database"></i>
-Question Bank
-</a>
+            Dashboard
 
-<a href="{% url 'manage_exams' %}">
-    <i class="fas fa-file-alt"></i>
-    CIA Exams
-</a>
+        </a>
 
-<a href="{% url 'view_results' %}">
-<i class="fas fa-chart-bar"></i>
-Results
-</a>
 
-<a href="{% url 'logout' %}">
-<i class="fas fa-sign-out-alt"></i>
-Logout
-</a>
+        <!-- STUDENTS -->
 
-</div>
+        <a href="{% url 'manage_students' %}">
 
-<div class="content">
+            <i class="fas fa-user-graduate"></i>
 
-<div class="topbar d-flex justify-content-between">
+            Students
 
-<h4>
-CIA Examination Management System
-</h4>
+        </a>
 
-<div>
 
-Welcome
+        <!-- PASSWORD GENERATOR -->
 
-<strong>
+        <a href="{% url 'password_generator' %}">
 
-{{ request.user.username }}
+            <i class="fas fa-key"></i>
 
-</strong>
+            Password Generator
 
-</div>
+        </a>
 
-</div>
 
-<div class="main-content">
+        <!-- FACULTY -->
 
-{% if messages %}
+        <a href="{% url 'manage_faculty' %}">
 
-{% for message in messages %}
+            <i class="fas fa-chalkboard-teacher"></i>
 
-<div class="alert alert-{{ message.tags }}">
+            Faculty
 
-{{ message }}
+        </a>
 
-</div>
 
-{% endfor %}
+        <!-- COURSES -->
 
-{% endif %}
+        <a href="{% url 'manage_courses' %}">
 
-{% block content %}
+            <i class="fas fa-book"></i>
 
-{% endblock %}
+            Courses
 
-</div>
+        </a>
 
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- SUBJECTS -->
+
+        <a href="{% url 'manage_subjects' %}">
+
+            <i class="fas fa-book-open"></i>
+
+            Subjects
+
+        </a>
+
+
+        <!-- QUESTION BANK -->
+
+        <a href="{% url 'question_bank' %}">
+
+            <i class="fas fa-database"></i>
+
+            Question Bank
+
+        </a>
+
+
+        <!-- CIA EXAMS -->
+
+        <a href="{% url 'manage_exams' %}">
+
+            <i class="fas fa-file-alt"></i>
+
+            CIA Exams
+
+        </a>
+
+
+        <!-- ================================= -->
+        <!-- ADMIN REPORTS -->
+        <!-- ================================= -->
+
+        <a href="{% url 'admin_reports' %}">
+
+            <i class="fas fa-chart-bar"></i>
+
+            Results
+
+        </a>
+
+
+        <!-- LOGOUT -->
+
+        <a href="{% url 'logout' %}">
+
+            <i class="fas fa-sign-out-alt"></i>
+
+            Logout
+
+        </a>
+
+    </div>
+
+
+
+    <!-- ================================= -->
+    <!-- MAIN CONTENT -->
+    <!-- ================================= -->
+
+    <div class="content">
+
+
+        <!-- TOPBAR -->
+
+        <div class="topbar d-flex justify-content-between align-items-center">
+
+            <h4 class="mb-0">
+                CIA Examination Management System
+            </h4>
+
+
+            <div>
+
+                Welcome
+
+                <strong>
+                    {{ request.user.username }}
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <!-- PAGE CONTENT -->
+
+        <div class="main-content">
+
+
+            <!-- DJANGO MESSAGES -->
+
+            {% if messages %}
+
+                {% for message in messages %}
+
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+
+                        {{ message }}
+
+                        <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                        ></button>
+
+                    </div>
+
+                {% endfor %}
+
+            {% endif %}
+
+
+            <!-- CONTENT BLOCK -->
+
+            {% block content %}
+
+            {% endblock %}
+
+        </div>
+
+    </div>
+
+
+
+    <!-- BOOTSTRAP -->
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    ></script>
 
 </body>
 

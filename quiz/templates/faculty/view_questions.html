@@ -2,443 +2,548 @@
 
 {% block content %}
 
-<div class="container mt-4">
+<div class="container-fluid mt-4">
 
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
 
     <div class="d-flex justify-content-between align-items-center mb-4">
 
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="fas fa-database text-primary"></i>
+                Question Bank
+            </h2>
 
-        <h2 class="fw-bold">
-            📚 Question Bank
-        </h2>
+            <p class="text-muted mb-0">
+                View, search and manage uploaded questions.
+            </p>
+        </div>
 
 
-        <a href="{% url 'upload_question_paper' %}"
+        <!-- IMPORTANT:
+             This now goes to the NEW faculty Excel upload page
+        -->
+
+        <a href="{% url 'faculty_upload_questions' %}"
            class="btn btn-success shadow-sm">
 
             <i class="fas fa-plus"></i>
+
             Add New Questions
 
         </a>
 
-
     </div>
 
 
+    <!-- =====================================================
+         MESSAGES
+    ====================================================== -->
+
+    {% if messages %}
+
+        {% for message in messages %}
+
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+
+                {{ message }}
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert">
+                </button>
+
+            </div>
+
+        {% endfor %}
+
+    {% endif %}
 
 
+    <!-- =====================================================
+         FILTER SECTION
+    ====================================================== -->
 
-    <div class="card shadow border-0">
-
+    <div class="card shadow-sm border-0 mb-4">
 
         <div class="card-header bg-primary text-white">
 
             <h5 class="mb-0">
-                Uploaded Questions
+
+                <i class="fas fa-filter"></i>
+
+                Filter Questions
+
             </h5>
 
         </div>
 
 
+        <div class="card-body">
 
+            <form method="GET">
 
+                <div class="row g-3">
 
-        <div class="card-body p-0">
 
+                    <!-- COURSE -->
 
-            <div class="table-responsive">
-                <!-- FILTER SECTION -->
+                    <div class="col-md-3">
 
-<div class="card shadow mb-4">
+                        <label class="form-label fw-bold">
+                            Course
+                        </label>
 
-<div class="card-body">
+                        <select
+                            name="course"
+                            class="form-select"
+                        >
 
+                            <option value="">
+                                All Courses
+                            </option>
 
-<h4 class="text-primary">
-Filter Questions
-</h4>
+                            {% for course in courses %}
 
+                                <option
+                                    value="{{ course.id }}"
+                                    {% if request.GET.course == course.id|stringformat:"s" %}
+                                        selected
+                                    {% endif %}
+                                >
 
-<form method="get">
+                                    {{ course.name }}
 
+                                </option>
 
-<div class="row">
+                            {% endfor %}
 
+                        </select>
 
-<div class="col-md-3">
+                    </div>
 
-<label>
-Course
-</label>
 
-<select name="course"
-class="form-control">
+                    <!-- SEMESTER -->
 
+                    <div class="col-md-2">
 
-<option value="">
-All Courses
-</option>
+                        <label class="form-label fw-bold">
+                            Semester
+                        </label>
 
+                        <select
+                            name="semester"
+                            class="form-select"
+                        >
 
-{% for course in courses %}
+                            <option value="">
+                                All
+                            </option>
 
-<option value="{{course.id}}">
+                            {% for sem in "12345678" %}
 
-{{course.name}}
+                                <option
+                                    value="{{ sem }}"
+                                    {% if request.GET.semester == sem %}
+                                        selected
+                                    {% endif %}
+                                >
 
-</option>
+                                    Semester {{ sem }}
 
-{% endfor %}
+                                </option>
 
+                            {% endfor %}
 
-</select>
+                        </select>
 
-</div>
+                    </div>
 
 
+                    <!-- SUBJECT -->
 
-<div class="col-md-2">
+                    <div class="col-md-3">
 
+                        <label class="form-label fw-bold">
+                            Subject
+                        </label>
 
-<label>
-Semester
-</label>
+                        <select
+                            name="subject"
+                            class="form-select"
+                        >
 
+                            <option value="">
+                                All Subjects
+                            </option>
 
-<select name="semester"
-class="form-control">
+                            {% for subject in subjects %}
 
+                                <option
+                                    value="{{ subject.id }}"
+                                    {% if request.GET.subject == subject.id|stringformat:"s" %}
+                                        selected
+                                    {% endif %}
+                                >
 
-<option value="">
-All
-</option>
+                                    {{ subject.code }} -
+                                    {{ subject.name }}
 
+                                </option>
 
-<option value="1">
-1
-</option>
+                            {% endfor %}
 
+                        </select>
 
-<option value="2">
-2
-</option>
+                    </div>
 
 
-<option value="3">
-3
-</option>
+                    <!-- SEARCH -->
 
+                    <div class="col-md-3">
 
-<option value="4">
-4
-</option>
+                        <label class="form-label fw-bold">
+                            Search
+                        </label>
 
+                        <input
+                            type="text"
+                            name="search"
+                            class="form-control"
+                            value="{{ request.GET.search }}"
+                            placeholder="Search question..."
+                        >
 
-<option value="5">
-5
-</option>
+                    </div>
 
 
-<option value="6">
-6
-</option>
+                    <!-- SEARCH BUTTON -->
 
+                    <div class="col-md-1 d-flex align-items-end">
 
-</select>
+                        <button
+                            type="submit"
+                            class="btn btn-primary w-100"
+                        >
 
+                            <i class="fas fa-search"></i>
 
-</div>
+                        </button>
 
+                    </div>
 
+                </div>
 
-
-<div class="col-md-3">
-
-
-<label>
-Subject
-</label>
-
-
-<select name="subject"
-class="form-control">
-
-
-<option value="">
-All Subjects
-</option>
-
-
-
-{% for subject in subjects %}
-
-
-<option value="{{subject.id}}">
-
-{{subject.name}}
-
-</option>
-
-
-{% endfor %}
-
-
-</select>
-
-
-</div>
-
-
-
-
-<div class="col-md-3">
-
-
-<label>
-Search
-</label>
-
-
-<input type="text"
-name="search"
-class="form-control"
-placeholder="Search question">
-
-
-</div>
-
-
-
-
-<div class="col-md-1 mt-4">
-
-
-<button class="btn btn-primary">
-
-<i class="fas fa-search"></i>
-
-</button>
-
-
-</div>
-
-
-</div>
-
-
-</form>
-
-
-</div>
-
-</div>
-<div class="text-end mb-3">
-
-<form method="post"
-action="{% url 'delete_all_questions' %}"
-onsubmit="return confirm('Are you sure you want to delete ALL questions?');">
-
-{% csrf_token %}
-
-<button type="submit"
-class="btn btn-danger">
-
-<i class="fas fa-trash"></i>
-
-Delete All Questions
-
-</button>
-
-</form>
-
-</div>
-
-
-                <table class="table table-bordered table-hover mb-0">
-
-
-
-                    <thead class="table-dark">
-
-
-                        <tr>
-
-                            <th>Course</th>
-
-                            <th>Semester</th>
-
-                            <th>Subject</th>
-
-                            <th>Question</th>
-
-                            <th>Correct Answer</th>
-
-                            <th>Marks</th>
-
-                            <th width="120">
-                                Action
-                            </th>
-
-
-                        </tr>
-
-
-                    </thead>
-
-
-
-
-
-                    <tbody>
-
-
-                    {% for q in questions %}
-
-
-                    <tr>
-
-
-                        <td class="fw-bold">
-
-                            {{ q.course.name }}
-
-                        </td>
-
-
-
-
-                        <td>
-
-                            {{ q.semester }}
-
-                        </td>
-
-
-
-
-                        <td>
-
-                            {{ q.subject.name }}
-
-                        </td>
-
-
-
-
-                        <td>
-
-                            {{ q.question_text|truncatechars:70 }}
-
-                        </td>
-
-
-
-
-                        <td>
-
-                            <span class="badge bg-success">
-
-                                {{ q.correct_answer }}
-
-                            </span>
-
-                        </td>
-
-
-
-
-                        <td>
-
-                            {{ q.marks }}
-
-                        </td>
-
-
-
-
-                        <td class="text-center">
-
-
-                            <form method="POST"
-                                  action="{% url 'delete_question' q.id %}">
-
-                                {% csrf_token %}
-
-
-                                <button type="submit"
-                                        class="btn btn-sm btn-danger"
-                                        onclick="return confirm('Delete this question?');">
-
-
-                                    <i class="fas fa-trash"></i>
-
-                                    Delete
-
-
-                                </button>
-
-
-                            </form>
-
-
-                        </td>
-
-
-
-                    </tr>
-
-
-
-                    {% empty %}
-
-
-
-                    <tr>
-
-
-                        <td colspan="7"
-                            class="text-center py-5 text-muted">
-
-
-                            No questions uploaded yet.
-
-
-
-                        </td>
-
-
-                    </tr>
-
-
-
-                    {% endfor %}
-
-
-
-                    </tbody>
-
-
-
-                </table>
-
-
-
-            </div>
-
-
+            </form>
 
         </div>
-
-
 
     </div>
 
 
+    <!-- =====================================================
+         DELETE ALL QUESTIONS
+    ====================================================== -->
 
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <div>
+
+            <strong>
+                Total Questions:
+            </strong>
+
+            <span class="badge bg-primary">
+                {{ questions|length }}
+            </span>
+
+        </div>
+
+
+        <form
+            method="POST"
+            action="{% url 'delete_all_questions' %}"
+            onsubmit="return confirm(
+                'Are you sure you want to delete ALL questions? This action cannot be undone.'
+            );"
+        >
+
+            {% csrf_token %}
+
+            <button
+                type="submit"
+                class="btn btn-danger"
+            >
+
+                <i class="fas fa-trash"></i>
+
+                Delete All Questions
+
+            </button>
+
+        </form>
+
+    </div>
+
+
+    <!-- =====================================================
+         QUESTION TABLE
+    ====================================================== -->
+
+    <div class="card shadow border-0">
+
+        <div class="card-header bg-dark text-white">
+
+            <h5 class="mb-0">
+
+                <i class="fas fa-list"></i>
+
+                Uploaded Questions
+
+            </h5>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered table-hover mb-0">
+
+                    <thead class="table-dark">
+
+                        <tr>
+
+                            <th>
+                                #
+                            </th>
+
+                            <th>
+                                Course
+                            </th>
+
+                            <th>
+                                Semester
+                            </th>
+
+                            <th>
+                                Subject
+                            </th>
+
+                            <th>
+                                Question
+                            </th>
+
+                            <th>
+                                Correct Answer
+                            </th>
+
+                            <th>
+                                Marks
+                            </th>
+
+                            <th class="text-center">
+                                Action
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for q in questions %}
+
+                            <tr>
+
+                                <!-- NUMBER -->
+
+                                <td>
+
+                                    {{ forloop.counter }}
+
+                                </td>
+
+
+                                <!-- COURSE -->
+
+                                <td class="fw-bold">
+
+                                    {{ q.course.name }}
+
+                                </td>
+
+
+                                <!-- SEMESTER -->
+
+                                <td>
+
+                                    <span class="badge bg-info text-dark">
+
+                                        Semester {{ q.semester }}
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- SUBJECT -->
+
+                                <td>
+
+                                    {% if q.subject.code %}
+
+                                        <strong>
+                                            {{ q.subject.code }}
+                                        </strong>
+
+                                        <br>
+
+                                    {% endif %}
+
+                                    {{ q.subject.name }}
+
+                                </td>
+
+
+                                <!-- QUESTION -->
+
+                                <td>
+
+                                    {{ q.question_text|truncatechars:100 }}
+
+                                </td>
+
+
+                                <!-- CORRECT ANSWER -->
+
+                                <td>
+
+                                    <span class="badge bg-success">
+
+                                        {% if q.correct_answer == "1" %}
+                                            Option 1
+                                        {% elif q.correct_answer == "2" %}
+                                            Option 2
+                                        {% elif q.correct_answer == "3" %}
+                                            Option 3
+                                        {% elif q.correct_answer == "4" %}
+                                            Option 4
+                                        {% else %}
+                                            {{ q.correct_answer }}
+                                        {% endif %}
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- MARKS -->
+
+                                <td>
+
+                                    <span class="badge bg-secondary">
+
+                                        {{ q.marks }}
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- ACTION -->
+
+                                <td class="text-center">
+
+                                    <form
+                                        method="POST"
+                                        action="{% url 'delete_question' q.id %}"
+                                    >
+
+                                        {% csrf_token %}
+
+                                        <button
+                                            type="submit"
+                                            class="btn btn-sm btn-danger"
+                                            onclick="return confirm(
+                                                'Delete this question?'
+                                            );"
+                                        >
+
+                                            <i class="fas fa-trash"></i>
+
+                                            Delete
+
+                                        </button>
+
+                                    </form>
+
+                                </td>
+
+                            </tr>
+
+
+                        {% empty %}
+
+                            <tr>
+
+                                <td
+                                    colspan="8"
+                                    class="text-center py-5"
+                                >
+
+                                    <div class="text-muted">
+
+                                        <i
+                                            class="fas fa-folder-open fa-3x mb-3"
+                                        ></i>
+
+                                        <h5>
+                                            No questions uploaded yet.
+                                        </h5>
+
+                                        <p>
+                                            Upload questions using the
+                                            <strong>
+                                                Add New Questions
+                                            </strong>
+                                            button.
+                                        </p>
+
+
+                                        <a
+                                            href="{% url 'faculty_upload_questions' %}"
+                                            class="btn btn-primary"
+                                        >
+
+                                            <i class="fas fa-upload"></i>
+
+                                            Upload Questions
+
+                                        </a>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
 
 </div>
-
-
-
 
 {% endblock %}

@@ -3,792 +3,1106 @@
 
 {% block content %}
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
 <style>
 
-body{
-    background:#eef3f8;
-    font-family:'Poppins',sans-serif;
+/* ================================
+   PAGE
+================================ */
+
+body {
+    background: #eef2f7;
+    font-family: "Segoe UI", sans-serif;
 }
 
-.exam-header{
-    position:sticky;
-    top:0;
-    z-index:999;
-    background:#0d47a1;
-    color:#fff;
-    padding:15px 25px;
-    border-radius:12px;
-    margin-bottom:20px;
-    box-shadow:0 3px 12px rgba(0,0,0,.25);
+
+/* ================================
+   EXAM HEADER
+================================ */
+
+.exam-header {
+    background: #0d47a1;
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.20);
 }
 
-.timer-box{
-    background:#dc3545;
-    padding:10px 20px;
-    border-radius:8px;
-    font-size:22px;
-    font-weight:bold;
+.exam-header h3 {
+    font-weight: 700;
 }
 
-.student-card{
-    background:white;
-    border-radius:12px;
-    padding:15px;
-    margin-bottom:20px;
-    box-shadow:0 2px 10px rgba(0,0,0,.15);
+.exam-header p {
+    margin-bottom: 5px;
 }
 
-.question-card{
-    background:white;
-    border-radius:15px;
-    padding:25px;
-    margin-bottom:25px;
-    box-shadow:0 5px 15px rgba(0,0,0,.12);
+
+/* ================================
+   QUESTION CARD
+================================ */
+
+.question-card {
+    display: none;
+
+    background: white;
+    padding: 25px;
+    margin-bottom: 20px;
+
+    border-radius: 12px;
+
+    border: 4px solid transparent;
+
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+
+    transition: 0.3s;
 }
 
-.question-number{
-    font-weight:700;
-    color:#0d47a1;
-    font-size:22px;
+
+/* CURRENT QUESTION */
+
+.question-card.active-question {
+    border-color: #0d6efd !important;
+
+    box-shadow:
+        0 0 20px rgba(13, 110, 253, 0.35) !important;
+
+    background: #f8fbff !important;
 }
 
-.option-box{
-    border:2px solid #dee2e6;
-    border-radius:10px;
-    padding:15px;
-    margin-bottom:12px;
-    transition:.3s;
-    cursor:pointer;
+
+/* ================================
+   QUESTION TITLE
+================================ */
+
+.question-title {
+    background: #1565c0;
+    color: white;
+
+    padding: 12px 15px;
+
+    border-radius: 8px;
+
+    margin-bottom: 20px;
+
+    font-weight: 600;
 }
 
-.option-box:hover{
-    background:#f0f7ff;
-    border-color:#0d6efd;
+
+/* ================================
+   OPTIONS
+================================ */
+
+.option {
+    display: block;
+
+    border: 2px solid #ddd;
+
+    padding: 13px;
+
+    margin: 12px 0;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    background: white;
+
+    transition: 0.2s;
 }
 
-.palette{
-    position:sticky;
-    top:110px;
-    background:white;
-    border-radius:15px;
-    padding:20px;
-    box-shadow:0 5px 15px rgba(0,0,0,.15);
+
+.option:hover {
+    background: #e8f1ff;
+
+    border-color: #1565c0;
 }
 
-.palette-title{
-    font-weight:700;
-    color:#0d47a1;
-    margin-bottom:15px;
+
+.option input {
+    margin-right: 10px;
 }
 
-.palette button{
-    width:45px;
-    height:45px;
-    margin:5px;
-    border-radius:8px;
-    font-weight:bold;
+
+.option:has(input:checked) {
+    background: #e8f5e9;
+
+    border-color: #198754;
 }
 
-.legend div{
-    margin-bottom:8px;
-    font-size:14px;
+
+/* ================================
+   NAVIGATION BUTTONS
+================================ */
+
+.navigation-buttons {
+    display: flex;
+
+    justify-content: space-between;
+
+    gap: 8px;
+
+    flex-wrap: wrap;
+
+    margin-top: 25px;
 }
 
-.footer-buttons{
-    margin-top:30px;
+
+.navigation-buttons button {
+    min-width: 120px;
 }
 
-.footer-buttons button{
-    min-width:170px;
+
+/* ================================
+   QUESTION PALETTE
+================================ */
+
+.palette-card {
+    position: sticky;
+
+    top: 20px;
+
+    background: white;
+
+    border-radius: 12px;
+
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+
+    padding: 20px;
 }
 
-.progress{
-    height:10px;
-    margin-top:10px;
+
+.palette {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 6px;
 }
 
-.submit-box{
-    margin-top:20px;
-    text-align:center;
+
+.palette button {
+    width: 45px;
+
+    height: 45px;
+
+    font-weight: 600;
+
+    border-radius: 7px;
 }
 
-.submit-box button{
-    width:100%;
-    height:55px;
-    font-size:18px;
+
+/* CURRENT PALETTE QUESTION */
+
+.palette-current {
+    background: #0d6efd !important;
+
+    color: white !important;
+
+    border-color: #0d6efd !important;
+}
+
+
+/* ANSWERED */
+
+.palette-answered {
+    background: #198754 !important;
+
+    color: white !important;
+
+    border-color: #198754 !important;
+}
+
+
+/* MARKED FOR REVIEW */
+
+.palette-review {
+    background: #ffc107 !important;
+
+    color: #000 !important;
+
+    border-color: #ffc107 !important;
+}
+
+
+/* ================================
+   LEGEND
+================================ */
+
+.legend {
+    margin-top: 20px;
+}
+
+
+.legend-item {
+    display: flex;
+
+    align-items: center;
+
+    margin-bottom: 8px;
+}
+
+
+.legend-box {
+    width: 20px;
+
+    height: 20px;
+
+    border-radius: 4px;
+
+    margin-right: 8px;
+}
+
+
+.legend-current {
+    background: #0d6efd;
+}
+
+
+.legend-answered {
+    background: #198754;
+}
+
+
+.legend-review {
+    background: #ffc107;
+}
+
+
+.legend-not-answered {
+    background: #6c757d;
+}
+
+
+/* ================================
+   SUBMIT
+================================ */
+
+.submit-area {
+    margin-top: 20px;
+
+    margin-bottom: 30px;
+}
+
+
+/* ================================
+   MOBILE
+================================ */
+
+@media (max-width: 991px) {
+
+    .palette-card {
+        position: static;
+
+        margin-top: 20px;
+    }
+
+    .navigation-buttons {
+        justify-content: center;
+    }
+
+}
+.review-question {
+    border: 4px solid #ffc107 !important;
+    box-shadow: 0 0 20px rgba(255, 193, 7, 0.35) !important;
+    background: #fffdf5 !important;
+}
+
+.palette button {
+    width: 45px;
+    height: 45px;
+    margin: 5px;
+    font-weight: bold;
 }
 
 </style>
 
-<div class="container-fluid">
 
-<div class="exam-header">
+<div class="container-fluid mt-3">
 
-<div class="row align-items-center">
+    <!-- =====================================
+         HEADER
+    ====================================== -->
 
-<div class="col-md-8">
+    <div class="exam-header">
 
-<h3 class="mb-1">{{ exam.exam_name }}</h3>
+        <div class="row align-items-center">
 
-<div>
+            <div class="col-lg-4">
 
-<strong>Subject:</strong> {{ exam.subject.name }}
+                <h3 class="mb-3">
+                    CIA Examination System
+                </h3>
 
-&nbsp;&nbsp;&nbsp;
+                <p>
+                    Candidate:
+                    <b>{{ request.user.username }}</b>
+                </p>
 
-<strong>Duration:</strong> {{ exam.duration }} Minutes
+            </div>
 
-</div>
 
-</div>
+            <div class="col-lg-4">
 
-<div class="col-md-4 text-end">
+                <p>
+                    Exam:
+                    <b>{{ exam.exam_name }}</b>
+                </p>
 
-<div class="timer-box">
+                <p>
+                    Subject:
+                    <b>{{ exam.subject.name }}</b>
+                </p>
 
-⏰ <span id="timer">{{ exam.duration }}:00</span>
+            </div>
 
-</div>
 
-</div>
+            <div class="col-lg-4 text-lg-end">
 
-</div>
+                <div class="mb-2">
+                    Time Left
+                </div>
 
-</div>
+                <span
+                    id="timer"
+                    class="badge bg-danger p-3 fs-5">
 
-<div class="student-card">
+                    {{ exam.duration }}:00
 
-<div class="row">
+                </span>
 
-<div class="col-md-3">
-
-<b>Student :</b><br>
-
-{{ request.user.get_full_name|default:request.user.username }}
-
-</div>
-
-<div class="col-md-3">
-
-<b>Username :</b><br>
-
-{{ request.user.username }}
-
-</div>
-
-<div class="col-md-3">
-
-<b>Total Questions :</b><br>
-
-{{ exam_questions|length }}
-
-</div>
-
-<div class="col-md-3">
-
-<b>Status :</b><br>
-
-<span class="badge bg-success">
-
-Exam Running
-
-</span>
-
-</div>
-
-</div>
-
-<div class="progress">
-
-<div class="progress-bar"
-id="progressBar"
-style="width:0%">
-
-</div>
-
-</div>
-
-</div>
-
-<div class="row">
-
-<div class="col-lg-9">
-
-<form method="POST"
-
-id="examForm"
-
-action="{% url 'submit_exam' %}">
-
-{% csrf_token %}
-
-<input type="hidden"
-
-name="exam_id"
-
-value="{{ exam.id }}">
-
-{% for eq in exam_questions %}
-
-<div class="question-card"
-
-id="question{{ forloop.counter }}">
-
-<div class="question-number">
-
-Question {{ forloop.counter }}
-
-of
-
-{{ exam_questions|length }}
-
-</div>
-
-<hr>
-
-<h5 class="mb-4">
-
-{{ eq.question.question_text }}
-
-</h5>
-
-<label class="option-box d-block">
-
-<input type="radio"
-
-class="form-check-input me-2"
-
-name="q_{{ eq.question.id }}"
-
-value="1">
-
-{{ eq.question.option1 }}
-
-</label>
-
-<label class="option-box d-block">
-
-<input type="radio"
-
-class="form-check-input me-2"
-
-name="q_{{ eq.question.id }}"
-
-value="2">
-
-{{ eq.question.option2 }}
-
-</label>
-
-<label class="option-box d-block">
-
-<input type="radio"
-
-class="form-check-input me-2"
-
-name="q_{{ eq.question.id }}"
-
-value="3">
-
-{{ eq.question.option3 }}
-
-</label>
-
-<label class="option-box d-block">
-
-<input type="radio"
-
-class="form-check-input me-2"
-
-name="q_{{ eq.question.id }}"
-
-value="4">
-
-{{ eq.question.option4 }}
-
-</label>
-
-</div>
-
-{% endfor %}
-        <div class="footer-buttons d-flex justify-content-between">
-
-            <button type="button"
-                    class="btn btn-secondary btn-lg"
-                    onclick="window.scrollTo({top:0,behavior:'smooth'})">
-
-                <i class="fas fa-arrow-up"></i>
-
-                Top
-
-            </button>
-
-            <button type="reset"
-                    class="btn btn-warning btn-lg">
-
-                <i class="fas fa-eraser"></i>
-
-                Clear Responses
-
-            </button>
-
-            <button type="submit"
-                    class="btn btn-success btn-lg">
-
-                <i class="fas fa-paper-plane"></i>
-
-                Submit Assessment
-
-            </button>
+            </div>
 
         </div>
 
-    </form>
+    </div>
+
+
+    <!-- =====================================
+         MAIN ROW
+    ====================================== -->
+
+    <div class="row mt-4">
+
+
+        <!-- =================================
+             LEFT: QUESTIONS
+        ================================== -->
+
+        <div class="col-lg-8">
+
+
+            <form
+                method="POST"
+                id="examForm"
+                action="{% url 'submit_exam' %}">
+
+                {% csrf_token %}
+
+
+                <input
+                    type="hidden"
+                    name="exam_id"
+                    value="{{ exam.id }}">
+
+
+                <!-- =========================
+                     QUESTIONS
+                ========================== -->
+
+                {% for q in exam_questions %}
+
+                <div
+                    class="question-card"
+                    id="question{{ forloop.counter }}">
+
+
+                    <!-- QUESTION HEADER -->
+
+                    <div class="question-title">
+
+                        Question {{ forloop.counter }}
+
+                    </div>
+
+
+                    <!-- QUESTION -->
+
+                    <h5 class="mb-4">
+
+                        {{ q.question.question_text }}
+
+                    </h5>
+
+
+                    <!-- OPTION 1 -->
+
+                    <label class="option">
+
+                        <input
+                            type="radio"
+                            name="question_{{ q.question.id }}"
+                            value="1">
+
+                        {{ q.question.option1 }}
+
+                    </label>
+
+
+                    <!-- OPTION 2 -->
+
+                    <label class="option">
+
+                        <input
+                            type="radio"
+                            name="question_{{ q.question.id }}"
+                            value="2">
+
+                        {{ q.question.option2 }}
+
+                    </label>
+
+
+                    <!-- OPTION 3 -->
+
+                    <label class="option">
+
+                        <input
+                            type="radio"
+                            name="question_{{ q.question.id }}"
+                            value="3">
+
+                        {{ q.question.option3 }}
+
+                    </label>
+
+
+                    <!-- OPTION 4 -->
+
+                    <label class="option">
+
+                        <input
+                            type="radio"
+                            name="question_{{ q.question.id }}"
+                            value="4">
+
+                        {{ q.question.option4 }}
+
+                    </label>
+
+
+                    <!-- NAVIGATION -->
+
+                    <div class="navigation-buttons">
+
+
+                        <button
+                            type="button"
+                            class="btn btn-secondary"
+                            onclick="previousQuestion()">
+
+                            Previous
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="btn btn-warning"
+                            onclick="markReview()">
+
+                            Mark Review
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="btn btn-danger"
+                            onclick="clearAnswer()">
+
+                            Clear Response
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="btn btn-success"
+                            onclick="nextQuestion()">
+
+                            Save & Next
+
+                        </button>
+
+
+                    </div>
+
+
+                </div>
+
+                {% empty %}
+
+                <div class="alert alert-danger">
+
+                    No questions available for this exam.
+
+                </div>
+
+                {% endfor %}
+
+
+                <!-- SUBMIT -->
+
+                <div class="submit-area">
+
+                    <button
+                        type="submit"
+                        id="submitBtn"
+                        class="btn btn-danger btn-lg rounded-pill px-5">
+
+                        Submit Exam
+
+                    </button>
+
+                </div>
+
+
+            </form>
+
+        </div>
+
+
+        <!-- =================================
+             RIGHT: QUESTION PALETTE
+        ================================== -->
+
+        <div class="col-lg-4">
+
+
+            <div class="palette-card">
+
+
+                <h4 class="text-primary mb-3">
+
+                    Question Palette
+
+                </h4>
+
+
+                <hr>
+
+
+                <div class="palette">
+
+
+                    {% for q in exam_questions %}
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-primary palette-btn"
+                        data-question="{{ forloop.counter }}"
+                        onclick="gotoQuestion({{ forloop.counter }})">
+
+                        {{ forloop.counter }}
+
+                    </button>
+
+                    {% endfor %}
+
+
+                </div>
+
+
+                <hr>
+
+
+                <!-- LEGEND -->
+
+                <div class="legend">
+
+
+                    <div class="legend-item">
+
+                        <span
+                            class="legend-box legend-current">
+                        </span>
+
+                        Current Question
+
+                    </div>
+
+
+                    <div class="mt-4">
+
+```
+<div class="d-flex justify-content-between mb-2">
+
+    <span class="badge bg-success">
+        Answered
+        <span id="answeredCount">0</span>
+    </span>
+
+    <span class="badge bg-secondary">
+        Not Answered
+        <span id="notAnsweredCount">0</span>
+    </span>
 
 </div>
 
 
-<!-- RIGHT SIDE -->
+<div class="mt-2">
 
-<div class="col-lg-3">
+    <span class="badge bg-warning text-dark">
+        Marked for Review
+        <span id="reviewCount">0</span>
+    </span>
 
-<div class="palette">
-
-<h5 class="palette-title">
-
-<i class="fas fa-th"></i>
-
-Question Palette
-
-</h5>
-
-<div class="text-center">
-
-{% for eq in exam_questions %}
-
-<button
-
-type="button"
-
-class="btn btn-outline-primary palette-btn"
-
-data-question="{{ forloop.counter }}"
-
-onclick="gotoQuestion({{ forloop.counter }})">
-
-{{ forloop.counter }}
-
-</button>
-
-{% endfor %}
+</div>
+```
 
 </div>
 
-<hr>
 
-<div class="legend">
+            </div>
 
-<div>
+        </div>
 
-<span class="badge bg-success">
 
-&nbsp;&nbsp;
-
-</span>
-
-Answered
+    </div>
 
 </div>
 
-<div>
 
-<span class="badge bg-secondary">
-
-&nbsp;&nbsp;
-
-</span>
-
-Not Answered
-
-</div>
-
-<div>
-
-<span class="badge bg-primary">
-
-&nbsp;&nbsp;
-
-</span>
-
-Current
-
-</div>
-
-</div>
-
-<hr>
-
-<div class="submit-box">
-
-<button
-
-type="submit"
-
-form="examForm"
-
-class="btn btn-danger btn-lg">
-
-<i class="fas fa-check-circle"></i>
-
-Final Submit
-
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
 <script>
 
-// ==========================
-// TIMER
-// ==========================
+let currentQuestion = 1;
 
-let duration = {{ exam.duration }} * 60;
+let totalQuestions = document.querySelectorAll(
+    ".question-card"
+).length;
 
-const timer = document.getElementById("timer");
 
-const countdown = setInterval(function(){
+/* =====================================================
+   GET ALL QUESTIONS
+===================================================== */
 
-    let minutes = Math.floor(duration / 60);
+const questionCards = document.querySelectorAll(
+    ".question-card"
+);
 
-    let seconds = duration % 60;
+const paletteButtons = document.querySelectorAll(
+    ".palette button"
+);
 
-    seconds = seconds < 10 ? "0"+seconds : seconds;
 
-    timer.innerHTML = minutes + ":" + seconds;
+/* =====================================================
+   SHOW QUESTION
+===================================================== */
 
-    if(duration <= 300){
-        timer.parentElement.classList.remove("bg-danger");
-        timer.parentElement.style.background="#dc3545";
-        timer.parentElement.style.animation="blink 1s infinite";
+function showQuestion(number) {
+
+    if (number < 1 || number > totalQuestions) {
+        return;
     }
 
-    if(duration <= 0){
 
-        clearInterval(countdown);
+    /* Hide all questions */
 
-        alert("Time is over. Your exam will be submitted automatically.");
+    questionCards.forEach(function(card) {
 
-        document.getElementById("examForm").submit();
+        card.style.display = "none";
 
-    }
-
-    duration--;
-
-},1000);
-
-
-// ==========================
-// QUESTION PALETTE
-// ==========================
-
-function gotoQuestion(number){
-
-    document.getElementById(
-        "question"+number
-    ).scrollIntoView({
-
-        behavior:"smooth",
-
-        block:"start"
+        card.classList.remove(
+            "active-question"
+        );
 
     });
+
+
+    /* Show selected question */
+
+    const currentCard = document.getElementById(
+        "question" + number
+    );
+
+
+    if (currentCard) {
+
+        currentCard.style.display = "block";
+
+        currentCard.classList.add(
+            "active-question"
+        );
+
+    }
+
+
+    currentQuestion = number;
+
+
+    updatePalette();
+
+
+    /* Scroll to question */
+
+    if (currentCard) {
+
+        currentCard.scrollIntoView({
+
+            behavior: "smooth",
+
+            block: "start"
+
+        });
+
+    }
 
 }
 
 
-// ==========================
-// ANSWER COLORS
-// ==========================
+/* =====================================================
+   NEXT QUESTION
+===================================================== */
 
-const radios = document.querySelectorAll("input[type=radio]");
+function nextQuestion() {
 
-function updatePalette(){
+    if (currentQuestion < totalQuestions) {
 
-    document.querySelectorAll(".palette-btn").forEach(function(btn){
+        showQuestion(
+            currentQuestion + 1
+        );
 
-        btn.classList.remove(
+    }
+
+}
+
+
+/* =====================================================
+   PREVIOUS QUESTION
+===================================================== */
+
+function previousQuestion() {
+
+    if (currentQuestion > 1) {
+
+        showQuestion(
+            currentQuestion - 1
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   GO TO QUESTION
+===================================================== */
+
+function gotoQuestion(number) {
+
+    number = parseInt(number);
+
+    showQuestion(number);
+
+}
+
+
+/* =====================================================
+   CHECK ANSWERED
+===================================================== */
+
+function isAnswered(card) {
+
+    return card.querySelector(
+        "input[type='radio']:checked"
+    ) !== null;
+
+}
+
+
+/* =====================================================
+   UPDATE PALETTE
+===================================================== */
+
+function updatePalette() {
+
+
+    let answeredCount = 0;
+
+    let reviewCount = 0;
+
+
+    questionCards.forEach(
+        function(card, index) {
+
+
+        const button =
+            paletteButtons[index];
+
+
+        if (!button) {
+            return;
+        }
+
+
+        /* Remove previous colors */
+
+        button.classList.remove(
+
+            "btn-primary",
+
             "btn-success",
-            "btn-primary"
-        );
 
-        btn.classList.add(
+            "btn-warning",
+
             "btn-outline-primary"
+
         );
 
-    });
 
-    let answered = 0;
+        /* Check answer */
 
-    document.querySelectorAll(".question-card").forEach(function(card,index){
+        const answered =
+            isAnswered(card);
 
-        const checked = card.querySelector(
-            "input[type=radio]:checked"
-        );
 
-        const btn = document.querySelectorAll(".palette-btn")[index];
+        /* Check review */
 
-        if(checked){
-
-            btn.classList.remove(
-                "btn-outline-primary"
+        const review =
+            card.classList.contains(
+                "review-question"
             );
 
-            btn.classList.add(
+
+        /* Current question */
+
+        if (
+            index + 1 === currentQuestion
+        ) {
+
+            button.classList.add(
+                "btn-primary"
+            );
+
+        }
+
+
+        /* Marked for review */
+
+        else if (review) {
+
+            button.classList.add(
+                "btn-warning"
+            );
+
+            reviewCount++;
+
+        }
+
+
+        /* Answered */
+
+        else if (answered) {
+
+            button.classList.add(
                 "btn-success"
             );
 
-            answered++;
+            answeredCount++;
+
+        }
+
+
+        /* Not answered */
+
+        else {
+
+            button.classList.add(
+                "btn-outline-primary"
+            );
 
         }
 
     });
 
-    let percent = (
-        answered /
-        {{ exam_questions|length }}
-    ) * 100;
 
-    document.getElementById(
-        "progressBar"
-    ).style.width = percent+"%";
+    /* =================================================
+       UPDATE COUNTS
+    ================================================= */
 
-    document.getElementById(
-        "progressBar"
-    ).innerHTML =
-        answered +
-        " / " +
-        {{ exam_questions|length }};
+
+    const answeredElement =
+        document.getElementById(
+            "answeredCount"
+        );
+
+
+    const notAnsweredElement =
+        document.getElementById(
+            "notAnsweredCount"
+        );
+
+
+    const reviewElement =
+        document.getElementById(
+            "reviewCount"
+        );
+
+
+    if (answeredElement) {
+
+        answeredElement.innerText =
+            answeredCount;
+
+    }
+
+
+    if (notAnsweredElement) {
+
+        notAnsweredElement.innerText =
+            totalQuestions - answeredCount;
+
+    }
+
+
+    if (reviewElement) {
+
+        reviewElement.innerText =
+            reviewCount;
+
+    }
 
 }
 
-radios.forEach(function(radio){
+
+/* =====================================================
+   RADIO BUTTON CHANGE
+===================================================== */
+
+document.querySelectorAll(
+    "input[type='radio']"
+).forEach(
+    function(radio) {
+
 
     radio.addEventListener(
-
         "change",
-
-        updatePalette
-
-    );
-
-});
-
-updatePalette();
+        function() {
 
 
-// ==========================
-// CURRENT QUESTION
-// ==========================
+        const card =
+            radio.closest(
+                ".question-card"
+            );
 
-window.addEventListener("scroll",function(){
 
-    document.querySelectorAll(".question-card").forEach(function(card,index){
+        if (card) {
 
-        let top = card.getBoundingClientRect().top;
+            /*
+             * Selecting an answer removes
+             * review status.
+             */
 
-        if(top > 100 && top < 350){
-
-            document.querySelectorAll(".palette-btn").forEach(function(btn){
-
-                if(!btn.classList.contains("btn-success")){
-
-                    btn.classList.remove("btn-primary");
-
-                    btn.classList.add("btn-outline-primary");
-
-                }
-
-            });
-
-            const current =
-                document.querySelectorAll(".palette-btn")[index];
-
-            if(!current.classList.contains("btn-success")){
-
-                current.classList.remove("btn-outline-primary");
-
-                current.classList.add("btn-primary");
-
-            }
+            card.classList.remove(
+                "review-question"
+            );
 
         }
+
+
+        updatePalette();
 
     });
 
 });
 
 
-// ==========================
-// SUBMIT CONFIRMATION
-// ==========================
+/* =====================================================
+   CLEAR RESPONSE
+===================================================== */
 
-document.getElementById("examForm").addEventListener(
+function clearAnswer() {
 
-    "submit",
 
-    function(e){
+    const currentCard =
+        document.getElementById(
+            "question" + currentQuestion
+        );
 
-        if(!confirm(
 
-            "Are you sure you want to submit the examination?"
-
-        )){
-
-            e.preventDefault();
-
-        }
-
+    if (!currentCard) {
+        return;
     }
 
-);
+
+    const radios =
+        currentCard.querySelectorAll(
+            "input[type='radio']"
+        );
 
 
-// ==========================
-// DISABLE RIGHT CLICK
-// ==========================
+    radios.forEach(
+        function(radio) {
 
-document.addEventListener(
+        radio.checked = false;
 
-    "contextmenu",
-
-    function(e){
-
-        e.preventDefault();
-
-    }
-
-);
+    });
 
 
-// ==========================
-// DISABLE KEYS
-// ==========================
-
-document.addEventListener(
-
-    "keydown",
-
-    function(e){
-
-        if(
-
-            e.key=="F12" ||
-
-            (e.ctrlKey && e.shiftKey && e.key=="I") ||
-
-            (e.ctrlKey && e.shiftKey && e.key=="J") ||
-
-            (e.ctrlKey && e.key=="U") ||
-
-            (e.ctrlKey && e.key=="C") ||
-
-            (e.ctrlKey && e.key=="V")
-
-        ){
-
-            e.preventDefault();
-
-        }
-
-    }
-
-);
-
-
-// ==========================
-// FULLSCREEN
-// ==========================
-
-window.onload=function(){
-
-    if(document.documentElement.requestFullscreen){
-
-        document.documentElement.requestFullscreen();
-
-    }
+    updatePalette();
 
 }
+
+
+/* =====================================================
+   MARK FOR REVIEW
+===================================================== */
+
+function markReview() {
+
+
+    const currentCard =
+        document.getElementById(
+            "question" + currentQuestion
+        );
+
+
+    if (!currentCard) {
+        return;
+    }
+
+
+    currentCard.classList.toggle(
+        "review-question"
+    );
+
+
+    updatePalette();
+
+}
+
+
+/* =====================================================
+   INITIALIZE
+===================================================== */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+
+    if (totalQuestions > 0) {
+
+        showQuestion(1);
+
+    }
+
+
+    updatePalette();
+
+});
+
 
 </script>
 
-
-<style>
-
-@keyframes blink{
-
-0%{
-opacity:1;
-}
-
-50%{
-opacity:.4;
-}
-
-100%{
-opacity:1;
-}
-
-}
-
-.palette-btn{
-
-transition:.3s;
-
-font-weight:bold;
-
-}
-
-.question-card{
-
-transition:.3s;
-
-}
-
-.question-card:hover{
-
-transform:translateY(-2px);
-
-}
-
-.option-box{
-
-transition:.3s;
-
-}
-
-.option-box:hover{
-
-background:#eef7ff;
-
-border-color:#0d6efd;
-
-padding-left:20px;
-
-}
-
-.progress-bar{
-
-font-weight:bold;
-
-}
-
-</style>
 
 {% endblock %}

@@ -4,27 +4,37 @@
 
 <div class="container-fluid">
 
-    <!-- Page Header -->
+    <!-- ===================================== -->
+    <!-- PAGE HEADER -->
+    <!-- ===================================== -->
 
     <div class="d-flex justify-content-between align-items-center mb-4">
 
         <div>
 
-            <h2 class="fw-bold">
+            <h2 class="fw-bold mb-1">
+
                 <i class="fas fa-circle-plus text-primary"></i>
+
                 Add New Question
+
             </h2>
 
-            <p class="text-muted">
+            <p class="text-muted mb-0">
+
                 Create a new question for the Question Bank
+
             </p>
 
         </div>
 
-        <a href="{% url 'question_bank' %}"
-           class="btn btn-outline-secondary">
 
-            <i class="fas fa-arrow-left"></i>
+        <a
+            href="{% url 'question_bank' %}"
+            class="btn btn-outline-secondary"
+        >
+
+            <i class="fas fa-arrow-left me-1"></i>
 
             Back to Question Bank
 
@@ -33,13 +43,45 @@
     </div>
 
 
-    <div class="card shadow">
+    <!-- ===================================== -->
+    <!-- MESSAGES -->
+    <!-- ===================================== -->
+
+    {% if messages %}
+
+        {% for message in messages %}
+
+            <div
+                class="alert alert-{{ message.tags|default:'success' }} alert-dismissible fade show"
+                role="alert"
+            >
+
+                {{ message }}
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                ></button>
+
+            </div>
+
+        {% endfor %}
+
+    {% endif %}
+
+
+    <!-- ===================================== -->
+    <!-- FORM CARD -->
+    <!-- ===================================== -->
+
+    <div class="card shadow border-0">
 
         <div class="card-header bg-primary text-white">
 
             <h5 class="mb-0">
 
-                <i class="fas fa-file-circle-plus"></i>
+                <i class="fas fa-file-circle-plus me-1"></i>
 
                 Question Details
 
@@ -47,45 +89,48 @@
 
         </div>
 
+
         <div class="card-body">
 
-            <form method="POST">
+            <form
+                method="POST"
+                id="questionForm"
+            >
 
                 {% csrf_token %}
 
+
+                <!-- ===================================== -->
+                <!-- COURSE / SEMESTER / SUBJECT -->
+                <!-- ===================================== -->
+
                 <div class="row">
 
-                    {% for field in form %}
 
-                    <div class="col-md-6 mb-3">
+                    <!-- COURSE -->
 
-                        <label class="form-label fw-semibold">
+                    <div class="col-md-4 mb-3">
 
-                            {{ field.label }}
+                        <label
+                            for="{{ form.course.id_for_label }}"
+                            class="form-label fw-semibold"
+                        >
 
-                            {% if field.field.required %}
-                                <span class="text-danger">*</span>
-                            {% endif %}
+                            Course
+
+                            <span class="text-danger">*</span>
 
                         </label>
 
-                        {{ field }}
 
-                        {% if field.help_text %}
+                        {{ form.course }}
 
-                            <small class="text-muted">
 
-                                {{ field.help_text }}
+                        {% if form.course.errors %}
 
-                            </small>
+                            <div class="text-danger small mt-1">
 
-                        {% endif %}
-
-                        {% if field.errors %}
-
-                            <div class="text-danger mt-1">
-
-                                {{ field.errors }}
+                                {{ form.course.errors }}
 
                             </div>
 
@@ -93,36 +138,410 @@
 
                     </div>
 
-                    {% endfor %}
+
+                    <!-- SEMESTER -->
+
+                    <div class="col-md-4 mb-3">
+
+                        <label
+                            for="{{ form.semester.id_for_label }}"
+                            class="form-label fw-semibold"
+                        >
+
+                            Semester
+
+                            <span class="text-danger">*</span>
+
+                        </label>
+
+
+                        {{ form.semester }}
+
+
+                        {% if form.semester.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {{ form.semester.errors }}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- SUBJECT -->
+
+                    <div class="col-md-4 mb-3">
+
+                        <label
+                            for="{{ form.subject.id_for_label }}"
+                            class="form-label fw-semibold"
+                        >
+
+                            Subject
+
+                            <span class="text-danger">*</span>
+
+                        </label>
+
+
+                        <select
+                            name="subject"
+                            id="id_subject"
+                            class="form-select"
+                            required
+                        >
+
+                            <option value="">
+
+                                ---------
+
+                            </option>
+
+                        </select>
+
+
+                        <div
+                            id="subjectLoading"
+                            class="text-primary small mt-1 d-none"
+                        >
+
+                            <i class="fas fa-spinner fa-spin me-1"></i>
+
+                            Loading subjects...
+
+                        </div>
+
+
+                        <div
+                            id="subjectMessage"
+                            class="text-muted small mt-1"
+                        >
+
+                            Select Course and Semester.
+
+                        </div>
+
+
+                        {% if form.subject.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {{ form.subject.errors }}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
 
                 </div>
 
+
                 <hr>
+
+
+                <!-- ===================================== -->
+                <!-- ACADEMIC YEAR -->
+                <!-- ===================================== -->
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+
+                        <label
+                            for="{{ form.academic_year.id_for_label }}"
+                            class="form-label fw-semibold"
+                        >
+
+                            Academic Year
+
+                            <span class="text-danger">*</span>
+
+                        </label>
+
+                        {{ form.academic_year }}
+
+                        {% if form.academic_year.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {{ form.academic_year.errors }}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- ===================================== -->
+                <!-- QUESTION -->
+                <!-- ===================================== -->
+
+                <div class="mb-3">
+
+                    <label
+                        for="{{ form.question_text.id_for_label }}"
+                        class="form-label fw-semibold"
+                    >
+
+                        Question Text
+
+                        <span class="text-danger">*</span>
+
+                    </label>
+
+                    {{ form.question_text }}
+
+                    {% if form.question_text.errors %}
+
+                        <div class="text-danger small mt-1">
+
+                            {{ form.question_text.errors }}
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- ===================================== -->
+                <!-- OPTIONS -->
+                <!-- ===================================== -->
+
+                <div class="row">
+
+
+                    <div class="col-md-6 mb-3">
+
+                        <label
+                            for="{{ form.option1.id_for_label }}"
+                            class="form-label fw-semibold"
+                        >
+
+                            Option 1
+
+                            <span class="text-danger">*</span>
+
+                        </label>
+
+                        {{ form.option1 }}
+
+                        {% if form.option1.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {{ form.option1.errors }}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="col-md-6 mb-3">
+
+                        <label
+                            for="{{ form.option2.id_for_label }}"
+                            class="form-label fw-semibold"
+                        >
+
+                            Option 2
+
+                            <span class="text-danger">*</span>
+
+                        </label>
+
+                        {{ form.option2 }}
+
+                        {% if form.option2.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {{ form.option2.errors }}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="col-md-6 mb-3">
+
+                        <label
+                            for="{{ form.option3.id_for_label }}"
+                            class="form-label fw-semibold"
+                        >
+
+                            Option 3
+
+                            <span class="text-danger">*</span>
+
+                        </label>
+
+                        {{ form.option3 }}
+
+                        {% if form.option3.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {{ form.option3.errors }}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="col-md-6 mb-3">
+
+                        <label
+                            for="{{ form.option4.id_for_label }}"
+                            class="form-label fw-semibold"
+                        >
+
+                            Option 4
+
+                            <span class="text-danger">*</span>
+
+                        </label>
+
+                        {{ form.option4 }}
+
+                        {% if form.option4.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {{ form.option4.errors }}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- ===================================== -->
+                <!-- CORRECT ANSWER / MARKS -->
+                <!-- ===================================== -->
+
+                <div class="row">
+
+
+                    <div class="col-md-6 mb-3">
+
+                        <label
+                            for="{{ form.correct_answer.id_for_label }}"
+                            class="form-label fw-semibold"
+                        >
+
+                            Correct Answer
+
+                            <span class="text-danger">*</span>
+
+                        </label>
+
+                        {{ form.correct_answer }}
+
+                        <small class="text-muted">
+
+                            Select the correct option.
+
+                        </small>
+
+                        {% if form.correct_answer.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {{ form.correct_answer.errors }}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="col-md-6 mb-3">
+
+                        <label
+                            for="{{ form.marks.id_for_label }}"
+                            class="form-label fw-semibold"
+                        >
+
+                            Marks
+
+                            <span class="text-danger">*</span>
+
+                        </label>
+
+                        {{ form.marks }}
+
+                        {% if form.marks.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {{ form.marks.errors }}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <hr>
+
+
+                <!-- ===================================== -->
+                <!-- BUTTONS -->
+                <!-- ===================================== -->
 
                 <div class="text-end">
 
-                    <button type="submit"
-                            class="btn btn-success">
+                    <button
+                        type="submit"
+                        class="btn btn-success"
+                    >
 
-                        <i class="fas fa-save"></i>
+                        <i class="fas fa-save me-1"></i>
 
                         Save Question
 
                     </button>
 
-                    <button type="reset"
-                            class="btn btn-warning">
 
-                        <i class="fas fa-rotate-left"></i>
+                    <button
+                        type="reset"
+                        class="btn btn-warning"
+                    >
+
+                        <i class="fas fa-rotate-left me-1"></i>
 
                         Reset
 
                     </button>
 
-                    <a href="{% url 'question_bank' %}"
-                       class="btn btn-secondary">
 
-                        <i class="fas fa-times"></i>
+                    <a
+                        href="{% url 'question_bank' %}"
+                        class="btn btn-secondary"
+                    >
+
+                        <i class="fas fa-times me-1"></i>
 
                         Cancel
 
@@ -137,5 +556,187 @@
     </div>
 
 </div>
+
+
+<!-- ===================================== -->
+<!-- DYNAMIC SUBJECT JAVASCRIPT -->
+<!-- ===================================== -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const courseSelect =
+        document.getElementById("id_course");
+
+    const semesterSelect =
+        document.getElementById("id_semester");
+
+    const subjectSelect =
+        document.getElementById("id_subject");
+
+    const loading =
+        document.getElementById("subjectLoading");
+
+    const message =
+        document.getElementById("subjectMessage");
+
+
+    function resetSubjects() {
+
+        subjectSelect.innerHTML =
+            '<option value="">---------</option>';
+
+        subjectSelect.disabled = true;
+
+        message.textContent =
+            "Select Course and Semester.";
+
+    }
+
+
+    function loadSubjects() {
+
+        const courseId =
+            courseSelect.value;
+
+        const semester =
+            semesterSelect.value;
+
+
+        resetSubjects();
+
+
+        if (!courseId || !semester) {
+
+            return;
+
+        }
+
+
+        loading.classList.remove("d-none");
+
+        message.textContent =
+            "Loading subjects...";
+
+
+        const url =
+            "{% url 'ajax_load_subjects' %}" +
+            "?course=" +
+            encodeURIComponent(courseId) +
+            "&semester=" +
+            encodeURIComponent(semester);
+
+
+        fetch(url, {
+            method: "GET",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+
+        .then(function (response) {
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "HTTP error: " + response.status
+                );
+
+            }
+
+            return response.json();
+
+        })
+
+        .then(function (data) {
+
+            loading.classList.add("d-none");
+
+
+            subjectSelect.innerHTML =
+                '<option value="">---------</option>';
+
+
+            if (
+                !data.subjects ||
+                data.subjects.length === 0
+            ) {
+
+                subjectSelect.disabled = true;
+
+                message.textContent =
+                    "No subjects found for this Course and Semester.";
+
+                return;
+
+            }
+
+
+            data.subjects.forEach(function (subject) {
+
+                const option =
+                    document.createElement("option");
+
+                option.value =
+                    subject.id;
+
+                option.textContent =
+                    subject.code + " - " + subject.name;
+
+                subjectSelect.appendChild(option);
+
+            });
+
+
+            subjectSelect.disabled = false;
+
+            message.textContent =
+                data.subjects.length +
+                " subject(s) available.";
+
+        })
+
+        .catch(function (error) {
+
+            console.error(
+                "Subject loading error:",
+                error
+            );
+
+
+            loading.classList.add("d-none");
+
+            subjectSelect.innerHTML =
+                '<option value="">---------</option>';
+
+            subjectSelect.disabled = true;
+
+            message.textContent =
+                "Error loading subjects. Please try again.";
+
+        });
+
+    }
+
+
+    courseSelect.addEventListener(
+        "change",
+        loadSubjects
+    );
+
+
+    semesterSelect.addEventListener(
+        "change",
+        loadSubjects
+    );
+
+
+    // Initial state
+    resetSubjects();
+
+});
+
+</script>
 
 {% endblock %}

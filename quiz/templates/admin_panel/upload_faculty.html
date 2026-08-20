@@ -2,40 +2,431 @@
 
 {% block content %}
 
-<div class="container">
+<div class="container-fluid">
 
-    <div class="card shadow">
+    <!-- ========================================= -->
+    <!-- PAGE HEADER -->
+    <!-- ========================================= -->
 
-        <div class="card-header bg-success text-white">
-            <h3>Upload Faculty</h3>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h2 class="fw-bold mb-1">
+
+                <i class="fas fa-file-excel text-success me-2"></i>
+
+                Upload Faculty
+
+            </h2>
+
+            <p class="text-muted mb-0">
+
+                Upload multiple faculty members using an Excel file.
+
+            </p>
+
         </div>
+
+
+        <a
+            href="{% url 'manage_faculty' %}"
+            class="btn btn-secondary"
+        >
+
+            <i class="fas fa-arrow-left me-1"></i>
+
+            Back to Faculty
+
+        </a>
+
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- EXCEL FORMAT INFORMATION -->
+    <!-- ========================================= -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-primary text-white">
+
+            <h5 class="mb-0">
+
+                <i class="fas fa-info-circle me-2"></i>
+
+                Excel File Format
+
+            </h5>
+
+        </div>
+
 
         <div class="card-body">
 
-            <form method="POST" enctype="multipart/form-data">
+            <p class="mb-3">
+
+                Your Excel file should contain the following columns:
+
+            </p>
+
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered table-hover align-middle">
+
+                    <thead class="table-dark">
+
+                        <tr>
+
+                            <th>
+                                Column
+                            </th>
+
+                            <th>
+                                Required
+                            </th>
+
+                            <th>
+                                Example
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        <tr>
+
+                            <td>
+                                Username
+                            </td>
+
+                            <td>
+                                <span class="badge bg-danger">
+                                    Yes
+                                </span>
+                            </td>
+
+                            <td>
+                                faculty101
+                            </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                            <td>
+                                Name
+                            </td>
+
+                            <td>
+                                <span class="badge bg-danger">
+                                    Yes
+                                </span>
+                            </td>
+
+                            <td>
+                                Ravi Kumar
+                            </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                            <td>
+                                First Name
+                            </td>
+
+                            <td>
+                                <span class="badge bg-danger">
+                                    Yes
+                                </span>
+                            </td>
+
+                            <td>
+                                Ravi
+                            </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                            <td>
+                                Last Name
+                            </td>
+
+                            <td>
+                                <span class="badge bg-danger">
+                                    Yes
+                                </span>
+                            </td>
+
+                            <td>
+                                Kumar
+                            </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                            <td>
+                                Email
+                            </td>
+
+                            <td>
+                                <span class="badge bg-danger">
+                                    Yes
+                                </span>
+                            </td>
+
+                            <td>
+                                ravi@gmail.com
+                            </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                            <td>
+                                Department
+                            </td>
+
+                            <td>
+                                <span class="badge bg-danger">
+                                    Yes
+                                </span>
+                            </td>
+
+                            <td>
+                                Computer Science
+                            </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                            <td>
+                                Course
+                            </td>
+
+                            <td>
+                                <span class="badge bg-secondary">
+                                    Optional
+                                </span>
+                            </td>
+
+                            <td>
+                                MSc(Computer Science)
+                            </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                            <td>
+                                Subjects
+                            </td>
+
+                            <td>
+                                <span class="badge bg-secondary">
+                                    Optional
+                                </span>
+                            </td>
+
+                            <td>
+                                java,C-Language
+                            </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                            <td>
+                                Password
+                            </td>
+
+                            <td>
+                                <span class="badge bg-secondary">
+                                    Optional
+                                </span>
+                            </td>
+
+                            <td>
+                                CIA@faculty101
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- IMPORTANT NOTES -->
+
+            <div class="alert alert-info mb-0">
+
+                <strong>
+                    Important Notes:
+                </strong>
+
+                <ul class="mb-0 mt-2">
+
+                    <li>
+                        Username must be unique.
+                    </li>
+
+                    <li>
+                        Course must already exist in the system.
+                    </li>
+
+                    <li>
+                        Subjects must already exist in the system.
+                    </li>
+
+                    <li>
+                        Enter multiple subjects separated by commas.
+                    </li>
+
+                    <li>
+                        If Password is empty, the system generates
+                        <strong>CIA@Username</strong>.
+                    </li>
+
+                    <li>
+                        Only <strong>.xlsx</strong> and
+                        <strong>.xls</strong> files are supported.
+                    </li>
+
+                </ul>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- UPLOAD CARD -->
+    <!-- ========================================= -->
+
+
+    <!-- ========================================= -->
+<!-- UPLOAD CARD -->
+<!-- ========================================= -->
+
+        <!-- UPLOAD FORM -->
+
+        <form
+            method="POST"
+            enctype="multipart/form-data"
+        >
+
+            {% csrf_token %}
+
+
+            <!-- FILE -->
+
+            
+
+
+            <!-- BUTTONS -->
+
+            
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-success text-white">
+
+            <h5 class="mb-0">
+
+                <i class="fas fa-upload me-2"></i>
+
+                Upload Faculty Excel File
+
+            </h5>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <form
+                method="POST"
+                enctype="multipart/form-data"
+            >
 
                 {% csrf_token %}
 
-                <div class="mb-3">
 
-                    <label>Select Excel File</label>
+                <!-- FILE -->
+
+                <div class="mb-4">
+
+                    <label class="form-label fw-semibold">
+
+                        Select Excel File
+
+                    </label>
 
                     <input
                         type="file"
                         name="excel_file"
                         class="form-control"
+                        accept=".xlsx,.xls"
                         required
                     >
 
+                    <small class="text-muted">
+
+                        Only Excel files (.xlsx or .xls) are allowed.
+
+                    </small>
+
                 </div>
 
-                <button class="btn btn-success">
-                    Upload Faculty
-                </button>
 
-                <a href="{% url 'manage_faculty' %}" class="btn btn-secondary">
-                    Cancel
-                </a>
+                <!-- BUTTONS -->
+
+                <div class="d-flex gap-2">
+
+                    <button
+                        type="submit"
+                        class="btn btn-success"
+                    >
+
+                        <i class="fas fa-upload me-1"></i>
+
+                        Upload Faculty
+
+                    </button>
+
+
+                    <a
+                        href="{% url 'manage_faculty' %}"
+                        class="btn btn-secondary"
+                    >
+
+                        <i class="fas fa-times me-1"></i>
+
+                        Cancel
+
+                    </a>
+
+                </div>
 
             </form>
 

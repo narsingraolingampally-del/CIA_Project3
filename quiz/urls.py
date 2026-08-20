@@ -13,9 +13,9 @@ urlpatterns = [
     # =====================================================
 
     path(
-        '',
+        "",
         views.index_page,
-        name='index'
+        name="index"
     ),
 
 
@@ -24,21 +24,21 @@ urlpatterns = [
     # =====================================================
 
     path(
-        'admin-login/',
+        "admin-login/",
         views.admin_login,
-        name='admin_login'
+        name="admin_login"
     ),
 
     path(
-        'faculty-login/',
+        "faculty-login/",
         views.faculty_login,
-        name='faculty_login'
+        name="faculty_login"
     ),
 
     path(
-        'student/login/',
+        "student/login/",
         views.student_login,
-        name='student_login'
+        name="student_login"
     ),
 
 
@@ -47,21 +47,21 @@ urlpatterns = [
     # =====================================================
 
     path(
-        'admin-panel/',
+        "admin-panel/",
         views.admin_dashboard,
-        name='admin_dashboard'
+        name="admin_dashboard"
     ),
 
     path(
-        'faculty-dashboard/',
+        "faculty-dashboard/",
         views.faculty_dashboard,
-        name='faculty_dashboard'
+        name="faculty_dashboard"
     ),
 
     path(
-        'student-dashboard/',
+        "student-dashboard/",
         views.student_dashboard,
-        name='student_dashboard'
+        name="student_dashboard"
     ),
 
 
@@ -81,15 +81,15 @@ urlpatterns = [
     # =====================================================
 
     path(
-        'take-exam/<int:exam_id>/',
+        "take-exam/<int:exam_id>/",
         views.take_exam,
-        name='take_exam'
+        name="take_exam"
     ),
 
     path(
-        'submit-exam/',
+        "submit-exam/",
         views.submit_exam,
-        name='submit_exam'
+        name="submit_exam"
     ),
 
     path(
@@ -105,75 +105,126 @@ urlpatterns = [
     ),
 
 
+    # =====================================================
+# FACULTY - QUESTIONS
+# =====================================================
+
+path(
+    "view-questions/",
+    views.view_questions,
+    name="view_questions"
+),
+
+path(
+    "faculty/upload-questions/",
+    views.faculty_upload_questions,
+    name="faculty_upload_questions"
+),
+
+path(
+    "faculty/edit-question/<int:pk>/",
+    views.faculty_edit_question,
+    name="faculty_edit_question"
+),
+
+path(
+    "faculty/delete-question/<int:pk>/",
+    views.delete_question,
+    name="faculty_delete_question"
+),
+
+path(
+    "faculty/delete-all-questions/",
+    views.delete_all_questions,
+    name="delete_all_questions"
+),
+
+
+# =====================================================
+# QUESTION BANK - ADMIN
+# =====================================================
+
+path(
+    "admin-panel/question-bank/",
+    views.question_bank,
+    name="question_bank"
+),
+
+path(
+    "admin-panel/question-bank/add/",
+    views.add_question,
+    name="add_question"
+),
+
+path(
+    "admin-panel/question-bank/upload/",
+    views.upload_questions,
+    name="upload_questions"
+),
+
+path(
+    "admin-panel/question-bank/edit/<int:pk>/",
+    views.faculty_edit_question,
+    name="edit_question"
+),
+
+path(
+    "admin-panel/question-bank/delete/<int:pk>/",
+    views.delete_question,
+    name="delete_question"
+),
+
+path(
+    "download-question-template/",
+    views.download_question_template,
+    name="download_question_template"
+),
+
+    # IMPORTANT:
+    # Do NOT add upload_question_paper here.
+    #
+    # views.upload_question_paper does not exist.
+    #
+    # Your current Excel question-bank upload is handled by:
+    # views.upload_questions
+
 
     # =====================================================
-    # FACULTY
+    # PASSWORD GENERATOR
     # =====================================================
 
     path(
-        'faculty-dashboard/',
-        views.faculty_dashboard,
-        name='faculty_dashboard'
-    ),
-
-    path(
-        'view-questions/',
-        views.view_questions,
-        name='view_questions'
-    ),
-
-    path(
-        'faculty/upload-questions/',
-        views.faculty_upload_questions,
-        name='faculty_upload_questions'
-    ),
-
-    path(
-        'upload-question-paper/',
-        views.upload_question_paper,
-        name='upload_question_paper'
-    ),
-
-    path(
-        'faculty/edit-question/<int:pk>/',
-        views.faculty_edit_question,
-        name='faculty_edit_question'
-    ),
-
-    path(
-        'faculty/delete-question/<int:pk>/',
-        views.delete_question,
-        name='delete_question'
-    ),
-
-    path(
-        'faculty/delete-all-questions/',
-        views.delete_all_questions,
-        name='delete_all_questions'
-    ),
-
-    path(
-        'faculty/password-generator/',
+        "faculty/password-generator/",
         views.password_generator,
-        name='password_generator'
-    ),
-
-
-    path(
-        'view-results/',
-        views.view_results,
-        name='view_results'
+        name="password_generator"
     ),
 
     path(
-        'export-results/',
-        export_results,
-        name='export_results'
+        "faculty/password-generator/export/",
+        views.export_student_passwords,
+        name="export_student_passwords"
     ),
 
 
     # =====================================================
-    # EXAM MANAGEMENT
+    # FACULTY RESULTS
+    # =====================================================
+
+    path(
+        "view-results/",
+        views.view_results,
+        name="view_results"
+    ),
+
+    path(
+        "export-results/",
+        export_results,
+        name="export_results"
+    ),
+
+
+    # =====================================================
+    # FACULTY EXAM
     # =====================================================
 
     path(
@@ -181,6 +232,11 @@ urlpatterns = [
         views.create_exam,
         name="create_exam"
     ),
+
+
+    # =====================================================
+    # ADMIN EXAM MANAGEMENT
+    # =====================================================
 
     path(
         "admin-panel/exams/",
@@ -219,11 +275,27 @@ urlpatterns = [
     ),
 
     path(
-        "admin-panel/published-exams/",
-        views.published_exams,
-        name="published_exams"
+        "admin-panel/exams/delete/<int:exam_id>/",
+        views.delete_exam,
+        name="delete_exam"
     ),
 
+
+    # =====================================================
+    # SUBJECT AJAX
+    # =====================================================
+
+    path(
+        "ajax/get-subjects/",
+        views.get_subjects,
+        name="get_subjects"
+    ),
+
+    path(
+        "get-subjects/",
+        views.get_subjects_by_course_semester,
+        name="get_subjects_by_course_semester"
+    ),
 
 
     # =====================================================
@@ -231,35 +303,40 @@ urlpatterns = [
     # =====================================================
 
     path(
-        'admin-panel/faculty/',
+        "admin-panel/faculty/",
         views.manage_faculty,
-        name='manage_faculty'
+        name="manage_faculty"
     ),
 
     path(
-        'admin-panel/faculty/add/',
+        "admin-panel/faculty/add/",
         views.add_faculty,
-        name='add_faculty'
+        name="add_faculty"
     ),
 
     path(
-        'admin-panel/faculty/edit/<int:id>/',
+        "admin-panel/faculty/edit/<int:id>/",
         views.edit_faculty,
-        name='edit_faculty'
+        name="edit_faculty"
     ),
 
     path(
-        'admin-panel/faculty/delete/<int:id>/',
+        "admin-panel/faculty/delete/<int:id>/",
         views.delete_faculty,
-        name='delete_faculty'
+        name="delete_faculty"
     ),
 
     path(
-        "admin-panel/upload-faculty/",
+        "admin-panel/faculty/upload/",
         views.upload_faculty,
         name="upload_faculty"
     ),
 
+    path(
+        "admin-panel/faculty/upload/template/",
+        views.download_faculty_template,
+        name="download_faculty_template"
+    ),
 
 
     # =====================================================
@@ -267,131 +344,181 @@ urlpatterns = [
     # =====================================================
 
     path(
-        'admin-panel/students/',
+        "admin-panel/students/",
         views.manage_students,
-        name='manage_students'
+        name="manage_students"
     ),
 
     path(
-        'admin-panel/students/add/',
+        "admin-panel/students/add/",
         views.add_student,
-        name='add_student'
+        name="add_student"
     ),
 
     path(
-        'admin-panel/students/edit/<int:id>/',
+        "admin-panel/students/edit/<int:id>/",
         views.edit_student,
-        name='edit_student'
+        name="edit_student"
     ),
 
     path(
-        'admin-panel/students/delete/<int:id>/',
+        "admin-panel/students/delete/<int:id>/",
         views.delete_student,
-        name='delete_student'
+        name="delete_student"
     ),
 
     path(
-        'admin-panel/students/upload/',
+        "admin-panel/students/upload/",
         views.upload_students,
-        name='upload_students'
+        name="upload_students"
     ),
 
     path(
-        'admin-panel/students/delete-selected/',
+        "admin-panel/students/download-template/",
+        views.download_student_template,
+        name="download_student_template"
+    ),
+
+    path(
+        "admin-panel/students/delete-selected/",
         views.delete_selected_students,
-        name='delete_selected_students'
+        name="delete_selected_students"
+    ),
+
+    path(
+        "admin-panel/students/bulk-delete/",
+        views.bulk_delete_students,
+        name="bulk_delete_students"
     ),
 
 
-
     # =====================================================
-    # COURSE
+    # COURSE MANAGEMENT
     # =====================================================
 
     path(
-        'admin-panel/courses/',
+        "admin-panel/courses/",
         views.manage_courses,
-        name='manage_courses'
+        name="manage_courses"
     ),
 
     path(
-        'admin-panel/courses/add/',
+        "admin-panel/courses/add/",
         views.add_course,
-        name='add_course'
+        name="add_course"
     ),
 
     path(
-        'admin-panel/courses/edit/<int:id>/',
+        "admin-panel/courses/edit/<int:id>/",
         views.edit_course,
-        name='edit_course'
+        name="edit_course"
     ),
 
     path(
-        'admin-panel/courses/delete/<int:id>/',
+        "admin-panel/courses/delete/<int:id>/",
         views.delete_course,
-        name='delete_course'
+        name="delete_course"
     ),
 
 
-
     # =====================================================
-    # SUBJECT
+    # SUBJECT MANAGEMENT
     # =====================================================
 
     path(
-        'admin-panel/subjects/',
+        "admin-panel/subjects/",
         views.manage_subjects,
-        name='manage_subjects'
+        name="manage_subjects"
     ),
 
     path(
-        'admin-panel/subjects/add/',
+        "admin-panel/subjects/add/",
         views.add_subject,
-        name='add_subject'
+        name="add_subject"
     ),
 
     path(
-        'admin-panel/subjects/edit/<int:id>/',
+        "admin-panel/subjects/edit/<int:id>/",
         views.edit_subject,
-        name='edit_subject'
+        name="edit_subject"
     ),
 
     path(
-        'admin-panel/subjects/delete/<int:id>/',
+        "admin-panel/subjects/delete/<int:id>/",
         views.delete_subject,
-        name='delete_subject'
+        name="delete_subject"
     ),
 
 
-
     # =====================================================
-    # QUESTION BANK
+# QUESTION BANK
+# =====================================================
+
+path(
+    "admin-panel/question-bank/",
+    views.question_bank,
+    name="question_bank"
+),
+
+path(
+    "admin-panel/question-bank/add/",
+    views.add_question,
+    name="add_question"
+),
+
+path(
+    "admin-panel/question-bank/upload/",
+    views.upload_questions,
+    name="upload_questions"
+),
+
+path(
+    "admin-panel/question-bank/edit/<int:pk>/",
+    views.faculty_edit_question,
+    name="edit_question"
+),
+
+path(
+    "admin-panel/question-bank/delete/<int:pk>/",
+    views.delete_question,
+    name="delete_question"
+),
+
+path(
+    "download-question-template/",
+    views.download_question_template,
+    name="download_question_template"
+),
+    # =====================================================
+    # EXCEL QUESTION UPLOAD
     # =====================================================
 
     path(
-        'admin-panel/question-bank/',
-        views.question_bank,
-        name='question_bank'
-    ),
-
-    path(
-        'admin-panel/question-bank/upload/',
+        "admin-panel/question-bank/upload/",
         views.upload_questions,
-        name='upload_questions'
+        name="upload_questions"
     ),
+
+    
+
+    # IMPORTANT:
+    # delete_question is NOT included because your
+    # views.py currently does not contain delete_question.
+    #
+    # Do not use:
+    #
+    # path(
+    #     "admin-panel/question-bank/delete/<int:pk>/",
+    #     views.delete_question,
+    #     name="delete_question"
+    # )
+
 
     path(
-        'admin-panel/question-bank/edit/<int:pk>/',
-        views.edit_question,
-        name='edit_question'
+        "download-question-template/",
+        views.download_question_template,
+        name="download_question_template"
     ),
-
-    path(
-        'admin-panel/question-bank/delete/<int:pk>/',
-        views.delete_question,
-        name='delete_question'
-    ),
-
 
 
     # =====================================================
@@ -399,9 +526,9 @@ urlpatterns = [
     # =====================================================
 
     path(
-        'admin-panel/reports/',
+        "admin-panel/reports/",
         views.admin_reports,
-        name='admin_reports'
+        name="admin_reports"
     ),
 
     path(
@@ -416,32 +543,12 @@ urlpatterns = [
         name="export_reports_pdf"
     ),
 
-
-
-    # =====================================================
-    # AJAX
-    # =====================================================
-
-    path(
-        "ajax/load-subjects/",
-        views.load_subjects,
-        name="ajax_load_subjects"
-    ),
-
-
-
-    # =====================================================
-    # DOWNLOAD
-    # =====================================================
-
-    path(
-        "download-question-template/",
-        views.download_question_template,
-        name="download_question_template"
-    ),
-
 ]
 
+
+# =========================================================
+# MEDIA FILES - DEVELOPMENT ONLY
+# =========================================================
 
 if settings.DEBUG:
 

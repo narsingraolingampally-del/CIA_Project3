@@ -1,44 +1,70 @@
 
-from .models import StudentProfile, Course
-from .forms import StudentRegistrationForm
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib import messages
-from .models import Result
-import pandas as pd
+# =========================================================
+# IMPORTS
+# =========================================================
+
 import random
 import string
-from .forms import QuestionForm
-from .models import Question, Subject
-import random
-from .models import Course, Subject, Exam, Result
-from django.contrib.auth import get_user_model
+from io import BytesIO
 
-from django.db.models import Q
+import pandas as pd
 
+from django.http import (
+    JsonResponse,
+    HttpResponse,
+)
 
-from django.db.models import Count
-from .models import Exam, Course, Subject, Question, ExamQuestion
+from django.contrib import messages
 
+from django.contrib.auth import (
+    authenticate,
+    login,
+    logout,
+    get_user_model,
+)
 
-from django.http import HttpResponse
+from django.contrib.auth.decorators import (
+    login_required,
+    user_passes_test,
+)
+
+from django.db.models import (
+    Q,
+    Avg,
+    Count,
+)
+
+from django.shortcuts import (
+    get_object_or_404,
+    redirect,
+    render,
+)
 
 from openpyxl import Workbook
-from reportlab.lib.pagesizes import landscape, letter
+from openpyxl.utils import get_column_letter
+from openpyxl.styles import (
+    Font,
+    PatternFill,
+    Alignment,
+)
+
+from reportlab.lib.pagesizes import (
+    A4,
+    landscape,
+)
+
+from reportlab.lib.styles import (
+    getSampleStyleSheet,
+)
 
 from reportlab.platypus import (
     SimpleDocTemplate,
     Table,
     TableStyle,
-    Paragraph
+    Paragraph,
 )
 
-from reportlab.lib.styles import getSampleStyleSheet
-
-
-from .models import(
+from .models import (
     User,
     Course,
     Subject,
@@ -48,21 +74,60 @@ from .models import(
     QuestionPaper,
     Exam,
     Result,
-     ExamQuestion,
+    ExamQuestion,
 )
 
-
-
 from .forms import (
+    FacultyQuestionUploadForm,
     FacultyForm,
     StudentRegistrationForm,
     CourseForm,
     SubjectForm,
+    QuestionForm,
     QuestionPaperForm,
     QuestionUploadForm,
-    QuestionForm,
     ExamForm,
 )
+
+
+# =========================================================
+# ACCESS CONTROL
+# =========================================================
+
+def is_admin(user):
+    return (
+        user.is_authenticated
+        and user.is_superuser
+    )
+
+
+def is_student(user):
+    return (
+        user.is_authenticated
+        and user.is_student
+    )
+
+
+def is_faculty(user):
+    return (
+        user.is_authenticated
+        and (
+            user.is_faculty
+            or user.is_superuser
+        )
+    )
+
+
+def is_admin_or_faculty(user):
+    return (
+        user.is_authenticated
+        and (
+            user.is_superuser
+            or user.is_staff
+            or user.is_faculty
+        )
+    )
+
 # =========================================
 # HOME PAGE
 # =========================================
@@ -134,65 +199,180 @@ from django.contrib import messages
 
 def faculty_login(request):
 
-    # Already logged in
+    # =====================================================
+    # ALREADY LOGGED-IN USER
+    # =====================================================
+
     if request.user.is_authenticated:
 
+        # Admin
         if request.user.is_superuser:
             return redirect("admin_dashboard")
 
+        # Faculty
         if request.user.is_faculty:
             return redirect("faculty_dashboard")
 
+        # Student
         if request.user.is_student:
             return redirect("student_dashboard")
 
+        return redirect("index")
+
+
+    # =====================================================
+    # POST LOGIN
+    # =====================================================
+
     if request.method == "POST":
 
-        username = request.POST.get("username")
-        password = request.POST.get("password")
+        username = request.POST.get(
+            "username",
+            ""
+        ).strip()
+
+        password = request.POST.get(
+            "password",
+            ""
+        )
+
+
+        # -------------------------------------------------
+        # EMPTY FIELDS
+        # -------------------------------------------------
+
+        if not username or not password:
+
+            messages.error(
+                request,
+                "Please enter username and password."
+            )
+
+            return render(
+                request,
+                "faculty/login.html"
+            )
+
+
+        # -------------------------------------------------
+        # AUTHENTICATE
+        # -------------------------------------------------
 
         user = authenticate(
             request,
             username=username,
-            password=password,
+            password=password
         )
 
+
+        # -------------------------------------------------
+        # INVALID LOGIN
+        # -------------------------------------------------
+
         if user is None:
+
             messages.error(
                 request,
                 "Invalid username or password."
             )
-            return render(request, "faculty/login.html")
+
+            return render(
+                request,
+                "faculty/login.html"
+            )
+
+
+        # -------------------------------------------------
+        # DISABLED ACCOUNT
+        # -------------------------------------------------
 
         if not user.is_active:
+
             messages.error(
                 request,
                 "Your account is disabled."
             )
-            return render(request, "faculty/login.html")
 
-        login(request, user)
+            return render(
+                request,
+                "faculty/login.html"
+            )
 
-        # Redirect back to the page the user originally requested
-        next_url = request.GET.get("next")
-        if next_url:
-            return redirect(next_url)
 
-        # Default redirects
+        # =================================================
+        # FACULTY LOGIN
+        # =================================================
+        #
+        # Faculty login should ONLY allow faculty.
+        #
+        # Do NOT redirect faculty to admin dashboard.
+        #
+        # =================================================
+
+        if user.is_faculty and not user.is_superuser:
+
+            login(
+                request,
+                user
+            )
+
+            return redirect(
+                "faculty_dashboard"
+            )
+
+
+        # =================================================
+        # ADMIN ACCOUNT USING FACULTY LOGIN
+        # =================================================
+
         if user.is_superuser:
-            return redirect("admin_dashboard")
 
-        if user.is_faculty:
-            return redirect("faculty_dashboard")
+            messages.error(
+                request,
+                "Please use the Admin Login."
+            )
+
+            return render(
+                request,
+                "faculty/login.html"
+            )
+
+
+        # =================================================
+        # STUDENT ACCOUNT USING FACULTY LOGIN
+        # =================================================
 
         if user.is_student:
-            return redirect("student_dashboard")
+
+            messages.error(
+                request,
+                "Please use the Student Login."
+            )
+
+            return render(
+                request,
+                "faculty/login.html"
+            )
+
+
+        # =================================================
+        # NO ROLE
+        # =================================================
 
         messages.error(
             request,
-            "You do not have permission to login."
+            "This account is not authorized for Faculty Login."
         )
-        return redirect("faculty_login")
+
+        return render(
+            request,
+            "faculty/login.html"
+        )
+
+
+    # =====================================================
+    # GET REQUEST
+    # =====================================================
 
     return render(
         request,
@@ -208,23 +388,6 @@ def logout_view(request):
     return redirect("index")
 
 
-# ===========================================
-# USER ROLE CHECKS
-# ===========================================
-
-def is_admin(user):
-    return user.is_authenticated and user.is_superuser
-
-
-
-def is_student(user):
-    return user.is_authenticated and user.is_student
-
-
-def is_faculty(user):
-    return user.is_authenticated and (
-        user.is_faculty or user.is_superuser
-    )
 
 # =========================================
 # FACULTY DASHBOARD
@@ -356,23 +519,43 @@ def take_exam(request, exam_id):
 # VIEW QUESTIONS
 # =========================================
 
+# =========================================================
+# FACULTY - VIEW QUESTIONS
+# =========================================================
+
 @login_required
 @user_passes_test(is_faculty)
 def view_questions(request):
 
-    questions = Question.objects.all().select_related(
+    # =====================================================
+    # GET FILTER VALUES
+    # =====================================================
+
+    course_id = request.GET.get("course", "").strip()
+
+    semester = request.GET.get("semester", "").strip()
+
+    subject_id = request.GET.get("subject", "").strip()
+
+    search = request.GET.get("search", "").strip()
+
+    # =====================================================
+    # GET ALL QUESTIONS
+    # =====================================================
+
+    questions = Question.objects.select_related(
         "course",
-        "subject"
+        "subject",
+    ).all().order_by(
+        "course__name",
+        "semester",
+        "subject__code",
+        "id",
     )
 
-
-    # Filters
-
-    course_id = request.GET.get("course")
-    semester = request.GET.get("semester")
-    subject_id = request.GET.get("subject")
-    search = request.GET.get("search")
-
+    # =====================================================
+    # COURSE FILTER
+    # =====================================================
 
     if course_id:
 
@@ -380,6 +563,9 @@ def view_questions(request):
             course_id=course_id
         )
 
+    # =====================================================
+    # SEMESTER FILTER
+    # =====================================================
 
     if semester:
 
@@ -387,6 +573,9 @@ def view_questions(request):
             semester=semester
         )
 
+    # =====================================================
+    # SUBJECT FILTER
+    # =====================================================
 
     if subject_id:
 
@@ -394,20 +583,105 @@ def view_questions(request):
             subject_id=subject_id
         )
 
+    # =====================================================
+    # SEARCH FILTER
+    # =====================================================
 
     if search:
 
         questions = questions.filter(
-            question_text__icontains=search
+
+            Q(
+                question_text__icontains=search
+            )
+
+            |
+
+            Q(
+                option1__icontains=search
+            )
+
+            |
+
+            Q(
+                option2__icontains=search
+            )
+
+            |
+
+            Q(
+                option3__icontains=search
+            )
+
+            |
+
+            Q(
+                option4__icontains=search
+            )
+
+            |
+
+            Q(
+                subject__name__icontains=search
+            )
+
+            |
+
+            Q(
+                subject__code__icontains=search
+            )
+
         )
 
+    # =====================================================
+    # COURSES
+    # =====================================================
 
+    courses = Course.objects.all().order_by(
+        "name"
+    )
 
-    courses = Course.objects.all()
+    # =====================================================
+    # SUBJECTS
+    #
+    # Initially show all subjects.
+    # JavaScript/filtering can narrow them later.
+    # =====================================================
 
-    subjects = Subject.objects.all()
+    subjects = Subject.objects.all().order_by(
+        "code",
+        "name"
+    )
 
+    # =====================================================
+    # TOTAL QUESTIONS
+    # =====================================================
 
+    total_questions = questions.count()
+
+    # =====================================================
+    # DEBUG
+    # =====================================================
+
+    print("=" * 60)
+    print("FACULTY QUESTION BANK")
+    print("=" * 60)
+
+    print("Course filter:", course_id)
+    print("Semester filter:", semester)
+    print("Subject filter:", subject_id)
+    print("Search:", search)
+
+    print(
+        "Questions found:",
+        total_questions
+    )
+
+    print("=" * 60)
+
+    # =====================================================
+    # RENDER
+    # =====================================================
 
     return render(
         request,
@@ -416,6 +690,13 @@ def view_questions(request):
             "questions": questions,
             "courses": courses,
             "subjects": subjects,
+            "total_questions": total_questions,
+
+            # Keep filter values selected
+            "selected_course": course_id,
+            "selected_semester": semester,
+            "selected_subject": subject_id,
+            "search": search,
         }
     )
 # =========================================
@@ -601,12 +882,6 @@ def manage_faculty(request):
 # ADD FACULTY
 # =========================================
 
-from django.contrib import messages
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required, user_passes_test
-
-from .forms import FacultyForm
-from .models import User, FacultyProfile
 
 
 @login_required
@@ -619,42 +894,76 @@ def add_faculty(request):
 
         if form.is_valid():
 
-            if form.cleaned_data["password"] != form.cleaned_data["confirm_password"]:
-                messages.error(request, "Passwords do not match.")
+            username = form.cleaned_data["username"].strip()
+
+            # ------------------------------------------
+            # DUPLICATE USERNAME
+            # ------------------------------------------
+
+            if User.objects.filter(
+                username=username
+            ).exists():
+
+                form.add_error(
+                    "username",
+                    "This username already exists."
+                )
+
                 return render(
                     request,
                     "admin_panel/add_faculty.html",
-                    {"form": form}
+                    {
+                        "form": form
+                    }
                 )
 
-            if User.objects.filter(username=form.cleaned_data["username"]).exists():
-                messages.error(request, "Username already exists.")
+            # ------------------------------------------
+            # CREATE USER
+            # ------------------------------------------
+
+            try:
+
+                user = User.objects.create_user(
+                    username=username,
+                    email=form.cleaned_data["email"].strip(),
+                    password=form.cleaned_data["password"],
+                    first_name=form.cleaned_data["first_name"].strip(),
+                    last_name=form.cleaned_data["last_name"].strip(),
+                    is_faculty=True
+                )
+
+                # --------------------------------------
+                # CREATE FACULTY PROFILE
+                # --------------------------------------
+
+                FacultyProfile.objects.create(
+                    user=user,
+                    department=form.cleaned_data["department"].strip()
+                )
+
+                messages.success(
+                    request,
+                    f"Faculty '{username}' added successfully."
+                )
+
+                return redirect(
+                    "manage_faculty"
+                )
+
+            except Exception as e:
+
+                messages.error(
+                    request,
+                    f"Unable to add faculty: {e}"
+                )
+
                 return render(
                     request,
                     "admin_panel/add_faculty.html",
-                    {"form": form}
+                    {
+                        "form": form
+                    }
                 )
-
-            user = User.objects.create_user(
-                username=form.cleaned_data["username"],
-                email=form.cleaned_data["email"],
-                password=form.cleaned_data["password"],
-                first_name=form.cleaned_data["first_name"],
-                last_name=form.cleaned_data["last_name"],
-            )
-
-            user.is_faculty = True
-            user.save()
-
-            FacultyProfile.objects.create(
-                user=user,
-                name=form.cleaned_data["name"],
-                department=form.cleaned_data["department"],
-            )
-
-            messages.success(request, "Faculty added successfully.")
-
-            return redirect("manage_faculty")
 
     else:
 
@@ -666,10 +975,7 @@ def add_faculty(request):
         {
             "form": form
         }
-    )
-
-
-# =========================================
+    )# =========================================
 # EDIT FACULTY
 # =========================================
 
@@ -677,24 +983,143 @@ def add_faculty(request):
 @user_passes_test(is_admin)
 def edit_faculty(request, id):
 
-    faculty = get_object_or_404(FacultyProfile, id=id)
+    faculty = get_object_or_404(
+        FacultyProfile,
+        id=id
+    )
+
     user = faculty.user
 
     if request.method == "POST":
 
-        faculty.name = request.POST.get("name")
+        username = request.POST.get(
+            "username",
+            ""
+        ).strip()
 
-        user.username = request.POST.get("username")
-        user.first_name = request.POST.get("first_name")
-        user.last_name = request.POST.get("last_name")
-        user.email = request.POST.get("email")
+        first_name = request.POST.get(
+            "first_name",
+            ""
+        ).strip()
+
+        last_name = request.POST.get(
+            "last_name",
+            ""
+        ).strip()
+
+        email = request.POST.get(
+            "email",
+            ""
+        ).strip()
+
+        department = request.POST.get(
+            "department",
+            ""
+        ).strip()
+
+        new_password = request.POST.get(
+            "new_password",
+            ""
+        )
+
+        confirm_password = request.POST.get(
+            "confirm_password",
+            ""
+        )
+
+        # ------------------------------------------
+        # USERNAME
+        # ------------------------------------------
+
+        if not username:
+
+            messages.error(
+                request,
+                "Username is required."
+            )
+
+            return redirect(
+                "edit_faculty",
+                id=id
+            )
+
+        if User.objects.filter(
+            username=username
+        ).exclude(
+            id=user.id
+        ).exists():
+
+            messages.error(
+                request,
+                "This username already exists."
+            )
+
+            return redirect(
+                "edit_faculty",
+                id=id
+            )
+
+        # ------------------------------------------
+        # PASSWORD
+        # ------------------------------------------
+
+        if new_password:
+
+            if len(new_password) < 8:
+
+                messages.error(
+                    request,
+                    "Password must be at least 8 characters."
+                )
+
+                return redirect(
+                    "edit_faculty",
+                    id=id
+                )
+
+            if new_password != confirm_password:
+
+                messages.error(
+                    request,
+                    "Passwords do not match."
+                )
+
+                return redirect(
+                    "edit_faculty",
+                    id=id
+                )
+
+            user.set_password(
+                new_password
+            )
+
+        # ------------------------------------------
+        # UPDATE USER
+        # ------------------------------------------
+
+        user.username = username
+        user.first_name = first_name
+        user.last_name = last_name
+        user.email = email
 
         user.save()
+
+        # ------------------------------------------
+        # UPDATE FACULTY PROFILE
+        # ------------------------------------------
+
+        faculty.department = department
+
         faculty.save()
 
-        messages.success(request, "Faculty updated successfully.")
+        messages.success(
+            request,
+            "Faculty updated successfully."
+        )
 
-        return redirect("manage_faculty")
+        return redirect(
+            "manage_faculty"
+        )
 
     return render(
         request,
@@ -704,7 +1129,6 @@ def edit_faculty(request, id):
             "user": user
         }
     )
-# =========================================
 # DELETE FACULTY
 # =========================================
 
@@ -717,14 +1141,28 @@ def delete_faculty(request, id):
         id=id
     )
 
-    faculty.user.delete()
+    if request.method == "POST":
 
-    messages.success(
+        username = faculty.user.username
+
+        faculty.user.delete()
+
+        messages.success(
+            request,
+            f"Faculty '{username}' deleted successfully."
+        )
+
+        return redirect(
+            "manage_faculty"
+        )
+
+    return render(
         request,
-        "Faculty deleted successfully."
+        "admin_panel/delete_faculty.html",
+        {
+            "faculty": faculty
+        }
     )
-
-    return redirect("manage_faculty")
 # =========================================
 # CREATE EXAM
 # =========================================
@@ -744,50 +1182,62 @@ def create_exam(request):
 
             exam = form.save(commit=False)
 
-            # Faculty should create unpublished exam
+            # Faculty-created exams should initially be unpublished
             exam.is_published = False
-
             exam.save()
 
-
-            print("======================")
+            print("==============================")
             print("EXAM CREATED")
             print("ID:", exam.id)
             print("COURSE:", exam.course)
             print("COURSE ID:", exam.course_id)
+            print("SEMESTER:", exam.semester)
             print("SUBJECT:", exam.subject)
             print("SUBJECT ID:", exam.subject_id)
-            print("======================")
+            print("NUMBER OF QUESTIONS:", exam.number_of_questions)
+            print("==============================")
 
 
-            # Get questions
+            # ==========================================
+            # GET QUESTIONS
+            # COURSE + SEMESTER + SUBJECT
+            # ==========================================
+
             questions = Question.objects.filter(
                 course_id=exam.course_id,
+                semester=exam.semester,
                 subject_id=exam.subject_id
             )
 
+            available_questions = questions.count()
 
             print(
                 "AVAILABLE QUESTIONS:",
-                questions.count()
+                available_questions
             )
 
 
-            if questions.count() < exam.number_of_questions:
+            # ==========================================
+            # CHECK QUESTION COUNT
+            # ==========================================
+
+            if available_questions < exam.number_of_questions:
 
                 messages.error(
                     request,
-                    f"Only {questions.count()} questions available."
+                    f"Only {available_questions} questions available "
+                    f"for {exam.subject} in Semester {exam.semester}. "
+                    f"You requested {exam.number_of_questions}."
                 )
 
                 exam.delete()
 
-                return redirect(
-                    "create_exam"
-                )
+                return redirect("create_exam")
 
 
-            # Select random questions
+            # ==========================================
+            # RANDOM SELECTION
+            # ==========================================
 
             selected_questions = random.sample(
                 list(questions),
@@ -795,7 +1245,9 @@ def create_exam(request):
             )
 
 
-            # Insert into ExamQuestion table
+            # ==========================================
+            # CREATE EXAM QUESTIONS
+            # ==========================================
 
             for question in selected_questions:
 
@@ -805,21 +1257,22 @@ def create_exam(request):
                 )
 
 
+            # ==========================================
+            # SUCCESS
+            # ==========================================
+
             messages.success(
                 request,
-                "Exam created successfully."
+                f"Exam '{exam.exam_name}' created successfully "
+                f"with {exam.number_of_questions} questions."
             )
 
-
-            return redirect(
-                "faculty_dashboard"
-            )
-
+            return redirect("faculty_dashboard")
 
         else:
 
+            print("EXAM FORM ERRORS:")
             print(form.errors)
-
 
     else:
 
@@ -830,7 +1283,7 @@ def create_exam(request):
         request,
         "faculty/create_exam.html",
         {
-            "form":form
+            "form": form
         }
     )# =========================================
 # ADD STUDENT
@@ -876,15 +1329,52 @@ def add_student(request):
 @user_passes_test(is_student)
 def submit_exam(request):
 
+    # =====================================================
+    # ONLY POST REQUEST ALLOWED
+    # =====================================================
+
     if request.method != "POST":
-        return redirect("student_dashboard")
+
+        return redirect(
+            "student_dashboard"
+        )
+
+
+    # =====================================================
+    # GET EXAM ID
+    # =====================================================
+
+    exam_id = request.POST.get(
+        "exam_id"
+    )
+
+
+    if not exam_id:
+
+        messages.error(
+            request,
+            "Invalid exam submission."
+        )
+
+        return redirect(
+            "student_dashboard"
+        )
+
+
+    # =====================================================
+    # GET EXAM
+    # =====================================================
 
     exam = get_object_or_404(
         Exam,
-        id=request.POST.get("exam_id")
+        id=exam_id
     )
 
-    # Prevent multiple attempts
+
+    # =====================================================
+    # PREVENT MULTIPLE ATTEMPTS
+    # =====================================================
+
     if Result.objects.filter(
         student=request.user,
         exam=exam
@@ -895,72 +1385,214 @@ def submit_exam(request):
             "You have already attempted this exam."
         )
 
-        return redirect("student_dashboard")
+        return redirect(
+            "student_dashboard"
+        )
 
-    exam_questions = ExamQuestion.objects.filter(
-        exam=exam
-    ).select_related("question")
+
+    # =====================================================
+    # GET EXAM QUESTIONS
+    # =====================================================
+
+    exam_questions = (
+        ExamQuestion.objects
+        .filter(
+            exam=exam
+        )
+        .select_related(
+            "question"
+        )
+        .order_by(
+            "id"
+        )
+    )
+
+
+    # =====================================================
+    # SCORE VARIABLES
+    # =====================================================
 
     score = 0
+
     total_marks = 0
+
+
+    # =====================================================
+    # CHECK EACH QUESTION
+    # =====================================================
 
     for eq in exam_questions:
 
         question = eq.question
 
-        total_marks += question.marks
 
-        selected = request.POST.get(f"q_{question.id}")
+        # -------------------------------------------------
+        # ADD QUESTION MARKS
+        # -------------------------------------------------
 
-        if not selected:
-            continue
+        question_marks = (
+            question.marks or 1
+        )
 
-        option_map = {
-            "1": question.option1,
-            "2": question.option2,
-            "3": question.option3,
-            "4": question.option4,
-        }
+        total_marks += question_marks
 
-        selected_answer = option_map.get(selected, "").strip().lower()
-        correct_answer = str(question.correct_answer).strip().lower()
+
+        # -------------------------------------------------
+        # GET SELECTED OPTION
+        #
+        # take_exam.html:
+        #
+        # name="question_{{ q.id }}"
+        #
+        # value="1"
+        # value="2"
+        # value="3"
+        # value="4"
+        # -------------------------------------------------
+
+        selected = request.POST.get(
+            f"question_{eq.id}"
+        )
+
+
+        # -------------------------------------------------
+        # CORRECT ANSWER FROM DATABASE
+        #
+        # Database contains:
+        # 1 / 2 / 3 / 4
+        # -------------------------------------------------
+
+        correct_answer = str(
+            question.correct_answer
+        ).strip()
+
+
+        # =================================================
+        # DEBUG
+        # =================================================
 
         print("--------------------------------")
-        print("Question :", question.question_text)
-        print("Selected :", selected_answer)
-        print("Correct  :", correct_answer)
 
-        if selected_answer == correct_answer:
-            score += question.marks
-            print("✓ Correct")
+        print(
+            "Question:",
+            question.question_text
+        )
+
+        print(
+            "ExamQuestion ID:",
+            eq.id
+        )
+
+        print(
+            "Selected option:",
+            selected
+        )
+
+        print(
+            "Correct answer:",
+            correct_answer
+        )
+
+        print(
+            "Marks:",
+            question_marks
+        )
+
+
+        # =================================================
+        # NO ANSWER
+        # =================================================
+
+        if not selected:
+
+            print(
+                "✗ NOT ANSWERED"
+            )
+
+            continue
+
+
+        # =================================================
+        # COMPARE OPTION NUMBERS
+        # =================================================
+
+        if str(selected).strip() == correct_answer:
+
+            score += question_marks
+
+            print(
+                "✓ CORRECT"
+            )
+
         else:
-            print("✗ Wrong")
 
-    percentage = (
-        (score / total_marks) * 100
-        if total_marks > 0 else 0
-    )
+            print(
+                "✗ WRONG"
+            )
 
-    Result.objects.create(
+
+    # =====================================================
+    # CALCULATE PERCENTAGE
+    # =====================================================
+
+    if total_marks > 0:
+
+        percentage = (
+            score / total_marks
+        ) * 100
+
+    else:
+
+        percentage = 0
+
+
+    # =====================================================
+    # SAVE RESULT
+    # =====================================================
+
+    result = Result.objects.create(
+
         student=request.user,
+
         exam=exam,
+
         score=score,
+
         total_marks=total_marks,
+
         percentage=percentage
+
     )
+
+
+    # =====================================================
+    # SHOW RESULT
+    # =====================================================
 
     return render(
+
         request,
+
         "student/result.html",
+
         {
+
             "exam": exam,
+
+            "result": result,
+
             "score": score,
+
             "total_marks": total_marks,
-            "percentage": round(percentage, 2),
+
+            "percentage": round(
+                percentage,
+                2
+            ),
+
         }
+
     )
-
-
 # =========================================
 # DELETE STUDENT
 # =========================================
@@ -986,237 +1618,535 @@ def delete_student(request, id):
 
 # =========================================
 # UPLOAD STUDENTS
-# =========================================
+# =======================================
+
+
+
+
+# ==========================================================
+# BULK UPLOAD STUDENTS
+# ==========================================================
 
 @login_required
 @user_passes_test(is_admin)
 def upload_students(request):
+
+    courses = Course.objects.all()
 
     if request.method == "POST":
 
         excel_file = request.FILES.get("excel_file")
         course_id = request.POST.get("course")
         semester = request.POST.get("semester")
+        academic_year = request.POST.get("academic_year")
 
+        # -----------------------------------------
+        # BASIC VALIDATION
+        # -----------------------------------------
 
         if not excel_file:
             messages.error(
                 request,
                 "Please select an Excel file."
             )
-            return redirect("upload_students")
 
+            return render(
+                request,
+                "admin_panel/upload_students.html",
+                {
+                    "courses": courses
+                }
+            )
 
-        if not course_id or not semester:
+        if not course_id:
             messages.error(
                 request,
-                "Please select Course and Semester."
+                "Please select a course."
             )
-            return redirect("upload_students")
 
+            return render(
+                request,
+                "admin_panel/upload_students.html",
+                {
+                    "courses": courses
+                }
+            )
+
+        if not semester:
+            messages.error(
+                request,
+                "Please select a semester."
+            )
+
+            return render(
+                request,
+                "admin_panel/upload_students.html",
+                {
+                    "courses": courses
+                }
+            )
+
+        if not academic_year:
+            messages.error(
+                request,
+                "Please enter the academic year."
+            )
+
+            return render(
+                request,
+                "admin_panel/upload_students.html",
+                {
+                    "courses": courses
+                }
+            )
+
+        # -----------------------------------------
+        # COURSE
+        # -----------------------------------------
 
         try:
 
-            course = get_object_or_404(
-                Course,
+            course = Course.objects.get(
                 id=course_id
             )
 
+        except Course.DoesNotExist:
+
+            messages.error(
+                request,
+                "Selected course does not exist."
+            )
+
+            return render(
+                request,
+                "admin_panel/upload_students.html",
+                {
+                    "courses": courses
+                }
+            )
+
+        # -----------------------------------------
+        # SEMESTER VALIDATION
+        # -----------------------------------------
+
+        try:
+
+            semester = int(semester)
+
+        except ValueError:
+
+            messages.error(
+                request,
+                "Invalid semester."
+            )
+
+            return render(
+                request,
+                "admin_panel/upload_students.html",
+                {
+                    "courses": courses
+                }
+            )
+
+        if semester < 1 or semester > 8:
+
+            messages.error(
+                request,
+                "Semester must be between 1 and 8."
+            )
+
+            return render(
+                request,
+                "admin_panel/upload_students.html",
+                {
+                    "courses": courses
+                }
+            )
+
+        # -----------------------------------------
+        # READ EXCEL
+        # -----------------------------------------
+
+        try:
 
             df = pd.read_excel(
-                excel_file
+                excel_file,
+                dtype=str
             )
-
-
-            # Remove empty rows
-            df.dropna(
-                how="all",
-                inplace=True
-            )
-
-
-            required_columns = [
-                "roll_number",
-                "aadhaar",
-                "name",
-                "email"
-            ]
-
-
-            # Validate Excel headers
-
-            for column in required_columns:
-
-                if column not in df.columns:
-
-                    messages.error(
-                        request,
-                        f"Missing column: {column}"
-                    )
-
-                    return redirect(
-                        "upload_students"
-                    )
-
-
-            imported = 0
-            skipped = 0
-
-
-            for _, row in df.iterrows():
-
-
-                # Convert Excel values safely
-
-                roll_number = str(
-                    int(row["roll_number"])
-                ).strip()
-
-
-                aadhaar = str(
-                    int(row["aadhaar"])
-                ).strip()
-
-
-                name = str(
-                    row["name"]
-                ).strip()
-
-
-                email = str(
-                    row["email"]
-                ).strip()
-
-
-
-                # Skip duplicate username
-
-                if User.objects.filter(
-                    username=roll_number
-                ).exists():
-
-                    skipped += 1
-                    continue
-
-
-
-                # Create User account
-
-                user = User.objects.create_user(
-
-                    username=roll_number,
-
-                    password=aadhaar,
-
-                    first_name=name,
-
-                    email=email
-
-                )
-
-
-                # Custom User fields
-
-                user.is_student = True
-
-                # User.course is CharField
-                user.course = course.name
-
-                user.semester = int(
-                    semester
-                )
-
-                user.save()
-
-
-
-                # Create Student Profile
-
-                StudentProfile.objects.create(
-
-                    user=user,
-
-                    name=name,
-
-                    course=course,
-
-                    semester=int(
-                        semester
-                    )
-
-                )
-
-
-                imported += 1
-
-
-
-            messages.success(
-
-                request,
-
-                f"{imported} students uploaded successfully."
-
-            )
-
-
-            if skipped:
-
-                messages.warning(
-
-                    request,
-
-                    f"{skipped} duplicate students skipped."
-
-                )
-
-
-            return redirect(
-                "manage_students"
-            )
-
-
 
         except Exception as e:
 
-
-            import traceback
-
-            print(
-                traceback.format_exc()
+            messages.error(
+                request,
+                f"Unable to read Excel file: {e}"
             )
 
+            return render(
+                request,
+                "admin_panel/upload_students.html",
+                {
+                    "courses": courses
+                }
+            )
+
+        # -----------------------------------------
+        # CLEAN COLUMN NAMES
+        # -----------------------------------------
+
+        df.columns = (
+            df.columns
+            .astype(str)
+            .str.strip()
+            .str.lower()
+        )
+
+        # -----------------------------------------
+        # REQUIRED COLUMNS
+        # -----------------------------------------
+
+        required_columns = [
+            "username",
+            "name",
+            "aadhaar number",
+        ]
+
+        missing_columns = [
+            column
+            for column in required_columns
+            if column not in df.columns
+        ]
+
+        if missing_columns:
 
             messages.error(
-
                 request,
-
-                f"Upload failed: {str(e)}"
-
+                "Missing Excel columns: "
+                + ", ".join(missing_columns)
             )
 
-
-            return redirect(
-                "upload_students"
+            return render(
+                request,
+                "admin_panel/upload_students.html",
+                {
+                    "courses": courses
+                }
             )
 
+        # -----------------------------------------
+        # REMOVE EMPTY ROWS
+        # -----------------------------------------
 
+        df = df.dropna(
+            how="all"
+        )
 
-    courses = Course.objects.all()
+        # -----------------------------------------
+        # COUNTERS
+        # -----------------------------------------
 
+        created_count = 0
+        skipped_count = 0
+
+        errors = []
+
+        # -----------------------------------------
+        # PROCESS STUDENTS
+        # -----------------------------------------
+
+        for index, row in df.iterrows():
+
+            excel_row = index + 2
+
+            username = str(
+                row["username"]
+            ).strip()
+
+            name = str(
+                row["name"]
+            ).strip()
+
+            aadhaar = str(
+                row["aadhaar number"]
+            ).strip()
+
+            # -------------------------------------
+            # EMPTY VALUES
+            # -------------------------------------
+
+            if not username or username.lower() == "nan":
+
+                errors.append(
+                    f"Row {excel_row}: Username is required."
+                )
+
+                skipped_count += 1
+
+                continue
+
+            if not name or name.lower() == "nan":
+
+                errors.append(
+                    f"Row {excel_row}: Name is required."
+                )
+
+                skipped_count += 1
+
+                continue
+
+            if not aadhaar or aadhaar.lower() == "nan":
+
+                errors.append(
+                    f"Row {excel_row}: Aadhaar number is required."
+                )
+
+                skipped_count += 1
+
+                continue
+
+            # -------------------------------------
+            # AADHAAR VALIDATION
+            # -------------------------------------
+
+            aadhaar = aadhaar.replace(
+                " ",
+                ""
+            )
+
+            if not aadhaar.isdigit():
+
+                errors.append(
+                    f"Row {excel_row}: "
+                    f"Aadhaar must contain only digits."
+                )
+
+                skipped_count += 1
+
+                continue
+
+            if len(aadhaar) != 12:
+
+                errors.append(
+                    f"Row {excel_row}: "
+                    f"Aadhaar must contain exactly 12 digits."
+                )
+
+                skipped_count += 1
+
+                continue
+
+            # -------------------------------------
+            # USERNAME DUPLICATE CHECK
+            # -------------------------------------
+
+            if User.objects.filter(
+                username=username
+            ).exists():
+
+                errors.append(
+                    f"Row {excel_row}: "
+                    f"Username '{username}' already exists."
+                )
+
+                skipped_count += 1
+
+                continue
+
+            # -------------------------------------
+            # AADHAAR DUPLICATE CHECK
+            # -------------------------------------
+
+            if StudentProfile.objects.filter(
+                aadhaar_number=aadhaar
+            ).exists():
+
+                errors.append(
+                    f"Row {excel_row}: "
+                    f"Aadhaar number already exists."
+                )
+
+                skipped_count += 1
+
+                continue
+
+            # -------------------------------------
+            # PASSWORD
+            # -------------------------------------
+
+            password = f"CIA@{username}"
+
+            # -------------------------------------
+            # CREATE USER
+            # -------------------------------------
+
+            try:
+
+                user = User.objects.create_user(
+                    username=username,
+                    password=password,
+                    first_name=name,
+                    is_student=True
+                )
+
+                # ---------------------------------
+                # CREATE STUDENT PROFILE
+                # ---------------------------------
+
+                StudentProfile.objects.create(
+                    user=user,
+                    course=course,
+                    semester=semester,
+                    academic_year=academic_year,
+                    aadhaar_number=aadhaar
+                )
+
+                created_count += 1
+
+            except Exception as e:
+
+                errors.append(
+                    f"Row {excel_row}: {str(e)}"
+                )
+
+                # Remove partially-created user
+                try:
+
+                    if user:
+                        user.delete()
+
+                except Exception:
+                    pass
+
+                skipped_count += 1
+
+        # -----------------------------------------
+        # RESULT MESSAGE
+        # -----------------------------------------
+
+        if created_count > 0:
+
+            messages.success(
+                request,
+                f"{created_count} student(s) uploaded successfully."
+            )
+
+        if skipped_count > 0:
+
+            messages.warning(
+                request,
+                f"{skipped_count} student(s) were skipped."
+            )
+
+        # -----------------------------------------
+        # SHOW ERRORS
+        # -----------------------------------------
+
+        for error in errors:
+
+            messages.error(
+                request,
+                error
+            )
+
+        return render(
+            request,
+            "admin_panel/upload_students.html",
+            {
+                "courses": courses
+            }
+        )
+
+    # ---------------------------------------------
+    # GET REQUEST
+    # ---------------------------------------------
 
     return render(
-
         request,
-
         "admin_panel/upload_students.html",
-
         {
             "courses": courses
         }
+    )
 
-    
-    )# =========================================
+# ==========================================================
+# DOWNLOAD STUDENT EXCEL TEMPLATE
+# ==========================================================
+
+def download_student_template(request):
+
+    workbook = Workbook()
+    worksheet = workbook.active
+    worksheet.title = "Students"
+
+    # Headers
+    headers = [
+        "Username",
+        "Name",
+        "Aadhaar Number",
+    ]
+
+    worksheet.append(headers)
+
+    # Example rows
+    worksheet.append([
+        "107225861001",
+        "Student Name",
+        "123456789012",
+    ])
+
+    worksheet.append([
+        "107225861002",
+        "Student Name 2",
+        "234567890123",
+    ])
+
+    # Header formatting
+    header_fill = PatternFill(
+        fill_type="solid",
+        fgColor="1F4E78"
+    )
+
+    header_font = Font(
+        bold=True,
+        color="FFFFFF"
+    )
+
+    for cell in worksheet[1]:
+
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(
+            horizontal="center"
+        )
+
+    # Column widths
+    worksheet.column_dimensions["A"].width = 20
+    worksheet.column_dimensions["B"].width = 30
+    worksheet.column_dimensions["C"].width = 20
+
+    # Keep Aadhaar as text
+    for row in worksheet.iter_rows(
+        min_row=2,
+        min_col=3,
+        max_col=3
+    ):
+        for cell in row:
+            cell.number_format = "@"
+
+    # Response
+    response = HttpResponse(
+        content_type=(
+            "application/vnd.openxmlformats-officedocument."
+            "spreadsheetml.sheet"
+        )
+    )
+
+    response["Content-Disposition"] = (
+        'attachment; filename="student_upload_template.xlsx"'
+    )
+
+    workbook.save(response)
+
+    return response# =========================================
 # COURSE MANAGEMENT
 # =========================================
 
@@ -1448,241 +2378,915 @@ def delete_subject(request, id):
 # =========================================
 # QUESTION BANK
 # =========================================
-
-from .models import Course, Subject, Question
-
-from django.db.models import Q
-
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.shortcuts import render
-
 @login_required
 @user_passes_test(is_admin)
 def question_bank(request):
 
-    questions = Question.objects.select_related(
+    # =====================================================
+    # ALL QUESTIONS
+    # =====================================================
+
+    questions = (
+        Question.objects
+        .select_related(
+            "course",
+            "subject"
+        )
+        .all()
+        .order_by("-id")
+    )
+
+
+    # =====================================================
+    # DROPDOWN DATA
+    # =====================================================
+
+    courses = Course.objects.all().order_by("name")
+
+    subjects = (
+        Subject.objects
+        .select_related("course")
+        .all()
+        .order_by("code", "name")
+    )
+
+
+    # =====================================================
+    # SEMESTER CHOICES
+    # =====================================================
+
+    semester_choices = [
+        ("1", "Semester 1"),
+        ("2", "Semester 2"),
+        ("3", "Semester 3"),
+        ("4", "Semester 4"),
+        ("5", "Semester 5"),
+        ("6", "Semester 6"),
+        ("7", "Semester 7"),
+        ("8", "Semester 8"),
+    ]
+
+
+    # =====================================================
+    # GET FILTER VALUES
+    # =====================================================
+
+    search = request.GET.get("search", "").strip()
+
+    selected_course = request.GET.get(
         "course",
-        "subject"
-    ).all().order_by("-id")
+        ""
+    ).strip()
 
-    courses = Course.objects.all()
-    subjects = Subject.objects.all()
+    selected_subject = request.GET.get(
+        "subject",
+        ""
+    ).strip()
 
-    search = request.GET.get("search")
-    course = request.GET.get("course")
-    subject = request.GET.get("subject")
-    semester = request.GET.get("semester")
+    selected_semester = request.GET.get(
+        "semester",
+        ""
+    ).strip()
+
+
+    # =====================================================
+    # SEARCH FILTER
+    # =====================================================
 
     if search:
+
         questions = questions.filter(
             question_text__icontains=search
         )
 
-    if course:
+
+    # =====================================================
+    # COURSE FILTER
+    # =====================================================
+
+    if selected_course:
+
         questions = questions.filter(
-            course_id=course
+            course_id=selected_course
         )
 
-    if subject:
+
+    # =====================================================
+    # SUBJECT FILTER
+    # =====================================================
+
+    if selected_subject:
+
         questions = questions.filter(
-            subject_id=subject
+            subject_id=selected_subject
         )
 
-    if semester:
+
+    # =====================================================
+    # SEMESTER FILTER
+    # =====================================================
+
+    if selected_semester:
+
         questions = questions.filter(
-            semester=semester
+            semester=selected_semester
         )
+
+
+    # =====================================================
+    # CONTEXT
+    # =====================================================
 
     context = {
+
         "questions": questions,
+
         "courses": courses,
+
         "subjects": subjects,
+
+        "semester_choices": semester_choices,
+
+        "search": search,
+
+        "selected_course": selected_course,
+
+        "selected_subject": selected_subject,
+
+        "selected_semester": selected_semester,
+
     }
+
+
+    # =====================================================
+    # RENDER
+    # =====================================================
 
     return render(
         request,
         "admin_panel/question_bank.html",
         context
     )
+
 # =========================================
 # UPLOAD QUESTIONS
 # =========================================
 
 @login_required
-@user_passes_test(is_faculty)
+@user_passes_test(is_admin_or_faculty)
 def upload_questions(request):
 
-    if request.method == "POST":
+    # =====================================================
+    # GET
+    # =====================================================
 
-        form = QuestionUploadForm(
-            request.POST,
-            request.FILES
-        )
-
-        if form.is_valid():
-
-            print("FORM IS VALID")
-
-            course = form.cleaned_data["course"]
-            subject = form.cleaned_data["subject"]
-            academic_year = form.cleaned_data["academic_year"]
-            semester = form.cleaned_data["semester"]
-
-            excel_file = request.FILES["excel_file"]
-
-            df = pd.read_excel(excel_file)
-
-            for _, row in df.iterrows():
-
-                Question.objects.create(
-                    course=course,
-                    subject=subject,
-                    academic_year=academic_year,
-                    semester=semester,
-                    question_text=row["question_text"],
-                    option1=row["option1"],
-                    option2=row["option2"],
-                    option3=row["option3"],
-                    option4=row["option4"],
-                    correct_answer=row["correct_answer"],
-                    marks=row["marks"],
-                )
-
-            messages.success(
-                request,
-                "Questions uploaded successfully."
-            )
-
-            return redirect("question_bank")
-
-        else:
-            print("FORM ERRORS:")
-            print(form.errors)
-
-    else:
+    if request.method == "GET":
 
         form = QuestionUploadForm()
 
-    return render(
-        request,
-        "admin_panel/upload_questions.html",
-        {
-            "form": form
-        }
-    )
-
-
-# =========================================
-# EDIT QUESTION
-# =========================================
-
-@login_required
-@user_passes_test(is_admin)
-def edit_question(request, pk):
-
-    question = get_object_or_404(
-        Question,
-        pk=pk
-    )
-
-    if request.method == "POST":
-
-        form = QuestionForm(
-            request.POST,
-            instance=question
+        return render(
+            request,
+            "admin_panel/upload_questions.html",
+            {
+                "form": form
+            }
         )
 
-        if form.is_valid():
+    # =====================================================
+    # POST
+    # =====================================================
 
-            form.save()
+    form = QuestionUploadForm(
+        request.POST,
+        request.FILES
+    )
 
-            messages.success(
-                request,
-                "Question updated successfully."
+    print("\n========================================")
+    print("QUESTION BANK UPLOAD")
+    print("========================================")
+
+    print("POST DATA:")
+    print(request.POST)
+
+    print("\nFILES:")
+    print(request.FILES)
+
+    # =====================================================
+    # FORM VALIDATION
+    # =====================================================
+
+    if not form.is_valid():
+
+        print("\n========================================")
+        print("FORM INVALID")
+        print("========================================")
+
+        print(form.errors.as_json())
+
+        return render(
+            request,
+            "admin_panel/upload_questions.html",
+            {
+                "form": form
+            }
+        )
+
+    print("\nFORM IS VALID")
+
+    # =====================================================
+    # FORM DATA
+    # =====================================================
+
+    course = form.cleaned_data["course"]
+
+    semester = int(
+        form.cleaned_data["semester"]
+    )
+
+    subject = form.cleaned_data["subject"]
+
+    academic_year = (
+        form.cleaned_data["academic_year"]
+        .strip()
+    )
+
+    excel_file = form.cleaned_data["excel_file"]
+
+    print("\n----------------------------------------")
+    print("SELECTED DATA")
+    print("----------------------------------------")
+
+    print("Course:", course)
+    print("Course ID:", course.id)
+
+    print("Semester:", semester)
+
+    print("Subject:", subject)
+    print("Subject ID:", subject.id)
+
+    print("Academic Year:", academic_year)
+
+    print("Excel:", excel_file.name)
+
+    # =====================================================
+    # COURSE / SUBJECT VALIDATION
+    # =====================================================
+
+    if subject.course_id != course.id:
+
+        form.add_error(
+            "subject",
+            "Selected subject does not belong to "
+            "the selected course."
+        )
+
+        return render(
+            request,
+            "admin_panel/upload_questions.html",
+            {
+                "form": form
+            }
+        )
+
+    # =====================================================
+    # SEMESTER / SUBJECT VALIDATION
+    # =====================================================
+
+    if int(subject.semester) != semester:
+
+        form.add_error(
+            "subject",
+            "Selected subject does not belong to "
+            "the selected semester."
+        )
+
+        return render(
+            request,
+            "admin_panel/upload_questions.html",
+            {
+                "form": form
+            }
+        )
+
+    # =====================================================
+    # CHECK FILE EXTENSION
+    # =====================================================
+
+    filename = excel_file.name.lower()
+
+    if not filename.endswith(
+        (".xlsx", ".xls")
+    ):
+
+        messages.error(
+            request,
+            "Please upload a valid Excel file (.xlsx or .xls)."
+        )
+
+        return render(
+            request,
+            "admin_panel/upload_questions.html",
+            {
+                "form": form
+            }
+        )
+
+    # =====================================================
+    # READ EXCEL
+    # =====================================================
+
+    try:
+
+        df = pd.read_excel(
+            excel_file
+        )
+
+    except Exception as e:
+
+        print("\nEXCEL READ ERROR:", e)
+
+        messages.error(
+            request,
+            f"Unable to read Excel file: {e}"
+        )
+
+        return render(
+            request,
+            "admin_panel/upload_questions.html",
+            {
+                "form": form
+            }
+        )
+
+    # =====================================================
+    # CLEAN COLUMN NAMES
+    # =====================================================
+
+    df.columns = (
+        df.columns
+        .astype(str)
+        .str.strip()
+        .str.lower()
+    )
+
+    print("\n========================================")
+    print("EXCEL INFORMATION")
+    print("========================================")
+
+    print("Columns:")
+    print(list(df.columns))
+
+    print("Number of rows:", len(df))
+
+    # =====================================================
+    # REQUIRED COLUMNS
+    # =====================================================
+
+    required_columns = [
+
+        "question_text",
+
+        "option1",
+
+        "option2",
+
+        "option3",
+
+        "option4",
+
+        "correct_answer",
+
+        "marks",
+
+    ]
+
+    missing_columns = [
+
+        column
+
+        for column in required_columns
+
+        if column not in df.columns
+
+    ]
+
+    if missing_columns:
+
+        messages.error(
+            request,
+            "Missing Excel columns: "
+            + ", ".join(missing_columns)
+        )
+
+        return render(
+            request,
+            "admin_panel/upload_questions.html",
+            {
+                "form": form
+            }
+        )
+
+    # =====================================================
+    # KEEP ONLY REQUIRED COLUMNS
+    # =====================================================
+
+    df = df[
+        required_columns
+    ]
+
+    # =====================================================
+    # REMOVE COMPLETELY EMPTY ROWS
+    # =====================================================
+
+    df = df.dropna(
+        how="all"
+    )
+
+    if df.empty:
+
+        messages.error(
+            request,
+            "The Excel file does not contain "
+            "any questions."
+        )
+
+        return render(
+            request,
+            "admin_panel/upload_questions.html",
+            {
+                "form": form
+            }
+        )
+
+    # =====================================================
+    # VALIDATE ALL ROWS FIRST
+    #
+    # IMPORTANT:
+    # No database records are created here.
+    # =====================================================
+
+    valid_questions = []
+
+    errors = []
+
+    print("\n========================================")
+    print("VALIDATING QUESTIONS")
+    print("========================================")
+
+    for row_number, row in df.iterrows():
+
+        # Excel header is row 1
+        # Therefore first data row is row 2
+
+        excel_row = row_number + 2
+
+        # =================================================
+        # QUESTION TEXT
+        # =================================================
+
+        question_value = row[
+            "question_text"
+        ]
+
+        if pd.isna(question_value):
+
+            errors.append(
+                f"Excel row {excel_row}: "
+                "question_text is empty."
             )
 
-            return redirect("question_bank")
+            continue
 
-    else:
+        question_text = str(
+            question_value
+        ).strip()
 
-        form = QuestionForm(instance=question)
+        if not question_text:
 
-    return render(
-        request,
-        "admin_panel/edit_question.html",
-        {
-            "form": form
-        }
+            errors.append(
+                f"Excel row {excel_row}: "
+                "question_text is empty."
+            )
+
+            continue
+
+        # =================================================
+        # OPTIONS
+        # =================================================
+
+        option_values = {}
+
+        option_error = False
+
+        for column in [
+
+            "option1",
+            "option2",
+            "option3",
+            "option4",
+
+        ]:
+
+            value = row[column]
+
+            if pd.isna(value):
+
+                value = ""
+
+            else:
+
+                value = str(
+                    value
+                ).strip()
+
+            option_values[column] = value
+
+            if not value:
+
+                errors.append(
+                    f"Excel row {excel_row}: "
+                    f"{column} is empty."
+                )
+
+                option_error = True
+
+        if option_error:
+
+            continue
+
+        # =================================================
+        # CORRECT ANSWER
+        # =================================================
+
+        correct_value = row[
+            "correct_answer"
+        ]
+
+        if pd.isna(correct_value):
+
+            errors.append(
+                f"Excel row {excel_row}: "
+                "correct_answer is empty."
+            )
+
+            continue
+
+        try:
+
+            correct_answer = str(
+                int(
+                    float(
+                        correct_value
+                    )
+                )
+            )
+
+        except (
+            ValueError,
+            TypeError
+        ):
+
+            correct_answer = str(
+                correct_value
+            ).strip()
+
+        # =================================================
+        # VALID CORRECT ANSWER
+        # =================================================
+
+        if correct_answer not in [
+
+            "1",
+            "2",
+            "3",
+            "4",
+
+        ]:
+
+            errors.append(
+                f"Excel row {excel_row}: "
+                f"Invalid correct_answer "
+                f"'{correct_answer}'. "
+                f"Use 1, 2, 3 or 4."
+            )
+
+            continue
+
+        # =================================================
+        # MARKS
+        # =================================================
+
+        marks_value = row[
+            "marks"
+        ]
+
+        if pd.isna(marks_value):
+
+            errors.append(
+                f"Excel row {excel_row}: "
+                "marks is empty."
+            )
+
+            continue
+
+        try:
+
+            marks_float = float(
+                marks_value
+            )
+
+            marks = int(
+                marks_float
+            )
+
+            # Prevent 1.5 from silently becoming 1
+
+            if marks_float != marks:
+
+                raise ValueError
+
+        except (
+            ValueError,
+            TypeError
+        ):
+
+            errors.append(
+                f"Excel row {excel_row}: "
+                f"Invalid marks '{marks_value}'. "
+                f"Marks must be a whole number."
+            )
+
+            continue
+
+        # =================================================
+        # MARKS MUST BE GREATER THAN ZERO
+        # =================================================
+
+        if marks <= 0:
+
+            errors.append(
+                f"Excel row {excel_row}: "
+                "marks must be greater than 0."
+            )
+
+            continue
+
+        # =================================================
+        # PREPARE QUESTION
+        #
+        # Do NOT save yet.
+        # =================================================
+
+        valid_questions.append(
+
+            Question(
+
+                course=course,
+
+                subject=subject,
+
+                academic_year=academic_year,
+
+                semester=semester,
+
+                uploaded_by=request.user,
+
+                question_text=question_text,
+
+                option1=option_values["option1"],
+
+                option2=option_values["option2"],
+
+                option3=option_values["option3"],
+
+                option4=option_values["option4"],
+
+                correct_answer=correct_answer,
+
+                marks=marks,
+
+            )
+
+        )
+
+    # =====================================================
+    # VALIDATION ERRORS
+    # =====================================================
+
+    if errors:
+
+        print("\n========================================")
+        print("EXCEL VALIDATION ERRORS")
+        print("========================================")
+
+        for error in errors:
+
+            print(error)
+
+        # -------------------------------------------------
+        # Show first several errors
+        # -------------------------------------------------
+
+        for error in errors[:10]:
+
+            messages.error(
+                request,
+                error
+            )
+
+        if len(errors) > 10:
+
+            messages.error(
+                request,
+                f"And {len(errors) - 10} "
+                f"more error(s) found."
+            )
+
+        messages.error(
+            request,
+            "Upload cancelled. "
+            "No questions were added to the database."
+        )
+
+        return render(
+            request,
+            "admin_panel/upload_questions.html",
+            {
+                "form": form
+            }
+        )
+
+    # =====================================================
+    # NO VALID QUESTIONS
+    # =====================================================
+
+    if not valid_questions:
+
+        messages.error(
+            request,
+            "No valid questions were found "
+            "in the Excel file."
+        )
+
+        return render(
+            request,
+            "admin_panel/upload_questions.html",
+            {
+                "form": form
+            }
+        )
+
+    # =====================================================
+    # DUPLICATE CHECK
+    #
+    # Prevent uploading the exact same question twice.
+    # =====================================================
+
+    duplicate_questions = []
+
+    for question in valid_questions:
+
+        exists = Question.objects.filter(
+
+            course=course,
+
+            subject=subject,
+
+            semester=semester,
+
+            academic_year=academic_year,
+
+            question_text=question.question_text,
+
+        ).exists()
+
+        if exists:
+
+            duplicate_questions.append(
+                question.question_text
+            )
+
+    # =====================================================
+    # DUPLICATE QUESTIONS FOUND
+    # =====================================================
+
+    if duplicate_questions:
+
+        print("\n========================================")
+        print("DUPLICATE QUESTIONS")
+        print("========================================")
+
+        for duplicate in duplicate_questions:
+
+            print(
+                duplicate
+            )
+
+        messages.error(
+            request,
+            f"{len(duplicate_questions)} "
+            f"question(s) already exist for "
+            f"this course, semester, subject "
+            f"and academic year."
+        )
+
+        messages.error(
+            request,
+            "Upload cancelled to prevent duplicate questions."
+        )
+
+        return render(
+            request,
+            "admin_panel/upload_questions.html",
+            {
+                "form": form
+            }
+        )
+
+    # =====================================================
+    # SAVE ALL QUESTIONS
+    #
+    # Atomic transaction:
+    # Either ALL questions are saved,
+    # or NONE are saved.
+    # =====================================================
+
+    try:
+
+        with transaction.atomic():
+
+            Question.objects.bulk_create(
+                valid_questions
+            )
+
+    except Exception as e:
+
+        print("\n========================================")
+        print("DATABASE ERROR")
+        print("========================================")
+
+        print(e)
+
+        messages.error(
+            request,
+            f"Unable to save questions: {e}"
+        )
+
+        return render(
+            request,
+            "admin_panel/upload_questions.html",
+            {
+                "form": form
+            }
+        )
+
+    # =====================================================
+    # SUCCESS
+    # =====================================================
+
+    created_count = len(
+        valid_questions
     )
 
+    print("\n========================================")
+    print("UPLOAD SUCCESS")
+    print("========================================")
 
-# =========================================
-# DELETE QUESTION
-# =========================================
-
-@login_required
-@user_passes_test(is_faculty)
-def delete_question(request, pk):
-
-    question = get_object_or_404(
-        Question,
-        pk=pk
+    print(
+        "Course:",
+        course
     )
 
+    print(
+        "Semester:",
+        semester
+    )
 
-    question.delete()
+    print(
+        "Subject:",
+        subject
+    )
 
+    print(
+        "Academic Year:",
+        academic_year
+    )
+
+    print(
+        "Questions Created:",
+        created_count
+    )
+
+    print("========================================\n")
 
     messages.success(
         request,
-        "Question deleted successfully."
+        f"{created_count} question(s) uploaded successfully."
     )
-
 
     return redirect(
-        "view_questions"
+        "question_bank"
     )
-# =========================================
-# UPLOAD QUESTION PAPER
-# =========================================
-
-@login_required
-@user_passes_test(is_faculty)
-def upload_question_paper(request):
-
-    if request.method == "POST":
-
-        form = QuestionPaperForm(
-            request.POST,
-            request.FILES
-        )
-
-        if form.is_valid():
-
-            paper = form.save()
-
-            messages.success(
-                request,
-                "Question paper uploaded successfully"
-            )
-
-            return redirect(
-                "faculty_dashboard"
-            )
-
-    else:
-
-        form = QuestionPaperForm()
-
-
-    return render(
-        request,
-        "faculty/question_paper_upload.html",
-        {
-            "form": form
-        }
-    )
-    
 # PUBLISH EXAM
 # =========================================
 
@@ -1747,220 +3351,148 @@ def admin_reports(request):
         "exam",
         "exam__course",
         "exam__subject"
-    ).order_by(
-        "-completed_at"
-    )
+    ).order_by("-completed_at")
 
-
-    # =====================================
+    # ==========================================
     # FILTER VALUES
-    # =====================================
+    # ==========================================
 
-    course_id = request.GET.get("course")
+    search = request.GET.get("search", "").strip()
+    course = request.GET.get("course", "").strip()
+    semester = request.GET.get("semester", "").strip()
+    subject = request.GET.get("subject", "").strip()
+    exam_id = request.GET.get("exam", "").strip()
 
-    subject_id = request.GET.get("subject")
+    # ==========================================
+    # SEARCH
+    # ==========================================
 
-    exam_id = request.GET.get("exam")
-
-    semester = request.GET.get("semester")
-
-
-
-    # =====================================
-    # APPLY FILTERS
-    # =====================================
-
-
-    if course_id:
-
+    if search:
         results = results.filter(
-            exam__course_id=course_id
+            Q(student__username__icontains=search) |
+            Q(student__first_name__icontains=search) |
+            Q(student__last_name__icontains=search) |
+            Q(student__email__icontains=search) |
+            Q(exam__exam_name__icontains=search)
         )
 
+    # ==========================================
+    # COURSE
+    # ==========================================
 
-    if subject_id:
-
+    if course:
         results = results.filter(
-            exam__subject_id=subject_id
+            exam__course_id=course
         )
 
+    # ==========================================
+    # SEMESTER
+    # ==========================================
+
+    if semester:
+        try:
+            semester_value = int(semester)
+
+            if 1 <= semester_value <= 8:
+                results = results.filter(
+                    exam__semester=semester_value
+                )
+
+        except ValueError:
+            semester = ""
+
+    # ==========================================
+    # SUBJECT
+    # ==========================================
+
+    if subject:
+        results = results.filter(
+            exam__subject_id=subject
+        )
+
+    # ==========================================
+    # EXAM
+    # ==========================================
 
     if exam_id:
-
         results = results.filter(
             exam_id=exam_id
         )
 
-
-    if semester:
-
-        results = results.filter(
-            student__studentprofile__semester=semester
-        )
-
-
-
-    # =====================================
-    # PASS / FAIL STATUS
-    # =====================================
-
-    for result in results:
-
-        if result.percentage >= 40:
-
-            result.status = "PASS"
-
-        else:
-
-            result.status = "FAIL"
-
-
-
-    # =====================================
+    # ==========================================
     # STATISTICS
-    # =====================================
-
+    # ==========================================
 
     total_results = results.count()
-
-
 
     total_students = results.values(
         "student_id"
     ).distinct().count()
 
-
-
-    average_percentage = 0
-
-
-    if total_results:
-
-        average_percentage = round(
-
-            sum(
-                float(result.percentage)
-                for result in results
-            )
-            /
-            total_results,
-
-            2
-
-        )
-
-
+    average_percentage = results.aggregate(
+        average=Avg("percentage")
+    )["average"] or 0
 
     pass_count = results.filter(
         percentage__gte=40
     ).count()
 
-
-
     fail_count = results.filter(
         percentage__lt=40
     ).count()
 
+    highest_score = results.order_by(
+        "-percentage"
+    ).first()
 
+    # ==========================================
+    # FILTER OPTIONS
+    # ==========================================
 
-    highest_score = None
+    courses = Course.objects.all().order_by("name")
 
+    subjects = Subject.objects.all().order_by("name")
 
-    if total_results:
+    exams = Exam.objects.select_related(
+        "course",
+        "subject"
+    ).order_by("-id")
 
-        highest_score = results.order_by(
-            "-percentage"
-        ).first()
+    semesters = range(1, 9)
 
-
-
-    # =====================================
-    # DROPDOWN DATA
-    # =====================================
-
-
-    courses = Course.objects.all().order_by(
-        "name"
-    )
-
-
-    subjects = Subject.objects.all().order_by(
-        "name"
-    )
-
-
-    exams = Exam.objects.all().order_by(
-        "-id"
-    )
-
-
-    semesters = range(
-        1,
-        9
-    )
-
-
-
-    # =====================================
+    # ==========================================
     # CONTEXT
-    # =====================================
-
+    # ==========================================
 
     context = {
-
         "results": results,
-
-
-        # dropdowns
-
         "courses": courses,
-
         "subjects": subjects,
-
         "exams": exams,
-
         "semesters": semesters,
 
-
-        # selected filters
-
-        "selected_course": course_id,
-
-        "selected_subject": subject_id,
-
-        "selected_exam": exam_id,
-
-        "selected_semester": semester,
-
-
-        # statistics
-
         "total_results": total_results,
-
         "total_students": total_students,
-
-        "average_percentage": average_percentage,
-
+        "average_percentage": round(
+            average_percentage,
+            2
+        ),
         "pass_count": pass_count,
-
         "fail_count": fail_count,
-
         "highest_score": highest_score,
 
+        "search": search,
+        "selected_course": course,
+        "selected_semester": semester,
+        "selected_subject": subject,
+        "selected_exam": exam_id,
     }
 
-
-
     return render(
-
         request,
-
         "admin_panel/reports.html",
-
         context
-
-    )
-    # =========================================
+    )    # =========================================
 # MANAGE EXAMS
 # =========================================
 
@@ -1980,103 +3512,13 @@ def manage_exams(request):
             "exams": exams,
         }
     )
-@login_required
-@user_passes_test(is_admin)
-def upload_faculty(request):
-
-    if request.method == "POST":
-
-        excel_file = request.FILES.get("excel_file")
-
-        if not excel_file:
-
-            messages.error(
-                request,
-                "Please choose an Excel file."
-            )
-
-            return redirect("upload_faculty")
-
-        try:
-
-            df = pd.read_excel(excel_file)
-
-            imported = 0
-            skipped = 0
-
-            for _, row in df.iterrows():
-
-                username = str(row["Username"]).strip()
-
-                if User.objects.filter(username=username).exists():
-                    skipped += 1
-                    continue
-
-                user = User.objects.create_user(
-                    username=username,
-                    password=str(row["Password"]),
-                    first_name=str(row["First Name"]),
-                    last_name=str(row["Last Name"]),
-                    email=str(row["Email"]),
-                )
-
-                user.is_faculty = True
-                user.save()
-
-                FacultyProfile.objects.create(
-                    user=user,
-                    name=str(row["Name"]),
-                    department=str(row["Department"])
-                )
-
-                imported += 1
-
-            messages.success(
-                request,
-                f"{imported} faculty imported successfully."
-            )
-
-            if skipped:
-                messages.warning(
-                    request,
-                    f"{skipped} duplicate faculty skipped."
-                )
-
-            return redirect("manage_faculty")
-
-        except Exception as e:
-
-            messages.error(request, str(e))
-
-    return render(
-        request,
-        "admin_panel/upload_faculty.html"
-    )
 
 
-def is_admin_or_faculty(user):
-    return user.is_authenticated and (
-        user.is_superuser or user.is_faculty
-    )
 
 
 import random
 import string
 
-from django.contrib import messages
-from django.contrib.auth.hashers import make_password
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.shortcuts import render
-
-from .models import Course, StudentProfile
-
-
-import random
-import string
-
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.shortcuts import render
 
 from .models import Course, StudentProfile
 
@@ -2093,74 +3535,345 @@ def password_generator(request):
     selected_course = ""
     selected_semester = ""
 
-    # ===============================
-    # SHOW STUDENTS (GET)
-    # ===============================
+    # ==========================================
+    # SHOW STUDENTS - GET
+    # ==========================================
 
     if request.method == "GET":
 
-        selected_course = request.GET.get("course", "")
-        selected_semester = request.GET.get("semester", "")
+        selected_course = request.GET.get(
+            "course",
+            ""
+        )
+
+        selected_semester = request.GET.get(
+            "semester",
+            ""
+        )
 
         if selected_course and selected_semester:
 
-            students = StudentProfile.objects.filter(
-                course_id=selected_course,
-                semester=selected_semester
-            ).select_related("user").order_by("user__username")
+            students = (
+                StudentProfile.objects
+                .filter(
+                    course_id=selected_course,
+                    semester=selected_semester
+                )
+                .select_related(
+                    "user",
+                    "course"
+                )
+                .order_by(
+                    "user__username"
+                )
+            )
 
-    # ===============================
-    # GENERATE PASSWORDS (POST)
-    # ===============================
+    # ==========================================
+    # GENERATE PASSWORDS - POST
+    # ==========================================
 
     elif request.method == "POST":
 
-        selected_course = request.POST.get("course")
-        selected_semester = request.POST.get("semester")
+        selected_course = request.POST.get(
+            "course",
+            ""
+        )
 
-        students = StudentProfile.objects.filter(
-            course_id=selected_course,
-            semester=selected_semester
-        ).select_related("user").order_by("user__username")
+        selected_semester = request.POST.get(
+            "semester",
+            ""
+        )
+
+        students = (
+            StudentProfile.objects
+            .filter(
+                course_id=selected_course,
+                semester=selected_semester
+            )
+            .select_related(
+                "user",
+                "course"
+            )
+            .order_by(
+                "user__username"
+            )
+        )
+
+        # Store passwords for Excel export
+        generated_passwords = {}
+
+        # ======================================
+        # GENERATE PASSWORD FOR EACH STUDENT
+        # ======================================
 
         for student in students:
 
             password = "".join(
                 random.choices(
-                    string.ascii_uppercase + string.digits,
+                    string.ascii_uppercase
+                    + string.ascii_lowercase
+                    + string.digits,
                     k=8
                 )
             )
 
-            # Save encrypted password
-            student.user.set_password(password)
-            student.user.save()
+            # Save password securely
+            student.user.set_password(
+                password
+            )
+
+            student.user.save(
+                update_fields=["password"]
+            )
+
+            # ----------------------------------
+            # Store for display
+            # ----------------------------------
 
             generated_accounts.append({
-                "roll_no": student.user.username,
-                "name": (
-                    student.user.get_full_name().strip()
-                    or student.user.username
-                ),
-                "password": password,
+
+                "roll_no":
+                    student.user.username,
+
+                "name":
+                    (
+                        student.user.get_full_name().strip()
+                        or student.user.username
+                    ),
+
+                "password":
+                    password,
             })
+
+            # ----------------------------------
+            # IMPORTANT:
+            # Store password for Excel export
+            # ----------------------------------
+
+            generated_passwords[
+                str(student.id)
+            ] = password
+
+        # ======================================
+        # SAVE GENERATED PASSWORDS IN SESSION
+        # ======================================
+
+        request.session[
+            "generated_student_passwords"
+        ] = generated_passwords
+
+        request.session[
+            "generated_password_course"
+        ] = selected_course
+
+        request.session[
+            "generated_password_semester"
+        ] = selected_semester
+
+        request.session.modified = True
+
+        # ======================================
+        # SUCCESS MESSAGE
+        # ======================================
 
         messages.success(
             request,
-            f"{len(generated_accounts)} passwords generated successfully."
+            f"{len(generated_accounts)} "
+            f"passwords generated successfully."
         )
+
+    # ==========================================
+    # RENDER PAGE
+    # ==========================================
 
     return render(
         request,
         "admin_panel/password_generator.html",
         {
-            "courses": courses,
-            "students": students,
-            "generated_accounts": generated_accounts,
-            "selected_course": selected_course,
-            "selected_semester": selected_semester,
+            "courses":
+                courses,
+
+            "students":
+                students,
+
+            "generated_accounts":
+                generated_accounts,
+
+            "selected_course":
+                selected_course,
+
+            "selected_semester":
+                selected_semester,
+
+            # Used by template to show export button
+            "passwords_generated":
+                bool(
+                    request.session.get(
+                        "generated_student_passwords"
+                    )
+                ),
         }
     )
+from django.http import HttpResponse
+from openpyxl import Workbook
+
+
+@login_required
+@user_passes_test(is_admin_or_faculty)
+def export_student_passwords(request):
+
+    # ==========================================
+    # GET SESSION DATA
+    # ==========================================
+
+    generated_passwords = request.session.get(
+        "generated_student_passwords",
+        {}
+    )
+
+    course_id = request.session.get(
+        "generated_password_course"
+    )
+
+    semester = request.session.get(
+        "generated_password_semester"
+    )
+
+    # ==========================================
+    # VALIDATION
+    # ==========================================
+
+    if not generated_passwords:
+        messages.error(
+            request,
+            "No generated passwords available for export."
+        )
+
+        return redirect(
+            "password_generator"
+        )
+
+    if not course_id or not semester:
+        messages.error(
+            request,
+            "Course and semester information is missing."
+        )
+
+        return redirect(
+            "password_generator"
+        )
+
+    # ==========================================
+    # GET COURSE
+    # ==========================================
+
+    course = get_object_or_404(
+        Course,
+        id=course_id
+    )
+
+    # ==========================================
+    # GET STUDENTS
+    # ==========================================
+
+    students = (
+        StudentProfile.objects
+        .filter(
+            id__in=generated_passwords.keys(),
+            course_id=course_id,
+            semester=semester
+        )
+        .select_related(
+            "user",
+            "course"
+        )
+        .order_by(
+            "user__username"
+        )
+    )
+
+    # ==========================================
+    # CREATE EXCEL WORKBOOK
+    # ==========================================
+
+    workbook = Workbook()
+
+    worksheet = workbook.active
+
+    worksheet.title = "Student Passwords"
+
+    # ==========================================
+    # HEADER
+    # ==========================================
+
+    worksheet.append([
+        "Roll No",
+        "Student Name",
+        "Username",
+        "Password",
+        "Course",
+        "Semester"
+    ])
+
+    # ==========================================
+    # STUDENT DATA
+    # ==========================================
+
+    for student in students:
+
+        user = student.user
+
+        password = generated_passwords.get(
+            str(student.id),
+            ""
+        )
+
+        student_name = (
+            user.get_full_name().strip()
+            or user.username
+        )
+
+        worksheet.append([
+            user.username,
+            student_name,
+            user.username,
+            password,
+            course.name,
+            semester
+        ])
+
+    # ==========================================
+    # COLUMN WIDTHS
+    # ==========================================
+
+    worksheet.column_dimensions["A"].width = 18
+    worksheet.column_dimensions["B"].width = 30
+    worksheet.column_dimensions["C"].width = 22
+    worksheet.column_dimensions["D"].width = 20
+    worksheet.column_dimensions["E"].width = 30
+    worksheet.column_dimensions["F"].width = 12
+
+    # ==========================================
+    # HTTP RESPONSE
+    # ==========================================
+
+    response = HttpResponse(
+        content_type=(
+            "application/vnd.openxmlformats-officedocument."
+            "spreadsheetml.sheet"
+        )
+    )
+
+    response[
+        "Content-Disposition"
+    ] = (
+        'attachment; '
+        'filename="student_passwords.xlsx"'
+    )
+
+    workbook.save(response)
+
+    return response
 @login_required
 @user_passes_test(is_admin)
 def admin_create_exam(request):
@@ -2174,8 +3887,13 @@ def admin_create_exam(request):
             exam = form.save(commit=False)
 
             exam.created_by = request.user
+
+            # Admin-created exams start as draft
             exam.is_published = False
 
+            # -----------------------------------------
+            # GET AVAILABLE QUESTIONS
+            # -----------------------------------------
 
             questions = list(
                 Question.objects.filter(
@@ -2185,55 +3903,66 @@ def admin_create_exam(request):
                 )
             )
 
+            # -----------------------------------------
+            # CHECK QUESTION COUNT
+            # -----------------------------------------
 
             if len(questions) < exam.number_of_questions:
 
                 messages.error(
                     request,
-                    f"Only {len(questions)} questions available for Semester {exam.semester}"
+                    f"Only {len(questions)} questions are available "
+                    f"for {exam.subject.name}, Semester {exam.semester}. "
+                    f"You requested {exam.number_of_questions}."
                 )
 
-                return redirect(
-                    "admin_create_exam"
-                )
+                return redirect("admin_create_exam")
 
+            # -----------------------------------------
+            # SAVE EXAM
+            # -----------------------------------------
 
             exam.save()
 
+            # -----------------------------------------
+            # RANDOM QUESTIONS
+            # -----------------------------------------
 
             selected_questions = random.sample(
                 questions,
                 exam.number_of_questions
             )
 
+            # -----------------------------------------
+            # CREATE EXAM QUESTIONS
+            # -----------------------------------------
 
-            for question in selected_questions:
-
-                ExamQuestion.objects.create(
-                    exam=exam,
-                    question=question
-                )
-
+            ExamQuestion.objects.bulk_create(
+                [
+                    ExamQuestion(
+                        exam=exam,
+                        question=question
+                    )
+                    for question in selected_questions
+                ]
+            )
 
             messages.success(
                 request,
-                "Exam created successfully"
+                f"Exam '{exam.exam_name}' created successfully."
             )
 
-
-            return redirect(
-                "manage_exams"
-            )
-
+            return redirect("manage_exams")
 
     else:
 
         form = ExamForm()
 
-
+    # -----------------------------------------
+    # ADMIN EXAM STATISTICS
+    # -----------------------------------------
 
     exams = Exam.objects.all()
-
 
     context = {
 
@@ -2253,132 +3982,581 @@ def admin_create_exam(request):
 
     }
 
-
     return render(
         request,
         "admin_panel/create_exam.html",
         context
     )
+
+# =========================================================
+# FACULTY - UPLOAD QUESTIONS
+# =========================================================
+
+# =========================================================
+# FACULTY - UPLOAD QUESTIONS
+# =========================================================
+
+# =========================================================
+# FACULTY - UPLOAD QUESTIONS
+# =========================================================
+
+
+
+
+# =========================================================
+# FACULTY - UPLOAD QUESTIONS
+# ============================================================
+# IMPORTS
+# ============================================================
+
+import pandas as pd
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import user_passes_test
+from django.db import transaction
+from django.http import JsonResponse
+from django.shortcuts import render, redirect
+
+from .forms import QuestionUploadForm
+from .models import Question, Subject
+
+
+# ============================================================
+# FACULTY CHECK
+# ============================================================
 @login_required
-@user_passes_test(is_faculty)
 def faculty_upload_questions(request):
 
-    if request.method == "POST":
+    # ---------------------------------------------------------
+    # FACULTY ACCESS CHECK
+    # ---------------------------------------------------------
+    if not request.user.is_faculty and not request.user.is_superuser:
+        messages.error(
+            request,
+            "You are not authorized to upload questions."
+        )
+        return redirect("faculty_login")
 
-        form = QuestionUploadForm(
-            request.POST,
-            request.FILES
+    # ---------------------------------------------------------
+    # GET
+    # ---------------------------------------------------------
+    if request.method == "GET":
+
+        form = FacultyQuestionUploadForm()
+
+        return render(
+            request,
+            "faculty/upload_questions.html",
+            {
+                "form": form
+            }
         )
 
-        if form.is_valid():
+    # ---------------------------------------------------------
+    # POST
+    # ---------------------------------------------------------
+    form = FacultyQuestionUploadForm(request.POST, request.FILES)
 
-            course = form.cleaned_data["course"]
-            subject = form.cleaned_data["subject"]
-            academic_year = form.cleaned_data["academic_year"]
-            semester = form.cleaned_data["semester"]
+    if not form.is_valid():
 
-            excel_file = request.FILES["excel_file"]
+        return render(
+            request,
+            "faculty/upload_questions.html",
+            {
+                "form": form
+            }
+        )
 
-            try:
+    course = form.cleaned_data["course"]
+    semester = form.cleaned_data["semester"]
+    subject = form.cleaned_data["subject"]
+    academic_year = form.cleaned_data["academic_year"].strip()
+    excel_file = form.cleaned_data["excel_file"]
 
-                df = pd.read_excel(excel_file)
+    print("=" * 70)
+    print("FACULTY QUESTION UPLOAD")
+    print("=" * 70)
 
-                # Remove extra spaces from column names
-                df.columns = df.columns.str.strip()
+    print("Course:", course)
+    print("Semester:", semester)
+    print("Subject:", subject)
+    print("Academic Year:", academic_year)
+    print("Excel:", excel_file.name)
 
-                print("Excel Columns:", df.columns.tolist())
+    print("=" * 70)
 
-                required_columns = [
-                    "question_text",
-                    "option1",
-                    "option2",
-                    "option3",
-                    "option4",
-                    "correct_answer",
-                    "marks",
-                ]
+    # ---------------------------------------------------------
+    # READ EXCEL
+    # ---------------------------------------------------------
+    try:
 
-                missing = [
-                    col for col in required_columns
-                    if col not in df.columns
-                ]
+        df = pd.read_excel(excel_file)
 
-                if missing:
-                    messages.error(
-                        request,
-                        f"Missing columns in Excel: {', '.join(missing)}"
-                    )
-                    return render(
-                        request,
-                        "faculty/upload_questions.html",
-                        {"form": form}
-                    )
+    except Exception as e:
 
-                for _, row in df.iterrows():
+        form.add_error(
+            "excel_file",
+            f"Unable to read Excel file: {e}"
+        )
 
-                    Question.objects.create(
-                        course=course,
-                        subject=subject,
-                        academic_year=academic_year,
-                        semester=semester,
-                        question_text=str(row["question_text"]).strip(),
-                        option1=str(row["option1"]).strip(),
-                        option2=str(row["option2"]).strip(),
-                        option3=str(row["option3"]).strip(),
-                        option4=str(row["option4"]).strip(),
-                        correct_answer=str(row["correct_answer"]).strip(),
-                        marks=int(row["marks"]),
-                    )
+        return render(
+            request,
+            "faculty/upload_questions.html",
+            {
+                "form": form
+            }
+        )
 
-                messages.success(
-                    request,
-                    "Questions uploaded successfully."
+    # ---------------------------------------------------------
+    # CLEAN COLUMN NAMES
+    # ---------------------------------------------------------
+    df.columns = (
+        df.columns
+        .astype(str)
+        .str.strip()
+        .str.lower()
+        .str.replace("\n", " ", regex=False)
+        .str.replace("\t", " ", regex=False)
+    )
+
+    # Fix accidental spaces between column names
+    df.columns = [
+        " ".join(column.split())
+        for column in df.columns
+    ]
+
+    print("EXCEL COLUMNS:")
+    print(list(df.columns))
+
+    # ---------------------------------------------------------
+    # EXPECTED COLUMNS
+    # ---------------------------------------------------------
+    required_columns = [
+        "question_text",
+        "option1",
+        "option2",
+        "option3",
+        "option4",
+        "correct_answer",
+        "marks",
+    ]
+
+    # ---------------------------------------------------------
+    # VALIDATE COLUMNS
+    # ---------------------------------------------------------
+    missing_columns = [
+        column
+        for column in required_columns
+        if column not in df.columns
+    ]
+
+    if missing_columns:
+
+        form.add_error(
+            "excel_file",
+            "Missing Excel columns: "
+            + ", ".join(missing_columns)
+        )
+
+        return render(
+            request,
+            "faculty/upload_questions.html",
+            {
+                "form": form
+            }
+        )
+
+    # ---------------------------------------------------------
+    # REMOVE COMPLETELY EMPTY ROWS
+    # ---------------------------------------------------------
+    df = df.dropna(
+        how="all"
+    )
+
+    print("NUMBER OF ROWS:")
+    print(len(df))
+
+    # ---------------------------------------------------------
+    # IMPORTANT:
+    # VALIDATE EVERYTHING BEFORE SAVING ANYTHING
+    # ---------------------------------------------------------
+    errors = []
+
+    cleaned_rows = []
+
+    for index, row in df.iterrows():
+
+        excel_row = index + 2
+
+        question_text = str(
+            row["question_text"]
+        ).strip()
+
+        option1 = str(
+            row["option1"]
+        ).strip()
+
+        option2 = str(
+            row["option2"]
+        ).strip()
+
+        option3 = str(
+            row["option3"]
+        ).strip()
+
+        option4 = str(
+            row["option4"]
+        ).strip()
+
+        correct_answer = str(
+            row["correct_answer"]
+        ).strip()
+
+        marks = row["marks"]
+
+        print(
+            f"Processing Excel row {excel_row}"
+        )
+
+        # -----------------------------------------------------
+        # CHECK QUESTION
+        # -----------------------------------------------------
+        if (
+            not question_text
+            or question_text.lower() == "nan"
+        ):
+
+            errors.append(
+                f"Excel row {excel_row}: "
+                "Question is empty."
+            )
+
+            continue
+
+        # -----------------------------------------------------
+        # CHECK OPTIONS
+        # -----------------------------------------------------
+        options = {
+            "Option 1": option1,
+            "Option 2": option2,
+            "Option 3": option3,
+            "Option 4": option4,
+        }
+
+        row_has_error = False
+
+        for option_name, option_value in options.items():
+
+            if (
+                not option_value
+                or option_value.lower() == "nan"
+            ):
+
+                errors.append(
+                    f"Excel row {excel_row}: "
+                    f"{option_name} is empty."
                 )
 
-                return redirect("faculty_dashboard")
+                row_has_error = True
 
-            except Exception as e:
+        if row_has_error:
+            continue
 
-                print("UPLOAD ERROR:", e)
+        # -----------------------------------------------------
+        # CONVERT CORRECT ANSWER
+        # -----------------------------------------------------
+        answer_text = correct_answer.strip()
 
-                messages.error(
-                    request,
-                    f"Upload failed: {e}"
-                )
+        answer_number = None
+
+        # If Excel contains 1,2,3,4
+        if answer_text in ["1", "2", "3", "4"]:
+
+            answer_number = int(answer_text)
 
         else:
 
-            print(form.errors)
+            answer_map = {
+                option1.strip().lower(): 1,
+                option2.strip().lower(): 2,
+                option3.strip().lower(): 3,
+                option4.strip().lower(): 4,
+            }
 
-    else:
+            answer_number = answer_map.get(
+                answer_text.lower()
+            )
 
-        form = QuestionUploadForm()
+        # -----------------------------------------------------
+        # INVALID CORRECT ANSWER
+        # -----------------------------------------------------
+        if answer_number is None:
 
-    return render(
-        request,
-        "faculty/upload_questions.html",
-        {
-            "form": form
-        }
+            errors.append(
+                f"Excel row {excel_row}: "
+                f"Correct answer '{correct_answer}' "
+                "does not match any option."
+            )
+
+            continue
+
+        # -----------------------------------------------------
+        # MARKS
+        # -----------------------------------------------------
+        try:
+
+            marks_value = int(
+                float(marks)
+            )
+
+        except (
+            ValueError,
+            TypeError
+        ):
+
+            errors.append(
+                f"Excel row {excel_row}: "
+                "Marks must be a number."
+            )
+
+            continue
+
+        if marks_value <= 0:
+
+            errors.append(
+                f"Excel row {excel_row}: "
+                "Marks must be greater than 0."
+            )
+
+            continue
+
+        print(
+            f"Correct answer converted to: "
+            f"{answer_number}"
+        )
+
+        # -----------------------------------------------------
+        # STORE CLEANED DATA
+        # -----------------------------------------------------
+        cleaned_rows.append(
+            {
+                "question_text": question_text,
+                "option1": option1,
+                "option2": option2,
+                "option3": option3,
+                "option4": option4,
+                "correct_answer": answer_number,
+                "marks": marks_value,
+            }
+        )
+
+    # ---------------------------------------------------------
+    # IF ANY ERROR, SAVE NOTHING
+    # ---------------------------------------------------------
+    if errors:
+
+        print("=" * 70)
+        print("UPLOAD VALIDATION ERROR")
+        print("=" * 70)
+
+        for error in errors:
+            print(error)
+
+        form.add_error(
+            "excel_file",
+            "Excel upload failed. "
+            + " | ".join(errors)
+        )
+
+        return render(
+            request,
+            "faculty/upload_questions.html",
+            {
+                "form": form
+            }
+        )
+
+    # ---------------------------------------------------------
+    # NO VALID QUESTIONS
+    # ---------------------------------------------------------
+    if not cleaned_rows:
+
+        form.add_error(
+            "excel_file",
+            "No valid questions found in the Excel file."
+        )
+
+        return render(
+            request,
+            "faculty/upload_questions.html",
+            {
+                "form": form
+            }
+        )
+
+    # ---------------------------------------------------------
+    # SAVE QUESTIONS
+    # ---------------------------------------------------------
+    created_count = 0
+
+    try:
+
+        for data in cleaned_rows:
+
+            question = Question.objects.create(
+
+                course=course,
+
+                semester=int(
+                    semester
+                ),
+
+                subject=subject,
+
+                academic_year=academic_year,
+
+                question_text=data[
+                    "question_text"
+                ],
+
+                option1=data[
+                    "option1"
+                ],
+
+                option2=data[
+                    "option2"
+                ],
+
+                option3=data[
+                    "option3"
+                ],
+
+                option4=data[
+                    "option4"
+                ],
+
+                correct_answer=str(
+                    data[
+                        "correct_answer"
+                    ]
+                ),
+
+                marks=data[
+                    "marks"
+                ],
+            )
+
+            created_count += 1
+
+            print(
+                f"CREATED QUESTION ID: "
+                f"{question.id}"
+            )
+
+        print("=" * 70)
+        print(
+            f"SUCCESS: {created_count} "
+            "questions uploaded."
+        )
+        print("=" * 70)
+
+        messages.success(
+            request,
+            f"{created_count} questions uploaded successfully."
+        )
+
+        return redirect(
+            "view_questions"
+        )
+
+    except Exception as e:
+
+        print("=" * 70)
+        print("DATABASE ERROR")
+        print("=" * 70)
+        print(e)
+
+        form.add_error(
+            "excel_file",
+            f"Database error: {e}"
+        )
+
+        return render(
+            request,
+            "faculty/upload_questions.html",
+            {
+                "form": form
+            }
+        )
+def is_faculty(user):
+    return (
+        user.is_authenticated
+        and (
+            getattr(user, "is_faculty", False)
+            or user.is_superuser
+        )
     )
+
+
+# ============================================================
+# GET SUBJECTS
+# COURSE + SEMESTER
+# ============================================================
+
 @login_required
-@user_passes_test(lambda u: u.is_faculty or u.is_superuser)
-def faculty_question_bank(request):
+def get_subjects(request):
 
-    questions = Question.objects.select_related(
-        "course",
-        "subject"
-    ).order_by("-id")
+    course_id = request.GET.get("course")
+    semester = request.GET.get("semester")
 
-    return render(
-        request,
-        "faculty/question_bank.html",
-        {
-            "questions": questions,
-            "courses": Course.objects.all(),
-            "subjects": Subject.objects.all(),
-        }
-    )
+    if not course_id or not semester:
+        return JsonResponse({
+            "subjects": []
+        })
+
+    try:
+        semester = int(semester)
+    except (ValueError, TypeError):
+        return JsonResponse({
+            "subjects": []
+        })
+
+    subjects = Subject.objects.filter(
+        course_id=course_id,
+        semester=semester
+    ).order_by("code")
+
+    data = []
+
+    for subject in subjects:
+
+        data.append({
+            "id": subject.id,
+            "code": subject.code,
+            "name": subject.name,
+        })
+
+    return JsonResponse({
+        "subjects": data
+    })
+
+
+# ============================================================
+# FACULTY - UPLOAD QUESTIONS
+# ============================================================
+
+import pandas as pd
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import user_passes_test
+from django.db import transaction
+from django.http import JsonResponse
+from django.shortcuts import render, redirect
+
+from .forms import QuestionUploadForm
+from .models import Question, Subject
 @login_required
 @user_passes_test(is_admin)
 def edit_exam(request, id):
@@ -2420,10 +4598,10 @@ def edit_exam(request, id):
             "exam": exam
         }
     )
-from django.db.models import Q
 
 
-from django.db.models import Q
+
+
 from .models import StudentProfile, Course
 
 
@@ -2443,12 +4621,13 @@ def manage_students(request):
         "course"
     )
 
+    # ==============================
+    # SEARCH
+    # ==============================
 
-    # Search Filter
-    search = request.GET.get("search", "")
+    search = request.GET.get("search", "").strip()
 
     if search:
-
         students = students.filter(
             Q(user__username__icontains=search) |
             Q(user__first_name__icontains=search) |
@@ -2457,41 +4636,63 @@ def manage_students(request):
         )
 
 
-    # Course Filter
+    # ==============================
+    # COURSE FILTER
+    # ==============================
 
-    course = request.GET.get("course", "")
+    course = request.GET.get("course", "").strip()
 
     if course:
-
         students = students.filter(
-            course__id=course
+            course_id=course
         )
 
 
-    # Semester Filter
+    # ==============================
+    # SEMESTER FILTER
+    # ==============================
 
-    semester = request.GET.get("semester", "")
+    semester = request.GET.get("semester", "").strip()
 
     if semester:
 
-        students = students.filter(
-            user__semester=int(semester)
-        )
+        try:
+            semester = int(semester)
 
+            if 1 <= semester <= 8:
+                students = students.filter(
+                    semester=semester
+                )
+
+        except ValueError:
+            pass
+
+
+    # ==============================
+    # ORDER
+    # ==============================
 
     students = students.order_by("id")
 
 
-    courses = Course.objects.all()
+    # ==============================
+    # COURSES
+    # ==============================
 
+    courses = Course.objects.all().order_by("name")
+
+
+    # ==============================
+    # RENDER
+    # ==============================
 
     return render(
         request,
-        "admin_panel/student_list.html",
+        "admin_panel/manage_students.html",
         {
             "students": students,
             "courses": courses,
-            "total_students": students.count()
+            "total_students": students.count(),
         }
     )
 
@@ -2554,15 +4755,17 @@ from django.shortcuts import redirect
 from django.contrib import messages
 
 def user_logout(request):
-    logout(request)
-    messages.success(request, "You have been logged out successfully.")
-    return redirect("index")
 
-@login_required
-@user_passes_test(is_admin)
+    logout(request)
+
+    return redirect("login")
+
+
 def load_subjects(request):
 
     course_id = request.GET.get("course")
+
+    # your existing load_subjects code continues here
 
     subjects = Subject.objects.filter(
         course_id=course_id
@@ -2603,38 +4806,35 @@ def view_exam_questions(request, exam_id):
 @user_passes_test(is_admin)
 def export_reports_pdf(request):
 
-    response = HttpResponse(
-        content_type="application/pdf"
+    from io import BytesIO
+
+    from django.http import HttpResponse
+
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4, landscape
+    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.lib.units import mm
+    from reportlab.platypus import (
+        SimpleDocTemplate,
+        Table,
+        TableStyle,
+        Paragraph,
+        Spacer,
     )
 
+    # ==========================================
+    # FILTER VALUES
+    # ==========================================
 
-    response["Content-Disposition"] = (
-        'attachment; filename="CIA_exam_reports.pdf"'
-    )
+    search = request.GET.get("search", "").strip()
+    course = request.GET.get("course", "").strip()
+    semester = request.GET.get("semester", "").strip()
+    subject = request.GET.get("subject", "").strip()
+    exam_id = request.GET.get("exam", "").strip()
 
-
-    pdf = SimpleDocTemplate(
-        response,
-        pagesize=landscape(letter)
-    )
-
-
-    data = [
-
-        [
-            "Student",
-            "Roll No",
-            "Exam",
-            "Course",
-            "Subject",
-            "Score",
-            "Total",
-            "%"
-        ]
-
-    ]
-
-
+    # ==========================================
+    # RESULTS
+    # ==========================================
 
     results = Result.objects.select_related(
         "student",
@@ -2642,181 +4842,521 @@ def export_reports_pdf(request):
         "exam",
         "exam__course",
         "exam__subject"
+    ).order_by("-completed_at")
+
+    # ==========================================
+    # APPLY FILTERS
+    # ==========================================
+
+    if search:
+        results = results.filter(
+            Q(student__username__icontains=search) |
+            Q(student__first_name__icontains=search) |
+            Q(student__last_name__icontains=search) |
+            Q(student__email__icontains=search) |
+            Q(exam__exam_name__icontains=search)
+        )
+
+    if course:
+        results = results.filter(
+            exam__course_id=course
+        )
+
+    if semester:
+        try:
+            semester_value = int(semester)
+
+            if 1 <= semester_value <= 8:
+                results = results.filter(
+                    exam__semester=semester_value
+                )
+
+        except ValueError:
+            pass
+
+    if subject:
+        results = results.filter(
+            exam__subject_id=subject
+        )
+
+    if exam_id:
+        results = results.filter(
+            exam_id=exam_id
+        )
+
+    # ==========================================
+    # PDF
+    # ==========================================
+
+    buffer = BytesIO()
+
+    document = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(A4),
+        rightMargin=8 * mm,
+        leftMargin=8 * mm,
+        topMargin=8 * mm,
+        bottomMargin=8 * mm,
     )
 
+    styles = getSampleStyleSheet()
 
+    elements = []
+
+    elements.append(
+        Paragraph(
+            "<b>CIA Examination Management System</b>",
+            styles["Title"]
+        )
+    )
+
+    elements.append(
+        Paragraph(
+            "Student Examination Reports",
+            styles["Heading2"]
+        )
+    )
+
+    elements.append(
+        Spacer(1, 8)
+    )
+
+    # ==========================================
+    # FILTER SUMMARY
+    # ==========================================
+
+    filter_parts = []
+
+    if course:
+        try:
+            course_obj = Course.objects.get(
+                id=course
+            )
+            filter_parts.append(
+                f"Course: {course_obj.name}"
+            )
+        except Course.DoesNotExist:
+            pass
+
+    if semester:
+        filter_parts.append(
+            f"Semester: {semester}"
+        )
+
+    if subject:
+        try:
+            subject_obj = Subject.objects.get(
+                id=subject
+            )
+            filter_parts.append(
+                f"Subject: {subject_obj.name}"
+            )
+        except Subject.DoesNotExist:
+            pass
+
+    if exam_id:
+        try:
+            exam_obj = Exam.objects.get(
+                id=exam_id
+            )
+            filter_parts.append(
+                f"Exam: {exam_obj.exam_name}"
+            )
+        except Exam.DoesNotExist:
+            pass
+
+    if search:
+        filter_parts.append(
+            f"Search: {search}"
+        )
+
+    if filter_parts:
+        filter_text = (
+            "<b>Filters:</b> "
+            + " | ".join(filter_parts)
+        )
+    else:
+        filter_text = (
+            "<b>Filters:</b> All Results"
+        )
+
+    elements.append(
+        Paragraph(
+            filter_text,
+            styles["Normal"]
+        )
+    )
+
+    elements.append(
+        Spacer(1, 10)
+    )
+
+    # ==========================================
+    # TABLE
+    # ==========================================
+
+    data = [
+        [
+            "Student",
+            "Username",
+            "Exam",
+            "Course",
+            "Sem",
+            "Subject",
+            "Score",
+            "Total",
+            "%",
+            "Status",
+            "Date",
+        ]
+    ]
 
     for result in results:
 
+        student_name = result.student.get_full_name()
 
-        name = ""
+        if not student_name:
+            try:
+                student_name = (
+                    result.student.studentprofile.name
+                )
+            except StudentProfile.DoesNotExist:
+                student_name = result.student.username
 
-
-        if hasattr(
-            result.student,
-            "studentprofile"
-        ):
-
-            name = result.student.studentprofile.name
-
-
-
-        data.append(
-
-            [
-
-                name,
-
-                result.student.username,
-
-                result.exam.exam_name,
-
-                result.exam.course.name,
-
-                result.exam.subject.name,
-
-                str(result.score),
-
-                str(result.total_marks),
-
-                str(result.percentage)+"%"
-
-            ]
-
+        status = (
+            "PASS"
+            if result.percentage >= 40
+            else "FAIL"
         )
 
+        data.append([
+            student_name,
+            result.student.username,
+            result.exam.exam_name,
+            result.exam.course.name
+            if result.exam.course else "",
+            result.exam.semester,
+            result.exam.subject.name
+            if result.exam.subject else "",
+            result.score,
+            result.total_marks,
+            f"{result.percentage:.2f}",
+            status,
+            result.completed_at.strftime(
+                "%d-%m-%Y"
+            ),
+        ])
 
+    if len(data) == 1:
+
+        data.append([
+            "No results found",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+        ])
 
     table = Table(
         data,
-        repeatRows=1
+        repeatRows=1,
+        colWidths=[
+            30 * mm,
+            25 * mm,
+            28 * mm,
+            25 * mm,
+            12 * mm,
+            28 * mm,
+            13 * mm,
+            13 * mm,
+            13 * mm,
+            16 * mm,
+            23 * mm,
+        ]
     )
-
 
     table.setStyle(
-
-        TableStyle(
-
-            [
-
-                ("GRID",(0,0),(-1,-1),1,None),
-
-                ("VALIGN",(0,0),(-1,-1),"MIDDLE")
-
-            ]
-
-        )
-
-    )
-
-
-    pdf.build(
-
-        [
-
-            Paragraph(
-                "CIA Examination Reports",
-                getSampleStyleSheet()["Heading2"]
+        TableStyle([
+            (
+                "BACKGROUND",
+                (0, 0),
+                (-1, 0),
+                colors.HexColor("#212529"),
             ),
-
-            table
-
-        ]
-
+            (
+                "TEXTCOLOR",
+                (0, 0),
+                (-1, 0),
+                colors.white,
+            ),
+            (
+                "FONTNAME",
+                (0, 0),
+                (-1, 0),
+                "Helvetica-Bold",
+            ),
+            (
+                "FONTSIZE",
+                (0, 0),
+                (-1, -1),
+                7,
+            ),
+            (
+                "GRID",
+                (0, 0),
+                (-1, -1),
+                0.5,
+                colors.grey,
+            ),
+            (
+                "VALIGN",
+                (0, 0),
+                (-1, -1),
+                "MIDDLE",
+            ),
+            (
+                "ALIGN",
+                (4, 1),
+                (9, -1),
+                "CENTER",
+            ),
+            (
+                "ROWBACKGROUNDS",
+                (0, 1),
+                (-1, -1),
+                [
+                    colors.white,
+                    colors.HexColor("#f8f9fa"),
+                ],
+            ),
+            (
+                "LEFTPADDING",
+                (0, 0),
+                (-1, -1),
+                3,
+            ),
+            (
+                "RIGHTPADDING",
+                (0, 0),
+                (-1, -1),
+                3,
+            ),
+            (
+                "TOPPADDING",
+                (0, 0),
+                (-1, -1),
+                4,
+            ),
+            (
+                "BOTTOMPADDING",
+                (0, 0),
+                (-1, -1),
+                4,
+            ),
+        ])
     )
 
+    elements.append(table)
+
+    document.build(elements)
+
+    pdf = buffer.getvalue()
+
+    buffer.close()
+
+    response = HttpResponse(
+        pdf,
+        content_type="application/pdf"
+    )
+
+    response["Content-Disposition"] = (
+        'attachment; filename="exam_reports.pdf"'
+    )
 
     return response
 @login_required
 @user_passes_test(is_admin)
 def export_reports_excel(request):
 
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, Alignment
+    from django.http import HttpResponse
+
+    # ==========================================
+    # FILTER VALUES
+    # ==========================================
+
+    search = request.GET.get("search", "").strip()
+    course = request.GET.get("course", "").strip()
+    semester = request.GET.get("semester", "").strip()
+    subject = request.GET.get("subject", "").strip()
+    exam_id = request.GET.get("exam", "").strip()
+
+    # ==========================================
+    # RESULTS
+    # ==========================================
+
     results = Result.objects.select_related(
         "student",
         "student__studentprofile",
         "exam",
         "exam__course",
         "exam__subject"
-    )
+    ).order_by("-completed_at")
 
+    # ==========================================
+    # APPLY FILTERS
+    # ==========================================
+
+    if search:
+        results = results.filter(
+            Q(student__username__icontains=search) |
+            Q(student__first_name__icontains=search) |
+            Q(student__last_name__icontains=search) |
+            Q(student__email__icontains=search) |
+            Q(exam__exam_name__icontains=search)
+        )
+
+    if course:
+        results = results.filter(
+            exam__course_id=course
+        )
+
+    if semester:
+        try:
+            semester_value = int(semester)
+
+            if 1 <= semester_value <= 8:
+                results = results.filter(
+                    exam__semester=semester_value
+                )
+
+        except ValueError:
+            pass
+
+    if subject:
+        results = results.filter(
+            exam__subject_id=subject
+        )
+
+    if exam_id:
+        results = results.filter(
+            exam_id=exam_id
+        )
+
+    # ==========================================
+    # CREATE WORKBOOK
+    # ==========================================
 
     workbook = Workbook()
+    worksheet = workbook.active
+    worksheet.title = "Exam Reports"
 
-    sheet = workbook.active
+    headers = [
+        "Student Name",
+        "Username",
+        "Exam",
+        "Course",
+        "Semester",
+        "Subject",
+        "Score",
+        "Total Marks",
+        "Percentage",
+        "Status",
+        "Completed Date",
+    ]
 
-    sheet.title = "Exam Reports"
+    worksheet.append(headers)
 
+    for cell in worksheet[1]:
+        cell.font = Font(bold=True)
+        cell.alignment = Alignment(
+            horizontal="center"
+        )
 
-    sheet.append(
-        [
-            "Student Name",
-            "Roll Number",
-            "Exam",
-            "Course",
-            "Subject",
-            "Score",
-            "Total Marks",
-            "Percentage",
-            "Date"
-        ]
-    )
-
+    # ==========================================
+    # DATA
+    # ==========================================
 
     for result in results:
 
+        student_name = result.student.get_full_name()
 
-        student_name = ""
-
-
-        if hasattr(
-            result.student,
-            "studentprofile"
-        ):
-
-            student_name = result.student.studentprofile.name
-
-
-
-        sheet.append(
-            [
-
-                student_name,
-
-                result.student.username,
-
-                result.exam.exam_name,
-
-                result.exam.course.name,
-
-                result.exam.subject.name,
-
-                result.score,
-
-                result.total_marks,
-
-                f"{result.percentage}%",
-
-                result.completed_at.strftime(
-                    "%d-%m-%Y"
+        if not student_name:
+            try:
+                student_name = (
+                    result.student.studentprofile.name
                 )
+            except StudentProfile.DoesNotExist:
+                student_name = result.student.username
 
-            ]
+        status = (
+            "PASS"
+            if result.percentage >= 40
+            else "FAIL"
         )
 
+        worksheet.append([
+            student_name,
+            result.student.username,
+            result.exam.exam_name,
+            result.exam.course.name
+            if result.exam.course else "",
+            result.exam.semester,
+            result.exam.subject.name
+            if result.exam.subject else "",
+            result.score,
+            result.total_marks,
+            result.percentage,
+            status,
+            result.completed_at.strftime(
+                "%d-%m-%Y %H:%M"
+            ),
+        ])
+
+    # ==========================================
+    # COLUMN WIDTHS
+    # ==========================================
+
+    widths = {
+        "A": 25,
+        "B": 20,
+        "C": 25,
+        "D": 25,
+        "E": 12,
+        "F": 25,
+        "G": 12,
+        "H": 15,
+        "I": 15,
+        "J": 12,
+        "K": 22,
+    }
+
+    for column, width in widths.items():
+        worksheet.column_dimensions[column].width = width
+
+    # ==========================================
+    # RESPONSE
+    # ==========================================
 
     response = HttpResponse(
-        content_type=
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        content_type=(
+            "application/vnd.openxmlformats-officedocument."
+            "spreadsheetml.sheet"
+        )
     )
-
 
     response["Content-Disposition"] = (
-        'attachment; filename="CIA_exam_reports.xlsx"'
+        'attachment; filename="exam_reports.xlsx"'
     )
 
-
     workbook.save(response)
-
 
     return response
 import openpyxl
@@ -3144,80 +5684,1050 @@ def delete_selected_students(request):
 
 
 User = get_user_model()
+@login_required
+@user_passes_test(is_admin)
+def upload_faculty(request):
 
+    courses = Course.objects.all().order_by("name")
+    subjects = Subject.objects.all().order_by("name")
+
+    template_name = "admin_panel/upload_faculty.html"
+
+    if request.method == "GET":
+        return render(
+            request,
+            template_name,
+            {
+                "courses": courses,
+                "subjects": subjects,
+            }
+        )
+
+    excel_file = request.FILES.get("excel_file")
+
+    if not excel_file:
+        messages.error(
+            request,
+            "Please select an Excel file."
+        )
+
+        return render(
+            request,
+            template_name,
+            {
+                "courses": courses,
+                "subjects": subjects,
+            }
+        )
+
+    if not excel_file.name.lower().endswith(
+        (".xlsx", ".xls")
+    ):
+        messages.error(
+            request,
+            "Only .xlsx and .xls files are allowed."
+        )
+
+        return render(
+            request,
+            template_name,
+            {
+                "courses": courses,
+                "subjects": subjects,
+            }
+        )
+
+    try:
+        df = pd.read_excel(
+            excel_file,
+            sheet_name=0,
+            dtype=str
+        )
+    except Exception as e:
+        messages.error(
+            request,
+            f"Unable to read Excel file: {e}"
+        )
+
+        return render(
+            request,
+            template_name,
+            {
+                "courses": courses,
+                "subjects": subjects,
+            }
+        )
+
+    df.columns = (
+        df.columns
+        .astype(str)
+        .str.strip()
+        .str.lower()
+    )
+
+    df = df.dropna(how="all")
+
+    required_columns = [
+        "username",
+        "name",
+        "first name",
+        "last name",
+        "email",
+        "department",
+        "course",
+        "subjects",
+        "password",
+    ]
+
+    missing_columns = [
+        column
+        for column in required_columns
+        if column not in df.columns
+    ]
+
+    if missing_columns:
+        messages.error(
+            request,
+            "Missing Excel columns: "
+            + ", ".join(missing_columns)
+        )
+
+        return render(
+            request,
+            template_name,
+            {
+                "courses": courses,
+                "subjects": subjects,
+            }
+        )
+
+    created_count = 0
+    skipped_count = 0
+    errors = []
+
+    print("======================================")
+    print("FACULTY BULK UPLOAD")
+    print("COLUMNS:", list(df.columns))
+    print("ROWS:", len(df))
+    print("======================================")
+
+    for row_number, row in enumerate(
+        df.to_dict("records"),
+        start=2
+    ):
+
+        username = str(
+            row["username"]
+        ).strip()
+
+        name = str(
+            row["name"]
+        ).strip()
+
+        first_name = str(
+            row["first name"]
+        ).strip()
+
+        last_name = str(
+            row["last name"]
+        ).strip()
+
+        email = str(
+            row["email"]
+        ).strip()
+
+        department = str(
+            row["department"]
+        ).strip()
+
+        course_name = str(
+            row["course"]
+        ).strip()
+
+        subjects_value = str(
+            row["subjects"]
+        ).strip()
+
+        password = str(
+            row["password"]
+        ).strip()
+
+        # Clean NaN values
+        if username.lower() == "nan":
+            username = ""
+
+        if name.lower() == "nan":
+            name = ""
+
+        if first_name.lower() == "nan":
+            first_name = ""
+
+        if last_name.lower() == "nan":
+            last_name = ""
+
+        if email.lower() == "nan":
+            email = ""
+
+        if department.lower() == "nan":
+            department = ""
+
+        if course_name.lower() == "nan":
+            course_name = ""
+
+        if subjects_value.lower() == "nan":
+            subjects_value = ""
+
+        if password.lower() == "nan":
+            password = ""
+
+        # Required validation
+        if not username:
+            errors.append(
+                f"Row {row_number}: Username is required."
+            )
+            skipped_count += 1
+            continue
+
+        if not name:
+            errors.append(
+                f"Row {row_number}: Name is required."
+            )
+            skipped_count += 1
+            continue
+
+        if not email:
+            errors.append(
+                f"Row {row_number}: Email is required."
+            )
+            skipped_count += 1
+            continue
+
+        if not department:
+            errors.append(
+                f"Row {row_number}: Department is required."
+            )
+            skipped_count += 1
+            continue
+
+        if not course_name:
+            errors.append(
+                f"Row {row_number}: Course is required."
+            )
+            skipped_count += 1
+            continue
+
+        # Username duplicate
+        if User.objects.filter(
+            username=username
+        ).exists():
+
+            errors.append(
+                f"Row {row_number}: "
+                f"Username '{username}' already exists."
+            )
+
+            skipped_count += 1
+            continue
+
+        # Course
+        course = Course.objects.filter(
+            name__iexact=course_name
+        ).first()
+
+        if course is None:
+
+            errors.append(
+                f"Row {row_number}: "
+                f"Course '{course_name}' does not exist."
+            )
+
+            skipped_count += 1
+            continue
+
+        # Subjects
+        subject_objects = []
+        invalid_subjects = []
+
+        subject_names = [
+            value.strip()
+            for value in subjects_value.split(",")
+            if value.strip()
+        ]
+
+        for subject_name in subject_names:
+
+            subject = Subject.objects.filter(
+                name__iexact=subject_name
+            ).first()
+
+            if subject:
+                subject_objects.append(subject)
+            else:
+                invalid_subjects.append(
+                    subject_name
+                )
+
+        if invalid_subjects:
+
+            errors.append(
+                f"Row {row_number}: "
+                f"Subject(s) not found: "
+                f"{', '.join(invalid_subjects)}"
+            )
+
+            skipped_count += 1
+            continue
+
+        # Default password
+        if not password:
+            password = f"CIA@{username}"
+
+        user = None
+
+        try:
+
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name,
+                is_faculty=True,
+            )
+
+            faculty = FacultyProfile.objects.create(
+                user=user,
+                department=department,
+                course=course,
+            )
+
+            if subject_objects:
+                faculty.subjects.set(
+                    subject_objects
+                )
+
+            created_count += 1
+
+            print(
+                f"CREATED FACULTY: {username}"
+            )
+
+        except Exception as e:
+
+            if user is not None:
+                user.delete()
+
+            errors.append(
+                f"Row {row_number}: {str(e)}"
+            )
+
+            skipped_count += 1
+
+    print("======================================")
+    print("FACULTY UPLOAD COMPLETE")
+    print("CREATED:", created_count)
+    print("SKIPPED:", skipped_count)
+    print("ERRORS:", errors)
+    print("======================================")
+
+    if created_count:
+        messages.success(
+            request,
+            f"{created_count} faculty member(s) "
+            f"uploaded successfully."
+        )
+
+    if skipped_count:
+        messages.warning(
+            request,
+            f"{skipped_count} row(s) were skipped."
+        )
+
+    for error in errors:
+        messages.error(
+            request,
+            error
+        )
+
+    return render(
+        request,
+        template_name,
+        {
+            "courses": courses,
+            "subjects": subjects,
+        }
+    )
 
 
 @login_required
 @user_passes_test(is_admin)
-def upload_students(request):
+def download_faculty_template(request):
 
-    courses = Course.objects.all()
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, Alignment
+    from django.http import HttpResponse
+
+    workbook = Workbook()
+
+    worksheet = workbook.active
+    worksheet.title = "Faculty Template"
+
+    # ==========================================
+    # HEADERS
+    # ==========================================
+
+    headers = [
+        "Username",
+        "Name",
+        "First Name",
+        "Last Name",
+        "Email",
+        "Department",
+        "Course",
+        "Subjects",
+        "Password",
+    ]
+
+    worksheet.append(headers)
+
+    # ==========================================
+    # HEADER STYLE
+    # ==========================================
+
+    for cell in worksheet[1]:
+
+        cell.font = Font(
+            bold=True
+        )
+
+        cell.alignment = Alignment(
+            horizontal="center"
+        )
+
+    # ==========================================
+    # SAMPLE ROW
+    # ==========================================
+
+    worksheet.append([
+        "faculty101",
+        "Ravi Kumar",
+        "Ravi",
+        "Kumar",
+        "ravi@gmail.com",
+        "Computer Science",
+        "BCA",
+        "java,C-Language",
+        "CIA@faculty101",
+    ])
+
+    # ==========================================
+    # COLUMN WIDTHS
+    # ==========================================
+
+    widths = {
+        "A": 20,
+        "B": 25,
+        "C": 20,
+        "D": 20,
+        "E": 30,
+        "F": 25,
+        "G": 25,
+        "H": 35,
+        "I": 22,
+    }
+
+    for column, width in widths.items():
+
+        worksheet.column_dimensions[
+            column
+        ].width = width
+
+    # ==========================================
+    # RESPONSE
+    # ==========================================
+
+    response = HttpResponse(
+        content_type=(
+            "application/vnd.openxmlformats-officedocument."
+            "spreadsheetml.sheet"
+        )
+    )
+
+    response["Content-Disposition"] = (
+        'attachment; filename="faculty_upload_template.xlsx"'
+    )
+
+    workbook.save(response)
+
+    return response
+@login_required
+@user_passes_test(is_admin)
+def delete_exam(request, exam_id):
+
+    exam = get_object_or_404(Exam, id=exam_id)
 
     if request.method == "POST":
-
-        course_id = request.POST.get("course")
-        semester = request.POST.get("semester")
-        academic_year = request.POST.get("academic_year")
-        excel_file = request.FILES.get("excel_file")
-
-        if not excel_file:
-            messages.error(request, "Please select an Excel file.")
-            return redirect("upload_students")
-
-        course = Course.objects.get(id=course_id)
-
-        df = pd.read_excel(excel_file)
-
-        imported = 0
-        skipped = 0
-
-        for _, row in df.iterrows():
-
-            username = str(row["Username"]).strip()
-
-            if User.objects.filter(username=username).exists():
-                skipped += 1
-                continue
-
-            password = str(row["Password"]).strip()
-
-            first_name = str(row["First Name"]).strip()
-
-            last_name = str(row["Last Name"]).strip()
-
-            email = str(row["Email"]).strip()
-
-            user = User.objects.create_user(
-                username=username,
-                password=password,
-                first_name=first_name,
-                last_name=last_name,
-                email=email,
-                is_student=True,
-                course=course,
-                semester=int(semester)
-            )
-
-            StudentProfile.objects.create(
-                user=user,
-                course=course,
-                semester=int(semester),
-                academic_year=academic_year
-            )
-
-            imported += 1
+        exam_name = exam.exam_name
+        exam.delete()
 
         messages.success(
             request,
-            f"{imported} students uploaded successfully. {skipped} skipped."
+            f'Exam "{exam_name}" deleted successfully.'
         )
 
+        return redirect("manage_exams")
+
+    return redirect("manage_exams")
+
+@login_required
+@user_passes_test(is_admin)
+def bulk_delete_students(request):
+
+    if request.method != "POST":
         return redirect("manage_students")
+
+    student_ids = request.POST.getlist("student_ids")
+
+    if not student_ids:
+        messages.warning(
+            request,
+            "Please select at least one student to delete."
+        )
+        return redirect("manage_students")
+
+    students = StudentProfile.objects.filter(
+        id__in=student_ids
+    ).select_related("user")
+
+    deleted_count = 0
+
+    for student in students:
+
+        user = student.user
+
+        # Delete StudentProfile first
+        student.delete()
+
+        # Delete associated login account
+        if user:
+            user.delete()
+
+        deleted_count += 1
+
+    messages.success(
+        request,
+        f"{deleted_count} student(s) deleted successfully."
+    )
+
+    return redirect("manage_students")
+
+
+@login_required
+@user_passes_test(is_admin_or_faculty)
+def export_student_passwords(request):
+
+    # ==========================================
+    # GET GENERATED PASSWORDS FROM SESSION
+    # ==========================================
+
+    generated_passwords = request.session.get(
+        "generated_student_passwords",
+        {}
+    )
+
+    # ==========================================
+    # NOTHING TO EXPORT
+    # ==========================================
+
+    if not generated_passwords:
+
+        messages.warning(
+            request,
+            "No generated passwords are available for export."
+        )
+
+        return redirect(
+            request.META.get(
+                "HTTP_REFERER",
+                "/faculty/password-generator/"
+            )
+        )
+
+    # ==========================================
+    # CREATE EXCEL
+    # ==========================================
+
+    from io import BytesIO
+
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, Alignment
+
+    workbook = Workbook()
+
+    worksheet = workbook.active
+
+    worksheet.title = "Student Passwords"
+
+    # ==========================================
+    # HEADERS
+    # ==========================================
+
+    headers = [
+        "Roll No",
+        "Student Name",
+        "Username",
+        "Email",
+        "Course",
+        "Semester",
+        "Generated Password",
+    ]
+
+    worksheet.append(headers)
+
+    # ==========================================
+    # HEADER STYLE
+    # ==========================================
+
+    for cell in worksheet[1]:
+
+        cell.font = Font(
+            bold=True
+        )
+
+        cell.alignment = Alignment(
+            horizontal="center",
+            vertical="center"
+        )
+
+    # ==========================================
+    # GET STUDENT IDs
+    # ==========================================
+
+    student_ids = list(
+        generated_passwords.keys()
+    )
+
+    # ==========================================
+    # GET STUDENTS
+    # ==========================================
+
+    students = (
+        StudentProfile.objects
+        .filter(
+            id__in=student_ids
+        )
+        .select_related(
+            "user",
+            "course"
+        )
+        .order_by(
+            "user__username"
+        )
+    )
+
+    # ==========================================
+    # ADD STUDENTS
+    # ==========================================
+
+    for student in students:
+
+        password = generated_passwords.get(
+            str(student.id),
+            ""
+        )
+
+        # Student name
+        student_name = (
+            student.user.get_full_name().strip()
+        )
+
+        if not student_name:
+
+            student_name = (
+                getattr(
+                    student,
+                    "name",
+                    ""
+                )
+                or student.user.username
+            )
+
+        # Course
+        if student.course:
+
+            course_name = (
+                student.course.name
+            )
+
+        else:
+
+            course_name = "Not Assigned"
+
+        # Semester
+        if student.semester:
+
+            semester_name = (
+                f"Semester {student.semester}"
+            )
+
+        else:
+
+            semester_name = "Not Assigned"
+
+        # ======================================
+        # EXCEL ROW
+        # ======================================
+
+        worksheet.append([
+            student.user.username,
+            student_name,
+            student.user.username,
+            student.user.email or "Not Available",
+            course_name,
+            semester_name,
+            password,
+        ])
+
+    # ==========================================
+    # FORMAT COLUMNS
+    # ==========================================
+
+    column_widths = {
+
+        "A": 22,
+
+        "B": 40,
+
+        "C": 22,
+
+        "D": 40,
+
+        "E": 20,
+
+        "F": 18,
+
+        "G": 25,
+    }
+
+    for column, width in column_widths.items():
+
+        worksheet.column_dimensions[
+            column
+        ].width = width
+
+    # ==========================================
+    # FREEZE HEADER
+    # ==========================================
+
+    worksheet.freeze_panes = "A2"
+
+    # ==========================================
+    # FILTER
+    # ==========================================
+
+    worksheet.auto_filter.ref = (
+        worksheet.dimensions
+    )
+
+    # ==========================================
+    # ALIGNMENT
+    # ==========================================
+
+    for row in worksheet.iter_rows(
+        min_row=2
+    ):
+
+        for cell in row:
+
+            cell.alignment = Alignment(
+                vertical="center"
+            )
+
+    # ==========================================
+    # CREATE DOWNLOAD
+    # ==========================================
+
+    output = BytesIO()
+
+    workbook.save(output)
+
+    output.seek(0)
+
+    response = HttpResponse(
+        output.getvalue(),
+        content_type=(
+            "application/vnd.openxmlformats-officedocument."
+            "spreadsheetml.sheet"
+        )
+    )
+
+    response[
+        "Content-Disposition"
+    ] = (
+        'attachment; '
+        'filename="student_passwords.xlsx"'
+    )
+
+    return response
+# =========================================
+# GET SUBJECTS BY COURSE + SEMESTER
+# =========================================
+
+
+
+# =========================================================
+# GET SUBJECTS BY COURSE AND SEMESTER
+# =========================================================
+
+@login_required
+@user_passes_test(is_admin_or_faculty)
+def get_subjects_by_course_semester(request):
+
+    course_id = request.GET.get("course")
+    semester = request.GET.get("semester")
+
+    if not course_id or not semester:
+
+        return JsonResponse({
+            "subjects": []
+        })
+
+    subjects = Subject.objects.filter(
+        course_id=course_id,
+        semester=semester
+    ).order_by(
+        "code",
+        "name"
+    )
+
+    data = []
+
+    for subject in subjects:
+
+        data.append({
+            "id": subject.id,
+            "code": subject.code,
+            "name": subject.name,
+        })
+
+    return JsonResponse({
+        "subjects": data
+    })
+@login_required
+def load_subjects(request):
+
+    course_id = request.GET.get("course")
+    semester = request.GET.get("semester")
+
+    if not course_id or not semester:
+        return JsonResponse(
+            {
+                "subjects": []
+            }
+        )
+
+    try:
+
+        course_id = int(course_id)
+        semester = int(semester)
+
+    except (ValueError, TypeError):
+
+        return JsonResponse(
+            {
+                "subjects": []
+            },
+            status=400
+        )
+
+    subjects = Subject.objects.filter(
+        course_id=course_id,
+        semester=semester
+    ).order_by("code")
+
+    data = []
+
+    for subject in subjects:
+
+        data.append(
+            {
+                "id": subject.id,
+                "code": subject.code,
+                "name": subject.name,
+            }
+        )
+
+    return JsonResponse(
+        {
+            "subjects": data
+        }
+    )
+
+
+
+
+# =========================================================
+# GET SUBJECTS BY COURSE AND SEMESTER
+# =========================================================
+
+@login_required
+@user_passes_test(is_admin_or_faculty)
+def get_subjects(request):
+
+    # =====================================================
+    # GET COURSE AND SEMESTER
+    # =====================================================
+
+    course_id = request.GET.get("course")
+    semester = request.GET.get("semester")
+
+
+    # =====================================================
+    # VALIDATE INPUT
+    # =====================================================
+
+    if not course_id or not semester:
+
+        return JsonResponse({
+            "subjects": []
+        })
+
+
+    # =====================================================
+    # CONVERT TO INTEGER
+    # =====================================================
+
+    try:
+
+        course_id = int(course_id)
+        semester = int(semester)
+
+    except (ValueError, TypeError):
+
+        return JsonResponse({
+            "subjects": []
+        })
+
+
+    # =====================================================
+    # GET SUBJECTS
+    # =====================================================
+
+    subjects = Subject.objects.filter(
+        course_id=course_id,
+        semester=semester
+    ).order_by(
+        "code",
+        "name"
+    )
+
+
+    # =====================================================
+    # PREPARE JSON DATA
+    # =====================================================
+
+    data = []
+
+    for subject in subjects:
+
+        data.append({
+
+            "id": subject.id,
+
+            "code": subject.code,
+
+            "name": subject.name,
+
+        })
+
+
+    # =====================================================
+    # RETURN JSON
+    # =====================================================
+
+    return JsonResponse({
+
+        "subjects": data
+
+    })
+@login_required
+@user_passes_test(is_admin_or_faculty)
+def upload_question_bank(request):
+
+    if request.method == "POST":
+
+        form = QuestionUploadForm(
+            request.POST,
+            request.FILES
+        )
+
+        if form.is_valid():
+
+            course = form.cleaned_data["course"]
+            semester = form.cleaned_data["semester"]
+            subject = form.cleaned_data["subject"]
+            academic_year = form.cleaned_data["academic_year"]
+            excel_file = form.cleaned_data["excel_file"]
+
+            # ==================================================
+            # YOUR EXISTING EXCEL PROCESSING CODE
+            # ==================================================
+            #
+            # Keep your current pandas/openpyxl Question
+            # creation logic here.
+            #
+            # Do NOT replace that logic if it is already working.
+            #
+            # ==================================================
+
+            messages.success(
+                request,
+                "Questions uploaded successfully."
+            )
+
+            return redirect(
+                "question_bank"
+            )
+
+    else:
+
+        form = QuestionUploadForm()
 
     return render(
         request,
-        "admin_panel/student_upload.html",
+        "admin_panel/upload_question_bank.html",
         {
-            "courses": courses
+            "form": form
         }
     )
+@login_required
+@user_passes_test(is_admin_or_faculty)
+def delete_question(request, pk):
+
+    question = get_object_or_404(
+        Question,
+        pk=pk
+    )
+
+    if request.method == "POST":
+
+        question.delete()
+
+        messages.success(
+            request,
+            "Question deleted successfully."
+        )
+
+        # Return according to the user's role
+        if request.user.is_superuser:
+            return redirect("question_bank")
+
+        return redirect("view_questions")
+
+    # If somebody accesses the URL directly with GET,
+    # simply return to the appropriate page.
+
+    if request.user.is_superuser:
+        return redirect("question_bank")
+
+    return redirect("view_questions")

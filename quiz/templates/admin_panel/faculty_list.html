@@ -1,34 +1,55 @@
 {% extends 'base_admin.html' %}
 
 {% block content %}
+
 <div class="container-fluid">
+
+    <!-- ========================================= -->
+    <!-- PAGE HEADER -->
+    <!-- ========================================= -->
 
     <div class="d-flex justify-content-between align-items-center mb-4">
 
         <div>
-            <h2 class="fw-bold">
-                <i class="fas fa-chalkboard-teacher text-primary"></i>
+
+            <h2 class="fw-bold mb-1">
+
+                <i class="fas fa-chalkboard-teacher text-primary me-2"></i>
+
                 Faculty Management
+
             </h2>
 
-            <p class="text-muted">
-                Total Faculty : <strong>{{ faculty|length }}</strong>
+            <p class="text-muted mb-0">
+
+                Total Faculty:
+                <strong>{{ faculty|length }}</strong>
+
             </p>
+
         </div>
+
 
         <div>
 
-            <a href="{% url 'add_faculty' %}" class="btn btn-primary">
+            <a
+                href="{% url 'add_faculty' %}"
+                class="btn btn-primary me-2"
+            >
 
-                <i class="fas fa-plus"></i>
+                <i class="fas fa-plus me-1"></i>
 
                 Add Faculty
 
             </a>
 
-            <a href="{% url 'upload_faculty' %}" class="btn btn-success">
 
-                <i class="fas fa-upload"></i>
+            <a
+                href="{% url 'upload_faculty' %}"
+                class="btn btn-success"
+            >
+
+                <i class="fas fa-file-excel me-1"></i>
 
                 Upload Excel
 
@@ -38,156 +59,300 @@
 
     </div>
 
-<div class="card shadow">
 
-    <div class="card-header bg-primary text-white">
+    <!-- ========================================= -->
+    <!-- FACULTY LIST -->
+    <!-- ========================================= -->
 
-        <div class="row">
+    <div class="card shadow-sm border-0">
 
-            <div class="col-md-6">
+        <!-- HEADER -->
 
-                <h5 class="mb-0">
-                    Faculty List
-                </h5>
+        <div class="card-header bg-primary text-white">
 
-            </div>
+            <div class="row align-items-center">
 
-            <div class="col-md-6">
+                <div class="col-md-6">
 
-                <form method="GET">
+                    <h5 class="mb-0">
 
-                    <div class="input-group">
+                        <i class="fas fa-users me-2"></i>
 
-                        <input
-                            type="text"
-                            name="search"
-                            value="{{ search }}"
-                            class="form-control"
-                            placeholder="Search faculty...">
+                        Faculty List
 
-                        <button class="btn btn-light">
+                    </h5>
 
-                            <i class="fas fa-search"></i>
+                </div>
 
-                        </button>
 
-                    </div>
+                <div class="col-md-6">
 
-                </form>
+                    <form method="GET">
+
+                        <div class="input-group">
+
+                            <input
+                                type="text"
+                                name="search"
+                                class="form-control"
+                                value="{{ search|default:'' }}"
+                                placeholder="Search faculty..."
+                            >
+
+                            <button
+                                type="submit"
+                                class="btn btn-light"
+                            >
+
+                                <i class="fas fa-search"></i>
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
 
             </div>
 
         </div>
 
-    </div>
 
-    <div class="card-body">
+        <!-- BODY -->
 
-        <div class="table-responsive">
+        <div class="card-body">
 
-            <table class="table table-bordered table-hover align-middle">
+            <div class="table-responsive">
 
-                <thead class="table-dark">
+                <table class="table table-bordered table-hover align-middle mb-0">
 
-                    <tr>
+                    <thead class="table-dark">
 
-                        <th>ID</th>
-                        <th>Username</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Course</th>
-                        <th>Subjects</th>
-                        <th>Actions</th>
+                        <tr>
 
-                    </tr>
+                            <th>
+                                ID
+                            </th>
 
-                </thead>
+                            <th>
+                                Username
+                            </th>
 
-                <tbody>
+                            <th>
+                                Name
+                            </th>
 
-                {% for f in faculty %}
+                            <th>
+                                Email
+                            </th>
 
-                    <tr>
+                            <th>
+                                Course
+                            </th>
 
-                        <td>{{ f.id }}</td>
+                            <th>
+                                Subjects
+                            </th>
 
-                        <td>{{ f.user.username }}</td>
+                            <th class="text-center">
+                                Actions
+                            </th>
 
-                        <td>
+                        </tr>
 
-                            {{ f.user.first_name }}
-                            {{ f.user.last_name }}
+                    </thead>
 
-                        </td>
 
-                        <td>{{ f.user.email }}</td>
+                    <tbody>
 
-                        <td>
+                    {% for f in faculty %}
 
-                            {{ f.course }}
+                        <tr>
 
-                        </td>
+                            <!-- ID -->
 
-                        <td>
+                            <td>
+                                {{ f.id }}
+                            </td>
 
-                            {% for subject in f.subjects.all %}
 
-                                <span class="badge bg-info">
+                            <!-- USERNAME -->
 
-                                    {{ subject.name }}
+                            <td>
 
-                                </span>
+                                <strong>
+                                    {{ f.user.username }}
+                                </strong>
 
-                            {% empty %}
+                            </td>
 
-                                <span class="text-muted">
 
-                                    Not Assigned
+                            <!-- NAME -->
 
-                                </span>
+                            <td>
 
-                            {% endfor %}
+                                {% if f.user.get_full_name %}
 
-                        </td>
+                                    {{ f.user.get_full_name }}
 
-                        <td>
+                                {% elif f.name %}
 
-                            <a href="{% url 'edit_faculty' f.id %}"
-                               class="btn btn-warning btn-sm">
+                                    {{ f.name }}
 
-                                <i class="fas fa-edit"></i>
+                                {% else %}
 
-                            </a>
+                                    <span class="text-muted">
+                                        Not Available
+                                    </span>
 
-                            <a href="{% url 'delete_faculty' f.id %}"
-                               class="btn btn-danger btn-sm"
-                               onclick="return confirm('Delete this faculty?')">
+                                {% endif %}
 
-                                <i class="fas fa-trash"></i>
+                            </td>
 
-                            </a>
 
-                        </td>
+                            <!-- EMAIL -->
 
-                    </tr>
+                            <td>
 
-                {% empty %}
+                                {% if f.user.email %}
 
-                    <tr>
+                                    {{ f.user.email }}
 
-                        <td colspan="7" class="text-center">
+                                {% else %}
 
-                            No Faculty Available
+                                    <span class="text-muted">
+                                        Not Available
+                                    </span>
 
-                        </td>
+                                {% endif %}
 
-                    </tr>
+                            </td>
 
-                {% endfor %}
 
-                </tbody>
+                            <!-- COURSE -->
 
-            </table>
+                            <td>
+
+                                {% if f.course %}
+
+                                    <span class="badge bg-info text-dark">
+
+                                        {{ f.course.name }}
+
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="text-muted">
+                                        Not Assigned
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- SUBJECTS -->
+
+                            <td>
+
+                                {% for subject in f.subjects.all %}
+
+                                    <span class="badge bg-primary me-1 mb-1">
+
+                                        {{ subject.name }}
+
+                                    </span>
+
+                                {% empty %}
+
+                                    <span class="text-muted">
+
+                                        Not Assigned
+
+                                    </span>
+
+                                {% endfor %}
+
+                            </td>
+
+
+                            <!-- ACTIONS -->
+
+                            <td class="text-center">
+
+                                <!-- EDIT -->
+
+                                <a
+                                    href="{% url 'edit_faculty' f.id %}"
+                                    class="btn btn-outline-warning btn-sm me-1"
+                                    title="Edit Faculty"
+                                >
+
+                                    <i class="fas fa-edit"></i>
+
+                                </a>
+
+
+                                <!-- DELETE -->
+
+                                <form
+                                    method="POST"
+                                    action="{% url 'delete_faculty' f.id %}"
+                                    class="d-inline"
+                                    onsubmit="return confirm('Are you sure you want to delete this faculty?');"
+                                >
+
+                                    {% csrf_token %}
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-outline-danger btn-sm"
+                                        title="Delete Faculty"
+                                    >
+
+                                        <i class="fas fa-trash"></i>
+
+                                    </button>
+
+                                </form>
+
+                            </td>
+
+                        </tr>
+
+
+                    {% empty %}
+
+                        <tr>
+
+                            <td
+                                colspan="7"
+                                class="text-center text-muted py-5"
+                            >
+
+                                <i class="fas fa-user-tie fa-3x mb-3"></i>
+
+                                <h5>
+                                    No Faculty Available
+                                </h5>
+
+                                <p class="mb-0">
+                                    Add faculty or upload faculty using Excel.
+                                </p>
+
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
 
         </div>
 
@@ -196,4 +361,3 @@
 </div>
 
 {% endblock %}
-</div>

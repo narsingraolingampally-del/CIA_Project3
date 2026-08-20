@@ -4,21 +4,24 @@
 
 <div class="container-fluid">
 
-    <!-- Header -->
+    <!-- ===================================================== -->
+    <!-- PAGE HEADER -->
+    <!-- ===================================================== -->
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between
+                align-items-center mb-4">
 
         <div>
 
             <h2 class="fw-bold">
 
-                <i class="fas fa-upload text-success"></i>
+                <i class="fas fa-upload text-success me-2"></i>
 
                 Upload Question Bank
 
             </h2>
 
-            <p class="text-muted">
+            <p class="text-muted mb-0">
 
                 Upload Questions using Excel (.xlsx)
 
@@ -26,30 +29,39 @@
 
         </div>
 
-        <a href="{% url 'question_bank' %}"
-           class="btn btn-outline-secondary">
 
-            <i class="fas fa-arrow-left"></i>
+        <div>
 
-            Back
+            <a href="{% url 'question_bank' %}"
+               class="btn btn-outline-secondary">
 
-        </a>
+                <i class="fas fa-arrow-left me-1"></i>
+
+                Back
+
+            </a>
+
+        </div>
 
     </div>
 
-    <!-- Messages -->
+
+    <!-- ===================================================== -->
+    <!-- MESSAGES -->
+    <!-- ===================================================== -->
 
     {% if messages %}
 
         {% for message in messages %}
 
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            <div class="alert alert-{{ message.tags|default:'success' }}
+                        alert-dismissible fade show">
 
                 {{ message }}
 
-                <button
-                    class="btn-close"
-                    data-bs-dismiss="alert">
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert">
                 </button>
 
             </div>
@@ -58,13 +70,33 @@
 
     {% endif %}
 
-    <div class="card shadow">
+
+    <!-- ===================================================== -->
+    <!-- FORM NON FIELD ERRORS -->
+    <!-- ===================================================== -->
+
+    {% if form.non_field_errors %}
+
+        <div class="alert alert-danger">
+
+            {{ form.non_field_errors }}
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- ===================================================== -->
+    <!-- UPLOAD CARD -->
+    <!-- ===================================================== -->
+
+    <div class="card shadow border-0 mb-4">
 
         <div class="card-header bg-success text-white">
 
-            <h5>
+            <h5 class="mb-0">
 
-                <i class="fas fa-file-excel"></i>
+                <i class="fas fa-file-excel me-2"></i>
 
                 Excel Upload
 
@@ -72,94 +104,233 @@
 
         </div>
 
+
         <div class="card-body">
 
             <form method="POST"
-                  enctype="multipart/form-data">
+                  enctype="multipart/form-data"
+                  id="questionUploadForm">
 
                 {% csrf_token %}
 
-                <div class="row">
 
-                    <div class="col-md-6 mb-3">
+                <div class="row g-3">
 
-                        <label class="form-label">
+
+                    <!-- COURSE -->
+
+                    <div class="col-md-6">
+
+                        <label for="id_course"
+                               class="form-label fw-semibold">
 
                             Course
+
+                            <span class="text-danger">*</span>
 
                         </label>
 
                         {{ form.course }}
 
-                    </div>
+                        {% if form.course.errors %}
 
-                    <div class="col-md-6 mb-3">
+                            <div class="text-danger small mt-1">
 
-                        <label class="form-label">
+                                {{ form.course.errors }}
 
-                            Subject
+                            </div>
 
-                        </label>
-
-                        {{ form.subject }}
+                        {% endif %}
 
                     </div>
 
-                    <div class="col-md-6 mb-3">
 
-                        <label class="form-label">
+                    <!-- SEMESTER -->
 
-                            Academic Year
+                    <div class="col-md-6">
 
-                        </label>
-
-                        {{ form.academic_year }}
-
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
+                        <label for="id_semester"
+                               class="form-label fw-semibold">
 
                             Semester
+
+                            <span class="text-danger">*</span>
 
                         </label>
 
                         {{ form.semester }}
 
+                        {% if form.semester.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {{ form.semester.errors }}
+
+                            </div>
+
+                        {% endif %}
+
                     </div>
 
-                    <div class="col-12 mb-3">
 
-                        <label class="form-label">
+                    <!-- SUBJECT -->
+
+                    <div class="col-md-6">
+
+                        <label for="id_subject"
+                               class="form-label fw-semibold">
+
+                            Subject
+
+                            <span class="text-danger">*</span>
+
+                        </label>
+
+
+                        <select name="subject"
+                                id="id_subject"
+                                class="form-select"
+                                required>
+
+                            <option value="">
+                                ---------
+                            </option>
+
+                        </select>
+
+
+                        <div id="subjectLoading"
+                             class="text-muted small mt-1"
+                             style="display:none;">
+
+                            <i class="fas fa-spinner fa-spin me-1"></i>
+
+                            Loading subjects...
+
+                        </div>
+
+
+                        <div id="subjectError"
+                             class="text-danger small mt-1"
+                             style="display:none;">
+
+                        </div>
+
+
+                        {% if form.subject.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {{ form.subject.errors }}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- ACADEMIC YEAR -->
+
+                    <div class="col-md-6">
+
+                        <label for="id_academic_year"
+                               class="form-label fw-semibold">
+
+                            Academic Year
+
+                            <span class="text-danger">*</span>
+
+                        </label>
+
+                        {{ form.academic_year }}
+
+                        {% if form.academic_year.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {{ form.academic_year.errors }}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- EXCEL FILE -->
+
+                    <div class="col-md-12">
+
+                        <label for="id_excel_file"
+                               class="form-label fw-semibold">
 
                             Excel File
+
+                            <span class="text-danger">*</span>
 
                         </label>
 
                         {{ form.excel_file }}
 
+                        <small class="text-muted">
+
+                            Required columns:
+
+                            <strong>
+                                question_text,
+                                option1,
+                                option2,
+                                option3,
+                                option4,
+                                correct_answer,
+                                marks
+                            </strong>
+
+                        </small>
+
+                        {% if form.excel_file.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {{ form.excel_file.errors }}
+
+                            </div>
+
+                        {% endif %}
+
                     </div>
 
                 </div>
 
-                <hr>
 
-                <button
-                    class="btn btn-success">
+                <hr class="my-4">
 
-                    <i class="fas fa-upload"></i>
 
-                    Upload Questions
+                <!-- BUTTONS -->
 
-                </button>
+                <div class="d-flex gap-2">
 
-                <a href="{% url 'question_bank' %}"
-                   class="btn btn-secondary">
+                    <button type="submit"
+                            class="btn btn-success">
 
-                    Cancel
+                        <i class="fas fa-upload me-1"></i>
 
-                </a>
+                        Upload Questions
+
+                    </button>
+
+
+                    <a href="{% url 'question_bank' %}"
+                       class="btn btn-secondary">
+
+                        <i class="fas fa-times me-1"></i>
+
+                        Cancel
+
+                    </a>
+
+                </div>
 
             </form>
 
@@ -167,58 +338,317 @@
 
     </div>
 
-    <br>
 
-    <div class="card border-primary">
+    <!-- ===================================================== -->
+    <!-- EXCEL FORMAT -->
+    <!-- ===================================================== -->
+
+    <div class="card shadow border-0">
 
         <div class="card-header bg-primary text-white">
 
-            Excel Format
+            <h5 class="mb-0">
+
+                <i class="fas fa-table me-2"></i>
+
+                Excel Format
+
+            </h5>
 
         </div>
 
-        <div class="card-body">
 
-            <table class="table table-bordered">
+        <div class="card-body p-0">
 
-                <thead>
+            <div class="table-responsive">
 
-                    <tr>
+                <table class="table table-bordered
+                              table-hover mb-0">
 
-                        <th>question_text</th>
-                        <th>option1</th>
-                        <th>option2</th>
-                        <th>option3</th>
-                        <th>option4</th>
-                        <th>correct_answer</th>
-                        <th>marks</th>
+                    <thead class="table-dark">
 
-                    </tr>
+                        <tr>
 
-                </thead>
+                            <th>question_text</th>
 
-                <tbody>
+                            <th>option1</th>
 
-                    <tr>
+                            <th>option2</th>
 
-                        <td>What is Python?</td>
-                        <td>Language</td>
-                        <td>Animal</td>
-                        <td>Car</td>
-                        <td>Fruit</td>
-                        <td>1</td>
-                        <td>1</td>
+                            <th>option3</th>
 
-                    </tr>
+                            <th>option4</th>
 
-                </tbody>
+                            <th>correct_answer</th>
 
-            </table>
+                            <th>marks</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        <tr>
+
+                            <td>
+                                What is Python?
+                            </td>
+
+                            <td>
+                                Programming Language
+                            </td>
+
+                            <td>
+                                Animal
+                            </td>
+
+                            <td>
+                                Operating System
+                            </td>
+
+                            <td>
+                                Database
+                            </td>
+
+                            <td>
+                                1
+                            </td>
+
+                            <td>
+                                1
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
 
         </div>
 
     </div>
 
 </div>
+
+
+<!-- ===================================================== -->
+<!-- SUBJECT AJAX -->
+<!-- ===================================================== -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const courseSelect =
+        document.getElementById("id_course");
+
+    const semesterSelect =
+        document.getElementById("id_semester");
+
+    const subjectSelect =
+        document.getElementById("id_subject");
+
+    const loading =
+        document.getElementById("subjectLoading");
+
+    const errorBox =
+        document.getElementById("subjectError");
+
+
+    if (
+        !courseSelect ||
+        !semesterSelect ||
+        !subjectSelect
+    ) {
+
+        console.error(
+            "Course, semester or subject dropdown not found."
+        );
+
+        return;
+
+    }
+
+
+    function resetSubject() {
+
+        subjectSelect.innerHTML = "";
+
+        const option =
+            document.createElement("option");
+
+        option.value = "";
+
+        option.textContent = "---------";
+
+        subjectSelect.appendChild(option);
+
+    }
+
+
+    function loadSubjects() {
+
+        const courseId =
+            courseSelect.value;
+
+        const semester =
+            semesterSelect.value;
+
+
+        resetSubject();
+
+        errorBox.style.display = "none";
+
+        errorBox.textContent = "";
+
+
+        if (!courseId || !semester) {
+
+            return;
+
+        }
+
+
+        loading.style.display = "block";
+
+        subjectSelect.disabled = true;
+
+
+        const apiUrl =
+            "{% url 'get_subjects' %}" +
+            "?course=" +
+            encodeURIComponent(courseId) +
+            "&semester=" +
+            encodeURIComponent(semester);
+
+
+        fetch(apiUrl, {
+
+            method: "GET",
+
+            headers: {
+                "X-Requested-With":
+                    "XMLHttpRequest",
+
+                "Accept":
+                    "application/json"
+            }
+
+        })
+
+        .then(function(response) {
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "HTTP " + response.status
+                );
+
+            }
+
+            return response.json();
+
+        })
+
+        .then(function(data) {
+
+            resetSubject();
+
+
+            if (
+                !data.subjects ||
+                data.subjects.length === 0
+            ) {
+
+                const option =
+                    document.createElement("option");
+
+                option.value = "";
+
+                option.textContent =
+                    "No subjects available";
+
+                subjectSelect.appendChild(option);
+
+                return;
+
+            }
+
+
+            data.subjects.forEach(function(subject) {
+
+                const option =
+                    document.createElement("option");
+
+                option.value =
+                    subject.id;
+
+                option.textContent =
+                    subject.code +
+                    " - " +
+                    subject.name;
+
+                subjectSelect.appendChild(option);
+
+            });
+
+        })
+
+        .catch(function(error) {
+
+            console.error(
+                "Subject loading error:",
+                error
+            );
+
+
+            resetSubject();
+
+            errorBox.textContent =
+                "Unable to load subjects. Please try again.";
+
+            errorBox.style.display = "block";
+
+        })
+
+        .finally(function() {
+
+            loading.style.display = "none";
+
+            subjectSelect.disabled = false;
+
+        });
+
+    }
+
+
+    courseSelect.addEventListener(
+        "change",
+        loadSubjects
+    );
+
+
+    semesterSelect.addEventListener(
+        "change",
+        loadSubjects
+    );
+
+
+    if (
+        courseSelect.value &&
+        semesterSelect.value
+    ) {
+
+        loadSubjects();
+
+    }
+
+});
+
+</script>
 
 {% endblock %}

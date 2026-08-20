@@ -4,349 +4,597 @@
 
 <div class="container-fluid">
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+    <!-- ===================================================== -->
+    <!-- PAGE HEADER -->
+    <!-- ===================================================== -->
 
-<div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
 
-<h2 class="fw-bold">
+        <div>
 
-<i class="fas fa-database text-primary"></i>
+            <h2 class="fw-bold mb-1">
 
-Question Bank
+                <i class="fas fa-database text-primary me-2"></i>
 
-</h2>
+                Question Bank
 
-<p class="text-muted">
+            </h2>
 
-Total Questions :
-<strong>{{ questions.count }}</strong>
+            <p class="text-muted mb-0">
 
-</p>
+                Manage examination questions
 
-</div>
+            </p>
 
-<div>
+        </div>
 
-<a href="{% url 'add_question' %}" class="btn btn-primary">
 
-<i class="fas fa-plus"></i>
+        <div>
 
-Add Question
+            <a href="/admin-panel/question-bank/upload/"
+               class="btn btn-success">
 
-</a>
+                <i class="fas fa-upload me-1"></i>
 
-<a href="{% url 'upload_questions' %}" class="btn btn-success">
+                Upload Questions
 
-<i class="fas fa-upload"></i>
+            </a>
 
-Upload Excel
+        </div>
 
-</a>
+    </div>
 
-</div>
 
-</div>
+    <!-- ===================================================== -->
+    <!-- MESSAGES -->
+    <!-- ===================================================== -->
 
+    {% if messages %}
 
-<!-- FILTER -->
+        {% for message in messages %}
 
-<div class="card shadow mb-4">
+            <div class="alert alert-{{ message.tags|default:'success' }}
+                        alert-dismissible fade show">
 
-<div class="card-header bg-dark text-white">
+                {{ message }}
 
-<h5 class="mb-0">
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert">
+                </button>
 
-<i class="fas fa-filter"></i>
+            </div>
 
-Filter Questions
+        {% endfor %}
 
-</h5>
+    {% endif %}
 
-</div>
 
-<div class="card-body">
+    <!-- ===================================================== -->
+    <!-- QUESTION BANK CARD -->
+    <!-- ===================================================== -->
 
-<form method="GET">
+    <div class="card shadow border-0">
 
-<div class="row g-3">
+        <div class="card-header bg-primary text-white">
 
-<div class="col-md-3">
+            <div class="d-flex justify-content-between align-items-center">
 
-<label class="form-label">
+                <h5 class="mb-0">
 
-Course
+                    <i class="fas fa-question-circle me-2"></i>
 
-</label>
+                    Question Bank
 
-<select name="course" class="form-select">
+                </h5>
 
-<option value="">
+                <span class="badge bg-light text-dark">
 
-All Courses
+                    {{ questions|length }} Questions
 
-</option>
+                </span>
 
-{% for c in courses %}
+            </div>
 
-<option value="{{ c.id }}"
+        </div>
 
-{% if request.GET.course == c.id|stringformat:"s" %}
 
-selected
+        <div class="card-body">
 
-{% endif %}>
 
-{{ c.name }}
+            <!-- ================================================= -->
+            <!-- FILTER FORM -->
+            <!-- ================================================= -->
 
-</option>
+            <form method="GET" class="mb-4">
 
-{% endfor %}
+                <div class="row g-3">
 
-</select>
 
-</div>
+                    <!-- COURSE -->
 
-<div class="col-md-3">
+                    <div class="col-md-3">
 
-<label class="form-label">
+                        <label class="form-label fw-semibold">
 
-Subject
+                            Course
 
-</label>
+                        </label>
 
-<select name="subject" class="form-select">
+                        <select name="course"
+                                class="form-select">
 
-<option value="">
+                            <option value="">
 
-All Subjects
+                                All Courses
 
-</option>
+                            </option>
 
-{% for s in subjects %}
 
-<option value="{{ s.id }}"
+                            {% for course_item in courses %}
 
-{% if request.GET.subject == s.id|stringformat:"s" %}
+                                <option value="{{ course_item.id }}"
 
-selected
+                                    {% if selected_course == course_item.id|stringformat:"s" %}
+                                        selected
+                                    {% endif %}>
 
-{% endif %}>
+                                    {{ course_item.name }}
 
-{{ s.subject_code }} - {{ s.name }}
+                                </option>
 
-</option>
+                            {% endfor %}
 
-{% endfor %}
+                        </select>
 
-</select>
+                    </div>
 
-</div>
 
-<div class="col-md-2">
+                    <!-- SEMESTER -->
 
-<label class="form-label">
+                    <div class="col-md-2">
 
-Semester
+                        <label class="form-label fw-semibold">
 
-</label>
+                            Semester
 
-<select name="semester" class="form-select">
+                        </label>
 
-<option value="">
+                        <select name="semester"
+                                class="form-select">
 
-All
+                            <option value="">
 
-</option>
+                                All Semesters
 
-{% for i in "12345678"|make_list %}
+                            </option>
 
-<option value="{{ i }}"
 
-{% if request.GET.semester == i %}
+                            {% for value, label in semester_choices %}
 
-selected
+                                <option value="{{ value }}"
 
-{% endif %}>
+                                    {% if selected_semester == value|stringformat:"s" %}
+                                        selected
+                                    {% endif %}>
 
-Semester {{ i }}
+                                    {{ label }}
 
-</option>
+                                </option>
 
-{% endfor %}
+                            {% endfor %}
 
-</select>
+                        </select>
 
-</div>
+                    </div>
 
-<div class="col-md-3">
 
-<label class="form-label">
+                    <!-- SUBJECT -->
 
-Search
+                    <div class="col-md-3">
 
-</label>
+                        <label class="form-label fw-semibold">
 
-<input
-type="text"
-name="search"
-class="form-control"
-placeholder="Search Question..."
-value="{{ request.GET.search }}">
+                            Subject
 
-</div>
+                        </label>
 
-<div class="col-md-1 d-grid">
+                        <select name="subject"
+                                class="form-select">
 
-<label class="form-label">&nbsp;</label>
+                            <option value="">
 
-<button class="btn btn-primary">
+                                All Subjects
 
-<i class="fas fa-search"></i>
+                            </option>
 
-</button>
 
-</div>
+                            {% for subject_item in subjects %}
 
-</div>
+                                <option value="{{ subject_item.id }}"
 
-</form>
+                                    {% if selected_subject == subject_item.id|stringformat:"s" %}
+                                        selected
+                                    {% endif %}>
 
-</div>
+                                    {{ subject_item.code }} -
+                                    {{ subject_item.name }}
 
-</div>
+                                </option>
 
+                            {% endfor %}
 
-<!-- TABLE -->
+                        </select>
 
-<div class="card shadow">
+                    </div>
 
-<div class="card-header bg-primary text-white">
 
-<h5 class="mb-0">
+                    <!-- SEARCH -->
 
-Question List
+                    <div class="col-md-3">
 
-</h5>
+                        <label class="form-label fw-semibold">
 
-</div>
+                            Search
 
-<div class="card-body">
+                        </label>
 
-<div class="table-responsive">
+                        <input type="text"
+                               name="search"
+                               value="{{ search }}"
+                               class="form-control"
+                               placeholder="Search questions...">
 
-<table class="table table-bordered table-hover">
+                    </div>
 
-<thead class="table-dark">
 
-<tr>
+                    <!-- SEARCH BUTTON -->
 
-<th>ID</th>
+                    <div class="col-md-1 d-flex align-items-end">
 
-<th>Question</th>
+                        <button type="submit"
+                                class="btn btn-primary w-100">
 
-<th>Course</th>
+                            <i class="fas fa-search"></i>
 
-<th>Subject</th>
+                        </button>
 
-<th>Semester</th>
+                    </div>
 
-<th>Marks</th>
+                </div>
 
-<th>Action</th>
 
-</tr>
+                <!-- CLEAR FILTERS -->
 
-</thead>
+                {% if search or selected_course or selected_subject or selected_semester %}
 
-<tbody>
+                    <div class="mt-3">
 
-{% for q in questions %}
+                        <a href="{% url 'question_bank' %}"
+                           class="btn btn-outline-secondary btn-sm">
 
-<tr>
+                            <i class="fas fa-times me-1"></i>
 
-<td>
+                            Clear Filters
 
-{{ q.id }}
+                        </a>
 
-</td>
+                    </div>
 
-<td>
+                {% endif %}
 
-{{ q.question_text|truncatechars:80 }}
+            </form>
 
-</td>
 
-<td>
+            <!-- ================================================= -->
+            <!-- QUESTIONS TABLE -->
+            <!-- ================================================= -->
 
-{{ q.course.name }}
+            {% if questions %}
 
-</td>
+                <div class="table-responsive">
 
-<td>
+                    <table class="table table-bordered
+                                  table-hover align-middle">
 
-{{ q.subject.name }}
+                        <thead class="table-dark">
 
-</td>
+                            <tr>
 
-<td>
+                                <th width="5%">
+                                    #
+                                </th>
 
-Semester {{ q.semester }}
+                                <th width="30%">
+                                    Question
+                                </th>
 
-</td>
+                                <th>
+                                    Course
+                                </th>
 
-<td>
+                                <th>
+                                    Semester
+                                </th>
 
-{{ q.marks }}
+                                <th>
+                                    Subject
+                                </th>
 
-</td>
+                                <th>
+                                    Academic Year
+                                </th>
 
-<td>
+                                <th>
+                                    Correct Answer
+                                </th>
 
-<a href="{% url 'edit_question' q.id %}"
+                                <th>
+                                    Marks
+                                </th>
 
-class="btn btn-warning btn-sm">
+                            </tr>
 
-<i class="fas fa-edit"></i>
+                        </thead>
 
-</a>
 
-<a href="{% url 'delete_question' q.id %}"
+                        <tbody>
 
-class="btn btn-danger btn-sm"
+                            {% for question in questions %}
 
-onclick="return confirm('Delete this Question?')">
+                                <tr>
 
-<i class="fas fa-trash"></i>
+                                    <!-- NUMBER -->
 
-</a>
+                                    <td>
 
-</td>
+                                        {{ forloop.counter }}
 
-</tr>
+                                    </td>
 
-{% empty %}
 
-<tr>
+                                    <!-- QUESTION -->
 
-<td colspan="7" class="text-center">
+                                    <td>
 
-No Questions Found
+                                        <strong>
 
-</td>
+                                            {{ question.question_text }}
 
-</tr>
+                                        </strong>
 
-{% endfor %}
 
-</tbody>
+                                        <!-- OPTIONS -->
 
-</table>
+                                        <div class="mt-2 small">
 
-</div>
+                                            <div class="mb-1">
 
-</div>
+                                                <strong>1.</strong>
 
-</div>
+                                                {{ question.option1|default:"-" }}
+
+                                            </div>
+
+
+                                            <div class="mb-1">
+
+                                                <strong>2.</strong>
+
+                                                {{ question.option2|default:"-" }}
+
+                                            </div>
+
+
+                                            <div class="mb-1">
+
+                                                <strong>3.</strong>
+
+                                                {{ question.option3|default:"-" }}
+
+                                            </div>
+
+
+                                            <div class="mb-1">
+
+                                                <strong>4.</strong>
+
+                                                {{ question.option4|default:"-" }}
+
+                                            </div>
+
+                                        </div>
+
+                                    </td>
+
+
+                                    <!-- COURSE -->
+
+                                    <td>
+
+                                        {% if question.course %}
+
+                                            {{ question.course.name }}
+
+                                        {% else %}
+
+                                            -
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <!-- SEMESTER -->
+
+                                    <td>
+
+                                        {% if question.semester %}
+
+                                            <span class="badge bg-info text-dark">
+
+                                                Semester {{ question.semester }}
+
+                                            </span>
+
+                                        {% else %}
+
+                                            -
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <!-- SUBJECT -->
+
+                                    <td>
+
+                                        {% if question.subject %}
+
+                                            <strong>
+
+                                                {{ question.subject.code }}
+
+                                            </strong>
+
+                                            <br>
+
+                                            <small class="text-muted">
+
+                                                {{ question.subject.name }}
+
+                                            </small>
+
+                                        {% else %}
+
+                                            -
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <!-- ACADEMIC YEAR -->
+
+                                    <td>
+
+                                        {{ question.academic_year|default:"-" }}
+
+                                    </td>
+
+
+                                    <!-- CORRECT ANSWER -->
+
+                                    <td>
+
+                                        {% if question.correct_answer == "1" %}
+
+                                            <span class="badge bg-success">
+
+                                                Option 1
+
+                                            </span>
+
+                                        {% elif question.correct_answer == "2" %}
+
+                                            <span class="badge bg-success">
+
+                                                Option 2
+
+                                            </span>
+
+                                        {% elif question.correct_answer == "3" %}
+
+                                            <span class="badge bg-success">
+
+                                                Option 3
+
+                                            </span>
+
+                                        {% elif question.correct_answer == "4" %}
+
+                                            <span class="badge bg-success">
+
+                                                Option 4
+
+                                            </span>
+
+                                        {% else %}
+
+                                            {{ question.correct_answer|default:"-" }}
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <!-- MARKS -->
+
+                                    <td>
+
+                                        <span class="badge bg-primary">
+
+                                            {{ question.marks }}
+
+                                        </span>
+
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+            {% else %}
+
+                <!-- ================================================= -->
+                <!-- NO QUESTIONS -->
+                <!-- ================================================= -->
+
+                <div class="text-center py-5">
+
+                    <i class="fas fa-question-circle
+                              fa-4x text-muted mb-3">
+                    </i>
+
+
+                    <h5 class="text-muted">
+
+                        No questions found
+
+                    </h5>
+
+
+                    <p class="text-muted">
+
+                        No questions match the selected filters.
+
+                    </p>
+
+
+                    <a href="/admin-panel/question-bank/upload/"
+                       class="btn btn-success">
+
+                        <i class="fas fa-upload me-1"></i>
+
+                        Upload Questions
+
+                    </a>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
 
 </div>
 

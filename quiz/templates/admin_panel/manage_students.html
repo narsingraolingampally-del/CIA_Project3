@@ -2,132 +2,1106 @@
 
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="container-fluid">
 
-    <div>
+    <!-- ============================= -->
+    <!-- PAGE HEADER -->
+    <!-- ============================= -->
 
-        <h2 class="fw-bold">
-            Student Management
-        </h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
 
-        <p class="text-muted">
-            Manage all registered students
-        </p>
+        <div>
+
+            <h2 class="fw-bold mb-1">
+                Student Management
+            </h2>
+
+            <p class="text-muted mb-0">
+                Manage all registered students
+            </p>
+
+        </div>
+
+
+        <div>
+
+            <a href="{% url 'upload_students' %}"
+               class="btn btn-success me-2">
+
+                <i class="fas fa-file-excel me-1"></i>
+
+                Upload Students
+
+            </a>
+
+
+            <a href="{% url 'add_student' %}"
+               class="btn btn-primary">
+
+                <i class="fas fa-user-plus me-1"></i>
+
+                Add Student
+
+            </a>
+
+        </div>
 
     </div>
 
-    <div>
 
-        <a href="{% url 'add_student' %}"
-           class="btn btn-primary">
 
-            <i class="fas fa-user-plus"></i>
+    <!-- ============================= -->
+    <!-- TOTAL STUDENTS -->
+    <!-- ============================= -->
 
-            Add Student
+    <div class="card shadow-sm mb-4">
 
-        </a>
+        <div class="card-body">
 
-        <a href="{% url 'upload_students' %}"
-           class="btn btn-success">
+            <div class="d-flex align-items-center">
 
-            <i class="fas fa-file-excel"></i>
+                <div class="me-3">
 
-            Upload Excel
+                    <div class="bg-primary text-white rounded-circle d-flex
+                                align-items-center justify-content-center"
+                         style="width:50px; height:50px;">
 
-        </a>
+                        <i class="fas fa-users fa-lg"></i>
+
+                    </div>
+
+                </div>
+
+
+                <div>
+
+                    <h6 class="text-muted mb-1">
+                        Total Students
+                    </h6>
+
+                    <h3 class="fw-bold mb-0">
+                        {{ total_students }}
+                    </h3>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ============================= -->
+    <!-- SEARCH & FILTERS -->
+    <!-- ============================= -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <form method="GET">
+
+                <div class="row g-3 align-items-end">
+
+
+                    <!-- SEARCH -->
+
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-semibold">
+                            Search Students
+                        </label>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+
+                                <i class="fas fa-search"></i>
+
+                            </span>
+
+
+                            <input
+                                type="text"
+                                name="search"
+                                class="form-control"
+                                placeholder="Username, name or email..."
+                                value="{{ request.GET.search|default:'' }}"
+                            >
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- COURSE -->
+
+                    <div class="col-md-3">
+
+                        <label class="form-label fw-semibold">
+                            Course
+                        </label>
+
+
+                        <select
+                            name="course"
+                            class="form-select"
+                        >
+
+                            <option value="">
+                                All Courses
+                            </option>
+
+
+                            {% for c in courses %}
+
+                                <option
+                                    value="{{ c.id }}"
+                                    {% if request.GET.course == c.id|stringformat:"s" %}
+                                        selected
+                                    {% endif %}
+                                >
+
+                                    {{ c.name }}
+
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+
+                    <!-- SEMESTER -->
+
+                    <div class="col-md-2">
+
+                        <label class="form-label fw-semibold">
+                            Semester
+                        </label>
+
+
+                        <select
+                            name="semester"
+                            class="form-select"
+                        >
+
+                            <option value="">
+                                All Semesters
+                            </option>
+
+
+                            <option value="1"
+                                {% if request.GET.semester == "1" %}
+                                    selected
+                                {% endif %}>
+
+                                Semester 1
+
+                            </option>
+
+
+                            <option value="2"
+                                {% if request.GET.semester == "2" %}
+                                    selected
+                                {% endif %}>
+
+                                Semester 2
+
+                            </option>
+
+
+                            <option value="3"
+                                {% if request.GET.semester == "3" %}
+                                    selected
+                                {% endif %}>
+
+                                Semester 3
+
+                            </option>
+
+
+                            <option value="4"
+                                {% if request.GET.semester == "4" %}
+                                    selected
+                                {% endif %}>
+
+                                Semester 4
+
+                            </option>
+
+
+                            <option value="5"
+                                {% if request.GET.semester == "5" %}
+                                    selected
+                                {% endif %}>
+
+                                Semester 5
+
+                            </option>
+
+
+                            <option value="6"
+                                {% if request.GET.semester == "6" %}
+                                    selected
+                                {% endif %}>
+
+                                Semester 6
+
+                            </option>
+
+
+                            <option value="7"
+                                {% if request.GET.semester == "7" %}
+                                    selected
+                                {% endif %}>
+
+                                Semester 7
+
+                            </option>
+
+
+                            <option value="8"
+                                {% if request.GET.semester == "8" %}
+                                    selected
+                                {% endif %}>
+
+                                Semester 8
+
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+
+                    <!-- FILTER BUTTON -->
+
+                    <div class="col-md-3">
+
+                        <div class="d-flex gap-2">
+
+                            <button
+                                type="submit"
+                                class="btn btn-primary"
+                            >
+
+                                <i class="fas fa-filter me-1"></i>
+
+                                Filter
+
+                            </button>
+
+
+                            <a
+                                href="{% url 'manage_students' %}"
+                                class="btn btn-secondary"
+                            >
+
+                                <i class="fas fa-rotate-left me-1"></i>
+
+                                Reset
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ============================= -->
+    <!-- BULK STUDENT ACTION -->
+    <!-- ============================= -->
+
+    <div class="card shadow-sm mb-3">
+
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between
+                        align-items-center
+                        flex-wrap
+                        gap-2">
+
+
+                <!-- SELECTION INFO -->
+
+                <div>
+
+                    <strong>
+
+                        <i class="fas fa-users me-1"></i>
+
+                        Student Selection
+
+                    </strong>
+
+
+                    <span class="text-muted ms-2">
+
+                        <span id="selectedCount">
+                            0
+                        </span>
+
+                        selected
+
+                    </span>
+
+                </div>
+
+
+
+                <!-- BULK DELETE FORM -->
+
+                <form
+                    method="POST"
+                    action="{% url 'bulk_delete_students' %}"
+                    id="bulkDeleteForm"
+                >
+
+                    {% csrf_token %}
+
+
+                    <!--
+                        JavaScript will insert selected
+                        student IDs here.
+                    -->
+
+                    <div id="selectedStudentsContainer"></div>
+
+
+                    <button
+                        type="submit"
+                        id="bulkDeleteButton"
+                        class="btn btn-danger"
+                        disabled
+                    >
+
+                        <i class="fas fa-trash-alt me-1"></i>
+
+                        Delete Selected
+
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ============================= -->
+    <!-- STUDENT TABLE -->
+    <!-- ============================= -->
+
+    <div class="card shadow-sm">
+
+        <div class="card-header bg-white">
+
+            <div class="d-flex
+                        justify-content-between
+                        align-items-center">
+
+
+                <h5 class="fw-bold mb-0">
+
+                    <i class="fas fa-user-graduate me-2"></i>
+
+                    Registered Students
+
+                </h5>
+
+
+                <span class="badge bg-primary">
+
+                    {{ students|length }}
+
+                    Student{{ students|length|pluralize }}
+
+                </span>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+
+                    <!-- ============================= -->
+                    <!-- TABLE HEADER -->
+                    <!-- ============================= -->
+
+                    <thead class="table-dark">
+
+                        <tr>
+
+
+                            <!-- SELECT ALL -->
+
+                            <th style="width:50px;">
+
+                                <input
+                                    type="checkbox"
+                                    id="selectAllStudents"
+                                    class="form-check-input"
+                                    title="Select all students"
+                                >
+
+                            </th>
+
+
+                            <th>
+                                ID
+                            </th>
+
+
+                            <th>
+                                Username
+                            </th>
+
+
+                            <th>
+                                Name
+                            </th>
+
+
+                            <th>
+                                Email
+                            </th>
+
+
+                            <th>
+                                Course
+                            </th>
+
+
+                            <th>
+                                Semester
+                            </th>
+
+
+                            <th>
+                                Aadhaar Number
+                            </th>
+
+
+                            <th class="text-center">
+                                Action
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+
+                    <!-- ============================= -->
+                    <!-- TABLE BODY -->
+                    <!-- ============================= -->
+
+                    <tbody>
+
+
+                        {% for student in students %}
+
+
+                        <tr>
+
+
+                            <!-- CHECKBOX -->
+
+                            <td>
+
+                                <input
+                                    type="checkbox"
+                                    value="{{ student.id }}"
+                                    class="form-check-input student-checkbox"
+                                    title="Select student"
+                                >
+
+                            </td>
+
+
+
+                            <!-- ID -->
+
+                            <td class="px-3 fw-semibold">
+
+                                {{ student.id }}
+
+                            </td>
+
+
+
+                            <!-- USERNAME -->
+
+                            <td>
+
+                                <span class="fw-semibold">
+
+                                    {{ student.user.username }}
+
+                                </span>
+
+                            </td>
+
+
+
+                            <!-- NAME -->
+
+                            <td>
+
+                                {% if student.user.get_full_name %}
+
+                                    {{ student.user.get_full_name }}
+
+                                {% elif student.name %}
+
+                                    {{ student.name }}
+
+                                {% else %}
+
+                                    <span class="text-muted">
+
+                                        Not Available
+
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+
+                            <!-- EMAIL -->
+
+                            <td>
+
+                                {% if student.user.email %}
+
+                                    {{ student.user.email }}
+
+                                {% else %}
+
+                                    <span class="text-muted">
+
+                                        Not Available
+
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+
+                            <!-- COURSE -->
+
+                            <td>
+
+                                {% if student.course %}
+
+                                    <span class="badge bg-info text-dark">
+
+                                        {{ student.course.name }}
+
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="text-muted">
+
+                                        Not Assigned
+
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+
+                            <!-- SEMESTER -->
+
+                            <td>
+
+                                {% if student.semester %}
+
+                                    <span class="badge bg-secondary">
+
+                                        Semester {{ student.semester }}
+
+                                    </span>
+
+                                {% elif student.user.semester %}
+
+                                    <span class="badge bg-secondary">
+
+                                        Semester {{ student.user.semester }}
+
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="text-muted">
+
+                                        Not Assigned
+
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+
+                            <!-- AADHAAR -->
+
+                            <td>
+
+                                {% if student.aadhaar_number %}
+
+                                    {{ student.aadhaar_number }}
+
+                                {% else %}
+
+                                    <span class="text-muted">
+
+                                        Not Available
+
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+
+                            <!-- ACTION -->
+
+                            <td class="text-center">
+
+
+                                <!-- EDIT -->
+
+                                <a
+                                    href="{% url 'edit_student' student.id %}"
+                                    class="btn btn-warning btn-sm"
+                                    title="Edit Student"
+                                >
+
+                                    <i class="fas fa-edit"></i>
+
+                                </a>
+
+
+
+                                <!-- INDIVIDUAL DELETE -->
+
+                                <a
+                                    href="{% url 'delete_student' student.id %}"
+                                    class="btn btn-danger btn-sm"
+                                    title="Delete Student"
+                                    onclick="return confirm(
+                                        'Are you sure you want to delete this student?'
+                                    );"
+                                >
+
+                                    <i class="fas fa-trash"></i>
+
+                                </a>
+
+                            </td>
+
+                        </tr>
+
+
+                        {% empty %}
+
+
+                        <tr>
+
+                            <td
+                                colspan="9"
+                                class="text-center py-5"
+                            >
+
+                                <div class="text-muted">
+
+                                    <i class="fas fa-user-slash fa-3x mb-3"></i>
+
+                                    <h5>
+
+                                        No Students Found
+
+                                    </h5>
+
+                                    <p class="mb-0">
+
+                                        No students match your current
+                                        search or filters.
+
+                                    </p>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+
+                        {% endfor %}
+
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
 
     </div>
 
 </div>
 
-<div class="card shadow-sm">
 
-    <div class="card-body">
 
-        <table class="table table-hover align-middle">
+<!-- ============================= -->
+<!-- BULK DELETE JAVASCRIPT -->
+<!-- ============================= -->
 
-            <thead class="table-dark">
+<script>
 
-                <tr>
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
 
-                    <th>ID</th>
 
-                    <th>Name</th>
+        const selectAll =
+            document.getElementById(
+                "selectAllStudents"
+            );
 
-                    <th>Username</th>
 
-                    <th>Course</th>
+        const checkboxes =
+            document.querySelectorAll(
+                ".student-checkbox"
+            );
 
-                    <th>Semester</th>
 
-                    <th width="170">
+        const selectedCount =
+            document.getElementById(
+                "selectedCount"
+            );
 
-                        Action
 
-                    </th>
+        const deleteButton =
+            document.getElementById(
+                "bulkDeleteButton"
+            );
 
-                </tr>
 
-            </thead>
+        const deleteForm =
+            document.getElementById(
+                "bulkDeleteForm"
+            );
 
-            <tbody>
 
-                {% for student in students %}
+        const selectedContainer =
+            document.getElementById(
+                "selectedStudentsContainer"
+            );
 
-                <tr>
 
-                    <td>{{ student.id }}</td>
 
-                    <td>{{ student.name }}</td>
+        /*
+        ==========================================
+        UPDATE SELECTION
+        ==========================================
+        */
 
-                    <td>{{ student.user.username }}</td>
+        function updateSelection() {
 
-                    <td>{{ student.course.name }}</td>
 
-                    <td>{{ student.semester }}</td>
+            const selected =
+                Array.from(
+                    checkboxes
+                ).filter(
+                    function (checkbox) {
 
-                    <td>
+                        return checkbox.checked;
 
-                        <a href="{% url 'edit_student' student.id %}"
-                           class="btn btn-warning btn-sm">
+                    }
+                );
 
-                            <i class="fas fa-edit"></i>
 
-                        </a>
 
-                        <a href="{% url 'delete_student' student.id %}"
-                           class="btn btn-danger btn-sm"
-                           onclick="return confirm('Delete this student?')">
+            /*
+            Update selected count
+            */
 
-                            <i class="fas fa-trash"></i>
+            selectedCount.textContent =
+                selected.length;
 
-                        </a>
 
-                    </td>
 
-                </tr>
+            /*
+            Enable / disable delete button
+            */
 
-                {% empty %}
+            deleteButton.disabled =
+                selected.length === 0;
 
-                <tr>
 
-                    <td colspan="6"
-                        class="text-center text-muted">
 
-                        No Students Available
+            /*
+            Select All checkbox state
+            */
 
-                    </td>
+            if (selected.length === 0) {
 
-                </tr>
+                selectAll.checked = false;
 
-                {% endfor %}
+                selectAll.indeterminate = false;
 
-            </tbody>
+            }
 
-        </table>
+            else if (
+                selected.length ===
+                checkboxes.length
+            ) {
 
-    </div>
+                selectAll.checked = true;
 
-</div>
+                selectAll.indeterminate = false;
+
+            }
+
+            else {
+
+                selectAll.checked = false;
+
+                selectAll.indeterminate = true;
+
+            }
+
+
+
+            /*
+            Remove old hidden inputs
+            */
+
+            selectedContainer.innerHTML = "";
+
+
+
+            /*
+            Create hidden inputs
+            for selected students
+            */
+
+            selected.forEach(
+                function (checkbox) {
+
+
+                    const input =
+                        document.createElement(
+                            "input"
+                        );
+
+
+                    input.type = "hidden";
+
+
+                    input.name =
+                        "student_ids";
+
+
+                    input.value =
+                        checkbox.value;
+
+
+                    selectedContainer.appendChild(
+                        input
+                    );
+
+                }
+            );
+
+        }
+
+
+
+        /*
+        ==========================================
+        SELECT ALL
+        ==========================================
+        */
+
+        selectAll.addEventListener(
+            "change",
+            function () {
+
+
+                checkboxes.forEach(
+                    function (checkbox) {
+
+
+                        checkbox.checked =
+                            selectAll.checked;
+
+                    }
+                );
+
+
+                updateSelection();
+
+            }
+        );
+
+
+
+        /*
+        ==========================================
+        INDIVIDUAL CHECKBOXES
+        ==========================================
+        */
+
+        checkboxes.forEach(
+            function (checkbox) {
+
+
+                checkbox.addEventListener(
+                    "change",
+                    function () {
+
+                        updateSelection();
+
+                    }
+                );
+
+            }
+        );
+
+
+
+        /*
+        ==========================================
+        DELETE CONFIRMATION
+        ==========================================
+        */
+
+        deleteForm.addEventListener(
+            "submit",
+            function (event) {
+
+
+                const selected =
+                    Array.from(
+                        checkboxes
+                    ).filter(
+                        function (checkbox) {
+
+                            return checkbox.checked;
+
+                        }
+                    );
+
+
+
+                /*
+                No selection
+                */
+
+                if (selected.length === 0) {
+
+
+                    event.preventDefault();
+
+
+                    alert(
+                        "Please select at least one student."
+                    );
+
+
+                    return;
+
+                }
+
+
+
+                /*
+                Confirmation
+                */
+
+                const confirmed =
+                    confirm(
+
+                        "Are you sure you want to delete "
+                        +
+                        selected.length
+                        +
+                        " selected student(s)?\n\n"
+                        +
+
+                        "Their student profiles and login "
+                        +
+                        "accounts will be permanently deleted.\n\n"
+                        +
+
+                        "This action cannot be undone."
+
+                    );
+
+
+
+                if (!confirmed) {
+
+                    event.preventDefault();
+
+                }
+
+            }
+        );
+
+
+
+        /*
+        ==========================================
+        INITIAL STATE
+        ==========================================
+        */
+
+        updateSelection();
+
+
+    }
+);
+
+</script>
 
 {% endblock %}

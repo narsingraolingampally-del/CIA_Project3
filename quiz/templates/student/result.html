@@ -4,54 +4,125 @@
 
 <div class="container mt-5">
 
-    <div class="card shadow-lg text-center">
+```
+<div class="card shadow-lg text-center">
 
-        <div class="card-body p-5">
+    <div class="card-body p-5">
 
-            <h2 class="text-success">
-                🎉 Exam Completed
-            </h2>
+        <!-- EXAM COMPLETED -->
 
-            <h4 class="mt-3">
-                {{ exam.subject.name }}
-            </h4>
+        <h2 class="text-success">
+            🎉 Exam Completed
+        </h2>
 
-            <hr>
 
-            <h3>Your Score</h3>
+        <!-- EXAM NAME -->
 
-            <h1 class="display-3 text-primary">
-                {{ score }} / {{ total }}
-            </h1>
+        <h4 class="mt-3">
+            {{ exam.exam_name }}
+        </h4>
 
-            <h3>
-                {{ percentage }}%
-            </h3>
 
-            <hr>
+        <!-- SUBJECT -->
 
-            {% if percentage >= 80 %}
-                <div class="alert alert-success">
-                    Excellent Performance!
-                </div>
-            {% elif percentage >= 50 %}
-                <div class="alert alert-warning">
-                    Good Job!
-                </div>
-            {% else %}
-                <div class="alert alert-danger">
+        <p class="text-muted mb-3">
+            Subject: <strong>{{ exam.subject.name }}</strong>
+        </p>
+
+
+        <hr>
+
+
+        <!-- SCORE -->
+
+        <h3>
+            Your Score
+        </h3>
+
+
+        <h1 class="display-3 text-primary fw-bold">
+
+            {{ score }} / {{ total_marks }}
+
+        </h1>
+
+
+        <!-- PERCENTAGE -->
+
+        <h3 class="mt-3">
+
+            {{ percentage }}%
+
+        </h3>
+
+
+        <hr>
+
+
+        <!-- PERFORMANCE MESSAGE -->
+
+        {% if percentage >= 80 %}
+
+            <div class="alert alert-success">
+
+                <h5 class="fw-bold">
+                    Excellent Performance! 🎉
+                </h5>
+
+                <p class="mb-0">
+                    Outstanding work. Keep it up!
+                </p>
+
+            </div>
+
+
+        {% elif percentage >= 50 %}
+
+            <div class="alert alert-warning">
+
+                <h5 class="fw-bold">
+                    Good Job! 👍
+                </h5>
+
+                <p class="mb-0">
+                    You have performed well.
+                </p>
+
+            </div>
+
+
+        {% else %}
+
+            <div class="alert alert-danger">
+
+                <h5 class="fw-bold">
                     Better Luck Next Time!
-                </div>
-            {% endif %}
+                </h5>
 
-            <a href="{% url 'student_dashboard' %}"
-               class="btn btn-primary">
-                Back to Dashboard
-            </a>
+                <p class="mb-0">
+                    Keep practicing and try again in your next examination.
+                </p>
 
-        </div>
+            </div>
+
+        {% endif %}
+
+
+        <!-- BACK TO DASHBOARD -->
+
+        <a
+            href="{% url 'student_dashboard' %}"
+            class="btn btn-primary btn-lg rounded-pill px-4">
+
+            Back to Dashboard
+
+        </a>
+
 
     </div>
+
+</div>
+```
 
 </div>
 

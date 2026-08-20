@@ -78,6 +78,8 @@ class Subject(models.Model):
 # STUDENT PROFILE
 # ==================================================
 
+
+
 class StudentProfile(models.Model):
 
     user = models.OneToOneField(
@@ -96,8 +98,17 @@ class StudentProfile(models.Model):
         max_length=20
     )
 
+    aadhaar_number = models.CharField(
+        max_length=12,
+        unique=True,
+        null=True,
+        blank=True
+    )
+
     def __str__(self):
         return self.user.username
+
+
 # ==================================================
 # FACULTY PROFILE
 # ==================================================
@@ -109,9 +120,17 @@ class FacultyProfile(models.Model):
         on_delete=models.CASCADE
     )
 
+    department = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True
+    )
+
     course = models.ForeignKey(
         Course,
-        on_delete=models.CASCADE
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
     )
 
     subjects = models.ManyToManyField(
@@ -120,10 +139,13 @@ class FacultyProfile(models.Model):
     )
 
     def __str__(self):
-        return self.user.username
+        return self.user.get_full_name() or self.user.username
 # ==================================================
 # QUESTION BANK
 # ==================================================
+
+from django.core.exceptions import ValidationError
+
 
 class Question(models.Model):
 
@@ -140,11 +162,12 @@ class Question(models.Model):
     academic_year = models.CharField(
         max_length=20
     )
+
     uploaded_by = models.ForeignKey(
-    User,
-    on_delete=models.CASCADE,
-    null=True
-)
+        User,
+        on_delete=models.CASCADE,
+        null=True
+    )
 
     semester = models.IntegerField()
 
@@ -159,7 +182,24 @@ class Question(models.Model):
 
     marks = models.IntegerField(default=1)
 
+    def clean(self):
+
+        if self.subject_id:
+
+            if self.subject.course_id != self.course_id:
+
+                raise ValidationError(
+                    "The selected subject does not belong to the selected course."
+                )
+
+            if self.subject.semester != self.semester:
+
+                raise ValidationError(
+                    "The selected subject does not belong to the selected semester."
+                )
+
     def __str__(self):
+
         return self.question_text[:50]
 # ==================================================
 # QUESTION PAPER UPLOAD

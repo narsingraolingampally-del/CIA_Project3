@@ -2,88 +2,316 @@
 
 {% block content %}
 
-<div class="container">
+<div class="container-fluid">
 
     <div class="row justify-content-center">
 
         <div class="col-md-8">
 
-            <div class="card shadow">
+            <div class="card shadow-sm border-0">
+
+                <!-- =============================== -->
+                <!-- HEADER -->
+                <!-- =============================== -->
 
                 <div class="card-header bg-primary text-white">
 
                     <h3 class="mb-0">
-                        <i class="fas fa-user-plus"></i>
+                        <i class="fas fa-user-plus me-2"></i>
                         Add Faculty
                     </h3>
 
                 </div>
 
+
+                <!-- =============================== -->
+                <!-- BODY -->
+                <!-- =============================== -->
+
                 <div class="card-body">
+
+                    <!-- FORM ERRORS -->
+
+                    {% if form.non_field_errors %}
+
+                        <div class="alert alert-danger">
+
+                            <strong>
+                                Please correct the following errors:
+                            </strong>
+
+                            {% for error in form.non_field_errors %}
+
+                                <div>
+                                    {{ error }}
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% endif %}
+
 
                     <form method="POST">
 
                         {% csrf_token %}
 
+
+                        <!-- =========================== -->
+                        <!-- NAME / USERNAME -->
+                        <!-- =========================== -->
+
                         <div class="row">
 
                             <div class="col-md-6 mb-3">
-                                <label>Name</label>
+
+                                <label class="form-label fw-semibold">
+                                    Name
+                                </label>
+
                                 {{ form.name }}
+
+                                {% for error in form.name.errors %}
+
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
                             </div>
 
+
                             <div class="col-md-6 mb-3">
-                                <label>Username</label>
+
+                                <label class="form-label fw-semibold">
+                                    Username
+                                </label>
+
                                 {{ form.username }}
+
+                                {% for error in form.username.errors %}
+
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
                             </div>
 
                         </div>
 
+
+                        <!-- =========================== -->
+                        <!-- FIRST / LAST NAME -->
+                        <!-- =========================== -->
+
                         <div class="row">
 
                             <div class="col-md-6 mb-3">
-                                <label>First Name</label>
+
+                                <label class="form-label fw-semibold">
+                                    First Name
+                                </label>
+
                                 {{ form.first_name }}
+
+                                {% for error in form.first_name.errors %}
+
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
                             </div>
+
 
                             <div class="col-md-6 mb-3">
-                                <label>Last Name</label>
+
+                                <label class="form-label fw-semibold">
+                                    Last Name
+                                </label>
+
                                 {{ form.last_name }}
+
+                                {% for error in form.last_name.errors %}
+
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
                             </div>
 
                         </div>
 
+
+                        <!-- =========================== -->
+                        <!-- EMAIL -->
+                        <!-- =========================== -->
+
                         <div class="mb-3">
-                            <label>Email</label>
+
+                            <label class="form-label fw-semibold">
+                                Email
+                            </label>
+
                             {{ form.email }}
+
+                            {% for error in form.email.errors %}
+
+                                <div class="text-danger small mt-1">
+                                    {{ error }}
+                                </div>
+
+                            {% endfor %}
+
                         </div>
+
+
+                        <!-- =========================== -->
+                        <!-- DEPARTMENT -->
+                        <!-- =========================== -->
+
                         <div class="mb-3">
-    <label>Department</label>
-    {{ form.department }}
-</div>
+
+                            <label class="form-label fw-semibold">
+                                Department
+                            </label>
+
+                            {{ form.department }}
+
+                            {% for error in form.department.errors %}
+
+                                <div class="text-danger small mt-1">
+                                    {{ error }}
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+
+                        <!-- =========================== -->
+                        <!-- PASSWORDS -->
+                        <!-- =========================== -->
 
                         <div class="row">
 
                             <div class="col-md-6 mb-3">
-                                <label>Password</label>
-                                {{ form.password }}
+
+                                <label class="form-label fw-semibold">
+                                    Password
+                                </label>
+
+                                <div class="input-group">
+
+                                    {{ form.password }}
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-secondary"
+                                        onclick="togglePassword(
+                                            'id_password',
+                                            'passwordIcon'
+                                        )"
+                                    >
+
+                                        <i
+                                            id="passwordIcon"
+                                            class="fas fa-eye"
+                                        ></i>
+
+                                    </button>
+
+                                </div>
+
+                                {% for error in form.password.errors %}
+
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
                             </div>
 
+
                             <div class="col-md-6 mb-3">
-                                <label>Confirm Password</label>
-                                {{ form.confirm_password }}
+
+                                <label class="form-label fw-semibold">
+                                    Confirm Password
+                                </label>
+
+                                <div class="input-group">
+
+                                    {{ form.confirm_password }}
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-secondary"
+                                        onclick="togglePassword(
+                                            'id_confirm_password',
+                                            'confirmPasswordIcon'
+                                        )"
+                                    >
+
+                                        <i
+                                            id="confirmPasswordIcon"
+                                            class="fas fa-eye"
+                                        ></i>
+
+                                    </button>
+
+                                </div>
+
+                                {% for error in form.confirm_password.errors %}
+
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
                             </div>
 
                         </div>
 
-                        <button class="btn btn-success">
-                            <i class="fas fa-save"></i>
-                            Save Faculty
-                        </button>
 
-                        <a href="{% url 'manage_faculty' %}" class="btn btn-secondary">
-                            Cancel
-                        </a>
+                        <!-- =========================== -->
+                        <!-- BUTTONS -->
+                        <!-- =========================== -->
+
+                        <div class="d-flex gap-2 mt-3">
+
+                            <button
+                                type="submit"
+                                class="btn btn-success"
+                            >
+
+                                <i class="fas fa-save me-1"></i>
+
+                                Save Faculty
+
+                            </button>
+
+
+                            <a
+                                href="{% url 'manage_faculty' %}"
+                                class="btn btn-secondary"
+                            >
+
+                                <i class="fas fa-times me-1"></i>
+
+                                Cancel
+
+                            </a>
+
+                        </div>
 
                     </form>
 
@@ -96,5 +324,41 @@
     </div>
 
 </div>
+
+
+<!-- =============================== -->
+<!-- PASSWORD SHOW/HIDE -->
+<!-- =============================== -->
+
+<script>
+
+function togglePassword(inputId, iconId) {
+
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+
+    if (!input || !icon) {
+        return;
+    }
+
+    if (input.type === "password") {
+
+        input.type = "text";
+
+        icon.classList.remove("fa-eye");
+        icon.classList.add("fa-eye-slash");
+
+    } else {
+
+        input.type = "password";
+
+        icon.classList.remove("fa-eye-slash");
+        icon.classList.add("fa-eye");
+
+    }
+
+}
+
+</script>
 
 {% endblock %}
