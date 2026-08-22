@@ -467,6 +467,3 @@ class StudentAnswer(models.Model):
     answered_at = models.DateTimeField(
         auto_now_add=True
     )
-
-
-    

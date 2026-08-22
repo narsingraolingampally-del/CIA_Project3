@@ -63,11 +63,15 @@ WSGI_APPLICATION = "core.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+        "ENGINE": "mssql",
+        "NAME": "CIA_Examination",
+        "HOST": r"DESKTOP-B9DUPVH\SQLEXPRESS",
+        "OPTIONS": {
+            "driver": "ODBC Driver 18 for SQL Server",
+            "extra_params": "Encrypt=no;TrustServerCertificate=yes;",
+        },
+    },
 }
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",

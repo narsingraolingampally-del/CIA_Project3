@@ -105,7 +105,7 @@ urlpatterns = [
     ),
 
 
-    # =====================================================
+   # =====================================================
 # FACULTY - QUESTIONS
 # =====================================================
 
@@ -138,7 +138,6 @@ path(
     views.delete_all_questions,
     name="delete_all_questions"
 ),
-
 
 # =====================================================
 # QUESTION BANK - ADMIN
@@ -332,6 +331,15 @@ path(
         name="upload_faculty"
     ),
 
+path(
+    "faculty/upload-questions/",
+    views.faculty_upload_questions,
+    name="faculty_upload_questions"
+),
+
+
+
+
     path(
         "admin-panel/faculty/upload/template/",
         views.download_faculty_template,
@@ -390,7 +398,11 @@ path(
         views.bulk_delete_students,
         name="bulk_delete_students"
     ),
-
+path(
+    "admin-panel/students/add/",
+    views.add_student,
+    name="add_student"
+),
 
     # =====================================================
     # COURSE MANAGEMENT

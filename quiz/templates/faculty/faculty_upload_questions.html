@@ -1,0 +1,507 @@
+{% extends "faculty/base_faculty.html" %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h2 class="fw-bold">
+
+                <i class="fas fa-upload text-success me-2"></i>
+
+                Upload Questions
+
+            </h2>
+
+            <p class="text-muted mb-0">
+
+                Upload questions using an Excel file
+
+            </p>
+
+        </div>
+
+        <a href="{% url 'faculty_dashboard' %}"
+           class="btn btn-outline-secondary">
+
+            <i class="fas fa-arrow-left me-1"></i>
+
+            Back to Dashboard
+
+        </a>
+
+    </div>
+
+
+    <div class="card shadow border-0">
+
+        <div class="card-header bg-success text-white">
+
+            <h5 class="mb-0">
+
+                <i class="fas fa-file-excel me-2"></i>
+
+                Excel Question Upload
+
+            </h5>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <form method="POST"
+                  enctype="multipart/form-data">
+
+                {% csrf_token %}
+
+
+                <div class="row g-3">
+
+
+                    <!-- COURSE -->
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-bold">
+
+                            Course
+
+                            <span class="text-danger">*</span>
+
+                        </label>
+
+                        {{ form.course }}
+
+                        {% if form.course.errors %}
+
+                            <div class="text-danger small">
+
+                                {{ form.course.errors }}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- SEMESTER -->
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-bold">
+
+                            Semester
+
+                            <span class="text-danger">*</span>
+
+                        </label>
+
+                        {{ form.semester }}
+
+                        {% if form.semester.errors %}
+
+                            <div class="text-danger small">
+
+                                {{ form.semester.errors }}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- SUBJECT -->
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-bold">
+
+                            Subject
+
+                            <span class="text-danger">*</span>
+
+                        </label>
+
+                        <select
+                            name="subject"
+                            id="id_subject"
+                            class="form-select"
+                            required
+                        >
+
+                            <option value="">
+
+                                Select Subject
+
+                            </option>
+
+                        </select>
+
+
+                        <div
+                            id="subjectLoading"
+                            class="text-muted small mt-1"
+                            style="display:none;"
+                        >
+
+                            <i class="fas fa-spinner fa-spin"></i>
+
+                            Loading subjects...
+
+                        </div>
+
+
+                        <div
+                            id="subjectError"
+                            class="text-danger small mt-1"
+                            style="display:none;"
+                        >
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ACADEMIC YEAR -->
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-bold">
+
+                            Academic Year
+
+                            <span class="text-danger">*</span>
+
+                        </label>
+
+                        {{ form.academic_year }}
+
+                    </div>
+
+
+                    <!-- EXCEL FILE -->
+
+                    <div class="col-md-12">
+
+                        <label class="form-label fw-bold">
+
+                            Excel File
+
+                            <span class="text-danger">*</span>
+
+                        </label>
+
+                        {{ form.excel_file }}
+
+                        <div class="form-text">
+
+                            Upload only .xlsx Excel files.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <hr class="my-4">
+
+
+                <button
+                    type="submit"
+                    class="btn btn-success"
+                >
+
+                    <i class="fas fa-upload me-1"></i>
+
+                    Upload Questions
+
+                </button>
+
+
+                <a
+                    href="{% url 'faculty_dashboard' %}"
+                    class="btn btn-secondary"
+                >
+
+                    Cancel
+
+                </a>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- EXCEL FORMAT -->
+
+    <div class="card shadow border-0 mt-4">
+
+        <div class="card-header bg-primary text-white">
+
+            <h5 class="mb-0">
+
+                Required Excel Format
+
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>question_text</th>
+
+                            <th>option1</th>
+
+                            <th>option2</th>
+
+                            <th>option3</th>
+
+                            <th>option4</th>
+
+                            <th>correct_answer</th>
+
+                            <th>marks</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+
+                            <td>What is Python?</td>
+
+                            <td>Programming Language</td>
+
+                            <td>Animal</td>
+
+                            <td>Database</td>
+
+                            <td>Operating System</td>
+
+                            <td>1</td>
+
+                            <td>1</td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const courseSelect =
+            document.getElementById(
+                "id_course"
+            );
+
+        const semesterSelect =
+            document.getElementById(
+                "id_semester"
+            );
+
+        const subjectSelect =
+            document.getElementById(
+                "id_subject"
+            );
+
+        const loading =
+            document.getElementById(
+                "subjectLoading"
+            );
+
+        const errorBox =
+            document.getElementById(
+                "subjectError"
+            );
+
+
+        function resetSubjects() {
+
+            subjectSelect.innerHTML =
+
+                '<option value="">Select Subject</option>';
+
+        }
+
+
+        function loadSubjects() {
+
+            const courseId =
+                courseSelect.value;
+
+            const semester =
+                semesterSelect.value;
+
+
+            resetSubjects();
+
+
+            if (!courseId || !semester) {
+
+                return;
+
+            }
+
+
+            loading.style.display =
+                "block";
+
+
+            subjectSelect.disabled =
+                true;
+
+
+            const url =
+
+                "{% url 'get_subjects' %}" +
+
+                "?course=" +
+
+                encodeURIComponent(courseId) +
+
+                "&semester=" +
+
+                encodeURIComponent(semester);
+
+
+            fetch(url)
+
+                .then(response => {
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            "Failed to load subjects"
+                        );
+
+                    }
+
+                    return response.json();
+
+                })
+
+                .then(data => {
+
+                    resetSubjects();
+
+
+                    if (
+                        !data.subjects ||
+                        data.subjects.length === 0
+                    ) {
+
+                        subjectSelect.innerHTML =
+
+                            '<option value="">No subjects available</option>';
+
+                        return;
+
+                    }
+
+
+                    data.subjects.forEach(
+                        subject => {
+
+                            const option =
+                                document.createElement(
+                                    "option"
+                                );
+
+                            option.value =
+                                subject.id;
+
+                            option.textContent =
+
+                                subject.code +
+
+                                " - " +
+
+                                subject.name;
+
+
+                            subjectSelect.appendChild(
+                                option
+                            );
+
+                        }
+                    );
+
+                })
+
+                .catch(error => {
+
+                    console.error(error);
+
+                    errorBox.textContent =
+
+                        "Unable to load subjects.";
+
+                    errorBox.style.display =
+                        "block";
+
+                })
+
+                .finally(() => {
+
+                    loading.style.display =
+                        "none";
+
+                    subjectSelect.disabled =
+                        false;
+
+                });
+
+        }
+
+
+        courseSelect.addEventListener(
+            "change",
+            loadSubjects
+        );
+
+
+        semesterSelect.addEventListener(
+            "change",
+            loadSubjects
+        );
+
+    }
+
+);
+
+</script>
+
+{% endblock %}

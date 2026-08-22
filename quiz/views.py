@@ -1289,76 +1289,43 @@ def create_exam(request):
 # ADD STUDENT
 # =========================================
 
-@login_required
-@user_passes_test(is_admin)
-def add_student(request):
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.db import transaction
+from django.shortcuts import get_object_or_404, redirect, render
 
-    if request.method == "POST":
+from .models import (
+    Exam,
+    ExamQuestion,
+    Result,
+    StudentAnswer,
+)
 
-        form = StudentRegistrationForm(request.POST)
-
-        if form.is_valid():
-
-            form.save()
-
-            messages.success(
-                request,
-                "Student added successfully."
-            )
-
-            return redirect("manage_students")
-
-    else:
-
-        form = StudentRegistrationForm()
-
-    return render(
-        request,
-        "admin_panel/add_student.html",
-        {
-            "form": form
-        }
-    )
-
-
-# =========================================
-# EDIT STUDENT
-# =========================================
 
 @login_required
 @user_passes_test(is_student)
 def submit_exam(request):
 
     # =====================================================
-    # ONLY POST REQUEST ALLOWED
+    # ONLY POST REQUEST
     # =====================================================
 
     if request.method != "POST":
-
-        return redirect(
-            "student_dashboard"
-        )
+        return redirect("student_dashboard")
 
 
     # =====================================================
     # GET EXAM ID
     # =====================================================
 
-    exam_id = request.POST.get(
-        "exam_id"
-    )
-
+    exam_id = request.POST.get("exam_id")
 
     if not exam_id:
-
         messages.error(
             request,
             "Invalid exam submission."
         )
-
-        return redirect(
-            "student_dashboard"
-        )
+        return redirect("student_dashboard")
 
 
     # =====================================================
@@ -1385,40 +1352,33 @@ def submit_exam(request):
             "You have already attempted this exam."
         )
 
-        return redirect(
-            "student_dashboard"
-        )
+        return redirect("student_dashboard")
 
 
     # =====================================================
-    # GET EXAM QUESTIONS
+    # GET QUESTIONS
     # =====================================================
 
     exam_questions = (
         ExamQuestion.objects
-        .filter(
-            exam=exam
-        )
-        .select_related(
-            "question"
-        )
-        .order_by(
-            "id"
-        )
+        .filter(exam=exam)
+        .select_related("question")
+        .order_by("id")
     )
 
 
     # =====================================================
-    # SCORE VARIABLES
+    # VARIABLES
     # =====================================================
 
     score = 0
-
     total_marks = 0
+
+    student_answers = []
 
 
     # =====================================================
-    # CHECK EACH QUESTION
+    # PROCESS EACH QUESTION
     # =====================================================
 
     for eq in exam_questions:
@@ -1427,39 +1387,42 @@ def submit_exam(request):
 
 
         # -------------------------------------------------
-        # ADD QUESTION MARKS
+        # MARKS
         # -------------------------------------------------
 
-        question_marks = (
-            question.marks or 1
-        )
+        question_marks = question.marks or 1
 
         total_marks += question_marks
 
 
         # -------------------------------------------------
-        # GET SELECTED OPTION
+        # IMPORTANT:
         #
-        # take_exam.html:
+        # HTML:
+        # name="question_{{ q.question.id }}"
         #
-        # name="question_{{ q.id }}"
-        #
-        # value="1"
-        # value="2"
-        # value="3"
-        # value="4"
+        # Therefore use question.id
+        # NOT eq.id
         # -------------------------------------------------
 
         selected = request.POST.get(
-            f"question_{eq.id}"
+            f"question_{question.id}"
         )
 
 
+        if selected:
+
+            selected = str(
+                selected
+            ).strip()
+
+        else:
+
+            selected = ""
+
+
         # -------------------------------------------------
-        # CORRECT ANSWER FROM DATABASE
-        #
-        # Database contains:
-        # 1 / 2 / 3 / 4
+        # CORRECT ANSWER
         # -------------------------------------------------
 
         correct_answer = str(
@@ -1467,15 +1430,40 @@ def submit_exam(request):
         ).strip()
 
 
+        # -------------------------------------------------
+        # CHECK ANSWER
+        # -------------------------------------------------
+
+        is_correct = (
+            selected != ""
+            and selected == correct_answer
+        )
+
+
+        # -------------------------------------------------
+        # MARKS OBTAINED
+        # -------------------------------------------------
+
+        if is_correct:
+
+            marks_obtained = question_marks
+
+            score += question_marks
+
+        else:
+
+            marks_obtained = 0
+
+
         # =================================================
         # DEBUG
         # =================================================
 
-        print("--------------------------------")
+        print("----------------------------------------")
 
         print(
-            "Question:",
-            question.question_text
+            "Question ID:",
+            question.id
         )
 
         print(
@@ -1484,55 +1472,44 @@ def submit_exam(request):
         )
 
         print(
-            "Selected option:",
+            "Selected:",
             selected
         )
 
         print(
-            "Correct answer:",
+            "Correct:",
             correct_answer
         )
 
         print(
+            "Is Correct:",
+            is_correct
+        )
+
+        print(
             "Marks:",
-            question_marks
+            marks_obtained
         )
 
 
         # =================================================
-        # NO ANSWER
+        # SAVE STUDENT ANSWER
         # =================================================
 
-        if not selected:
-
-            print(
-                "✗ NOT ANSWERED"
+        student_answers.append(
+            StudentAnswer(
+                student=request.user,
+                exam=exam,
+                question=question,
+                selected_answer=selected,
+                is_correct=is_correct,
+                marks_obtained=marks_obtained
             )
-
-            continue
-
-
-        # =================================================
-        # COMPARE OPTION NUMBERS
-        # =================================================
-
-        if str(selected).strip() == correct_answer:
-
-            score += question_marks
-
-            print(
-                "✓ CORRECT"
-            )
-
-        else:
-
-            print(
-                "✗ WRONG"
-            )
+        )
 
 
     # =====================================================
-    # CALCULATE PERCENTAGE
+    # PERCENTAGE
     # =====================================================
 
     if total_marks > 0:
@@ -1547,55 +1524,93 @@ def submit_exam(request):
 
 
     # =====================================================
-    # SAVE RESULT
+    # SAVE RESULT + ANSWERS
     # =====================================================
 
-    result = Result.objects.create(
+    with transaction.atomic():
 
-        student=request.user,
+        result = Result.objects.create(
 
-        exam=exam,
+            student=request.user,
 
-        score=score,
+            exam=exam,
 
-        total_marks=total_marks,
+            score=score,
 
-        percentage=percentage
+            total_marks=total_marks,
 
+            percentage=percentage
+
+        )
+
+
+        StudentAnswer.objects.bulk_create(
+            student_answers
+        )
+
+
+    # =====================================================
+    # FINAL DEBUG
+    # =====================================================
+
+    print("========================================")
+
+    print(
+        "STUDENT:",
+        request.user.username
     )
 
+    print(
+        "EXAM:",
+        exam.exam_name
+    )
+
+    print(
+        "EXAM ID:",
+        exam.id
+    )
+
+    print(
+        "SCORE:",
+        score
+    )
+
+    print(
+        "TOTAL MARKS:",
+        total_marks
+    )
+
+    print(
+        "PERCENTAGE:",
+        percentage
+    )
+
+    print(
+        "ANSWERS SAVED:",
+        len(student_answers)
+    )
+
+    print("========================================")
+
 
     # =====================================================
-    # SHOW RESULT
+    # RESULT PAGE
     # =====================================================
 
     return render(
-
         request,
-
         "student/result.html",
-
         {
-
             "exam": exam,
-
             "result": result,
-
             "score": score,
-
             "total_marks": total_marks,
-
             "percentage": round(
                 percentage,
                 2
             ),
-
         }
-
     )
-# =========================================
-# DELETE STUDENT
-# =========================================
 
 @login_required
 @user_passes_test(is_admin)
@@ -4752,14 +4767,13 @@ def student_dashboard(request):
 
 from django.contrib.auth import logout
 from django.shortcuts import redirect
-from django.contrib import messages
+
 
 def user_logout(request):
 
     logout(request)
 
-    return redirect("login")
-
+    return redirect("index")
 
 def load_subjects(request):
 
@@ -6731,3 +6745,254 @@ def delete_question(request, pk):
         return redirect("question_bank")
 
     return redirect("view_questions")
+@login_required
+@user_passes_test(is_faculty)
+def faculty_upload_questions(request):
+
+    if request.method == "POST":
+
+        form = QuestionUploadForm(
+            request.POST,
+            request.FILES
+        )
+
+        if form.is_valid():
+
+            course = form.cleaned_data["course"]
+            semester = form.cleaned_data["semester"]
+            subject = form.cleaned_data["subject"]
+            academic_year = form.cleaned_data["academic_year"]
+            excel_file = form.cleaned_data["excel_file"]
+
+            try:
+
+                import pandas as pd
+
+                df = pd.read_excel(excel_file)
+
+                df.columns = (
+                    df.columns
+                    .astype(str)
+                    .str.strip()
+                    .str.lower()
+                )
+
+                required_columns = [
+
+                    "question_text",
+                    "option1",
+                    "option2",
+                    "option3",
+                    "option4",
+                    "correct_answer",
+                    "marks",
+
+                ]
+
+                missing_columns = [
+
+                    column
+                    for column in required_columns
+                    if column not in df.columns
+
+                ]
+
+                if missing_columns:
+
+                    messages.error(
+                        request,
+                        "Missing Excel columns: "
+                        + ", ".join(missing_columns)
+                    )
+
+                    return render(
+                        request,
+                        "faculty/faculty_upload_questions.html",
+                        {
+                            "form": form,
+                        }
+                    )
+
+                created_count = 0
+
+                for index, row in df.iterrows():
+
+                    question_text = str(
+                        row["question_text"]
+                    ).strip()
+
+                    if not question_text:
+
+                        continue
+
+                    correct_answer = str(
+                        row["correct_answer"]
+                    ).strip()
+
+                    if correct_answer.endswith(".0"):
+
+                        correct_answer = correct_answer[:-2]
+
+                    if correct_answer not in [
+                        "1",
+                        "2",
+                        "3",
+                        "4",
+                    ]:
+
+                        continue
+
+                    def clean_value(value):
+
+                        if pd.isna(value):
+
+                            return ""
+
+                        return str(value).strip()
+
+
+                    Question.objects.create(
+
+                        question_text=question_text,
+
+                        option1=clean_value(
+                            row["option1"]
+                        ),
+
+                        option2=clean_value(
+                            row["option2"]
+                        ),
+
+                        option3=clean_value(
+                            row["option3"]
+                        ),
+
+                        option4=clean_value(
+                            row["option4"]
+                        ),
+
+                        correct_answer=correct_answer,
+
+                        marks=int(
+                            row["marks"]
+                        ),
+
+                        course=course,
+
+                        semester=semester,
+
+                        subject=subject,
+
+                        academic_year=academic_year,
+
+                    )
+
+                    created_count += 1
+
+
+                messages.success(
+
+                    request,
+
+                    f"{created_count} questions uploaded successfully."
+
+                )
+
+                return redirect(
+                    "faculty_upload_questions"
+                )
+
+
+            except Exception as e:
+
+                messages.error(
+
+                    request,
+
+                    f"Error uploading Excel file: {str(e)}"
+
+                )
+
+
+    else:
+
+        form = QuestionUploadForm()
+
+
+    return render(
+
+        request,
+
+        "faculty/faculty_upload_questions.html",
+
+        {
+            "form": form,
+        }
+
+    )
+@login_required
+@user_passes_test(is_admin)
+def add_student(request):
+
+    if request.method == "POST":
+
+        username = request.POST.get("username", "").strip()
+        password = request.POST.get("password", "").strip()
+        first_name = request.POST.get("first_name", "").strip()
+        last_name = request.POST.get("last_name", "").strip()
+        email = request.POST.get("email", "").strip()
+        course_id = request.POST.get("course")
+        semester = request.POST.get("semester")
+
+        if not username or not password:
+            messages.error(
+                request,
+                "Username and password are required."
+            )
+            return redirect("add_student")
+
+        if User.objects.filter(username=username).exists():
+            messages.error(
+                request,
+                "Username already exists."
+            )
+            return redirect("add_student")
+
+        course = None
+
+        if course_id:
+            course = Course.objects.filter(
+                id=course_id
+            ).first()
+
+        user = User.objects.create_user(
+            username=username,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            is_student=True,
+            semester=int(semester) if semester else 1,
+            course=course
+        )
+
+        StudentProfile.objects.create(
+            user=user
+        )
+
+        messages.success(
+            request,
+            f"Student {username} created successfully."
+        )
+
+        return redirect("manage_students")
+
+    courses = Course.objects.all().order_by("name")
+
+    return render(
+        request,
+        "admin_panel/add_student.html",
+        {
+            "courses": courses
+        }
+    )
