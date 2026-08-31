@@ -188,75 +188,16 @@ def admin_login(request):
 
     return render(request, "admin_panel/login.html")
 
-# =========================================
-# FACULTY LOGIN
-# =========================================
-
-from django.contrib.auth import authenticate, login
-from django.shortcuts import render, redirect
-from django.contrib import messages
-
-
 def faculty_login(request):
 
     # =====================================================
-    # ALREADY LOGGED-IN USER
-    # =====================================================
-
-    if request.user.is_authenticated:
-
-        # Admin
-        if request.user.is_superuser:
-            return redirect("admin_dashboard")
-
-        # Faculty
-        if request.user.is_faculty:
-            return redirect("faculty_dashboard")
-
-        # Student
-        if request.user.is_student:
-            return redirect("student_dashboard")
-
-        return redirect("index")
-
-
-    # =====================================================
-    # POST LOGIN
+    # FACULTY LOGIN
     # =====================================================
 
     if request.method == "POST":
 
-        username = request.POST.get(
-            "username",
-            ""
-        ).strip()
-
-        password = request.POST.get(
-            "password",
-            ""
-        )
-
-
-        # -------------------------------------------------
-        # EMPTY FIELDS
-        # -------------------------------------------------
-
-        if not username or not password:
-
-            messages.error(
-                request,
-                "Please enter username and password."
-            )
-
-            return render(
-                request,
-                "faculty/login.html"
-            )
-
-
-        # -------------------------------------------------
-        # AUTHENTICATE
-        # -------------------------------------------------
+        username = request.POST.get("username", "").strip()
+        password = request.POST.get("password", "")
 
         user = authenticate(
             request,
@@ -264,10 +205,9 @@ def faculty_login(request):
             password=password
         )
 
-
-        # -------------------------------------------------
+        # =================================================
         # INVALID LOGIN
-        # -------------------------------------------------
+        # =================================================
 
         if user is None:
 
@@ -281,55 +221,15 @@ def faculty_login(request):
                 "faculty/login.html"
             )
 
-
-        # -------------------------------------------------
-        # DISABLED ACCOUNT
-        # -------------------------------------------------
-
-        if not user.is_active:
-
-            messages.error(
-                request,
-                "Your account is disabled."
-            )
-
-            return render(
-                request,
-                "faculty/login.html"
-            )
-
-
         # =================================================
-        # FACULTY LOGIN
-        # =================================================
-        #
-        # Faculty login should ONLY allow faculty.
-        #
-        # Do NOT redirect faculty to admin dashboard.
-        #
-        # =================================================
-
-        if user.is_faculty and not user.is_superuser:
-
-            login(
-                request,
-                user
-            )
-
-            return redirect(
-                "faculty_dashboard"
-            )
-
-
-        # =================================================
-        # ADMIN ACCOUNT USING FACULTY LOGIN
+        # ADMIN NOT ALLOWED
         # =================================================
 
         if user.is_superuser:
 
             messages.error(
                 request,
-                "Please use the Admin Login."
+                "Admin account cannot use Faculty Login. Please use Admin Login."
             )
 
             return render(
@@ -337,38 +237,31 @@ def faculty_login(request):
                 "faculty/login.html"
             )
 
-
         # =================================================
-        # STUDENT ACCOUNT USING FACULTY LOGIN
+        # FACULTY
         # =================================================
 
-        if user.is_student:
+        if user.is_faculty:
 
-            messages.error(
-                request,
-                "Please use the Student Login."
+            login(request, user)
+
+            return redirect(
+                "faculty_dashboard"
             )
 
-            return render(
-                request,
-                "faculty/login.html"
-            )
-
-
         # =================================================
-        # NO ROLE
+        # OTHER USERS
         # =================================================
 
         messages.error(
             request,
-            "This account is not authorized for Faculty Login."
+            "This login is only for Faculty."
         )
 
         return render(
             request,
             "faculty/login.html"
         )
-
 
     # =====================================================
     # GET REQUEST
@@ -1300,8 +1193,6 @@ from .models import (
     Result,
     StudentAnswer,
 )
-
-
 @login_required
 @user_passes_test(is_student)
 def submit_exam(request):
@@ -1311,21 +1202,59 @@ def submit_exam(request):
     # =====================================================
 
     if request.method != "POST":
-        return redirect("student_dashboard")
+
+        return redirect(
+            "student_dashboard"
+        )
 
 
     # =====================================================
     # GET EXAM ID
     # =====================================================
 
-    exam_id = request.POST.get("exam_id")
+    exam_id = request.POST.get(
+        "exam_id"
+    )
+
 
     if not exam_id:
+
         messages.error(
             request,
             "Invalid exam submission."
         )
-        return redirect("student_dashboard")
+
+        return redirect(
+            "student_dashboard"
+        )
+
+
+    # =====================================================
+    # GET SUBMISSION REASON
+    # =====================================================
+
+    submission_reason = request.POST.get(
+        "submission_reason",
+        "manual"
+    )
+
+
+    # =====================================================
+    # ALLOWED SUBMISSION REASONS
+    # =====================================================
+
+    allowed_reasons = {
+        "manual",
+        "tab_switch",
+        "window_switch",
+        "browser_back",
+        "time_expired",
+    }
+
+
+    if submission_reason not in allowed_reasons:
+
+        submission_reason = "manual"
 
 
     # =====================================================
@@ -1352,7 +1281,9 @@ def submit_exam(request):
             "You have already attempted this exam."
         )
 
-        return redirect("student_dashboard")
+        return redirect(
+            "student_dashboard"
+        )
 
 
     # =====================================================
@@ -1372,6 +1303,7 @@ def submit_exam(request):
     # =====================================================
 
     score = 0
+
     total_marks = 0
 
     student_answers = []
@@ -1390,19 +1322,18 @@ def submit_exam(request):
         # MARKS
         # -------------------------------------------------
 
-        question_marks = question.marks or 1
+        question_marks = (
+            question.marks
+            if question.marks
+            else 1
+        )
+
 
         total_marks += question_marks
 
 
         # -------------------------------------------------
-        # IMPORTANT:
-        #
-        # HTML:
-        # name="question_{{ q.question.id }}"
-        #
-        # Therefore use question.id
-        # NOT eq.id
+        # GET SELECTED ANSWER
         # -------------------------------------------------
 
         selected = request.POST.get(
@@ -1436,7 +1367,8 @@ def submit_exam(request):
 
         is_correct = (
             selected != ""
-            and selected == correct_answer
+            and
+            selected == correct_answer
         )
 
 
@@ -1446,7 +1378,9 @@ def submit_exam(request):
 
         if is_correct:
 
-            marks_obtained = question_marks
+            marks_obtained = (
+                question_marks
+            )
 
             score += question_marks
 
@@ -1497,14 +1431,23 @@ def submit_exam(request):
         # =================================================
 
         student_answers.append(
+
             StudentAnswer(
+
                 student=request.user,
+
                 exam=exam,
+
                 question=question,
+
                 selected_answer=selected,
+
                 is_correct=is_correct,
+
                 marks_obtained=marks_obtained
+
             )
+
         )
 
 
@@ -1515,7 +1458,8 @@ def submit_exam(request):
     if total_marks > 0:
 
         percentage = (
-            score / total_marks
+            score /
+            total_marks
         ) * 100
 
     else:
@@ -1571,6 +1515,11 @@ def submit_exam(request):
     )
 
     print(
+        "SUBMISSION REASON:",
+        submission_reason
+    )
+
+    print(
         "SCORE:",
         score
     )
@@ -1602,15 +1551,23 @@ def submit_exam(request):
         "student/result.html",
         {
             "exam": exam,
+
             "result": result,
+
             "score": score,
+
             "total_marks": total_marks,
+
             "percentage": round(
                 percentage,
                 2
             ),
+
+            "submission_reason":
+                submission_reason,
         }
     )
+
 
 @login_required
 @user_passes_test(is_admin)
@@ -3355,7 +3312,6 @@ def delete_paper(request, pk):
 # =========================================
 # ADMIN REPORTS DASHBOARD
 # =========================================
-
 @login_required
 @user_passes_test(is_admin)
 def admin_reports(request):
@@ -3368,71 +3324,113 @@ def admin_reports(request):
         "exam__subject"
     ).order_by("-completed_at")
 
+
     # ==========================================
     # FILTER VALUES
     # ==========================================
 
-    search = request.GET.get("search", "").strip()
-    course = request.GET.get("course", "").strip()
-    semester = request.GET.get("semester", "").strip()
-    subject = request.GET.get("subject", "").strip()
-    exam_id = request.GET.get("exam", "").strip()
+    search = request.GET.get(
+        "search",
+        ""
+    ).strip()
+
+    course = request.GET.get(
+        "course",
+        ""
+    ).strip()
+
+    semester = request.GET.get(
+        "semester",
+        ""
+    ).strip()
+
+    subject = request.GET.get(
+        "subject",
+        ""
+    ).strip()
+
+    exam_id = request.GET.get(
+        "exam",
+        ""
+    ).strip()
+
 
     # ==========================================
     # SEARCH
     # ==========================================
 
     if search:
+
         results = results.filter(
+
             Q(student__username__icontains=search) |
+
             Q(student__first_name__icontains=search) |
+
             Q(student__last_name__icontains=search) |
+
             Q(student__email__icontains=search) |
+
             Q(exam__exam_name__icontains=search)
+
         )
+
 
     # ==========================================
     # COURSE
     # ==========================================
 
     if course:
+
         results = results.filter(
             exam__course_id=course
         )
+
 
     # ==========================================
     # SEMESTER
     # ==========================================
 
     if semester:
+
         try:
-            semester_value = int(semester)
+
+            semester_value = int(
+                semester
+            )
 
             if 1 <= semester_value <= 8:
+
                 results = results.filter(
                     exam__semester=semester_value
                 )
 
         except ValueError:
+
             semester = ""
+
 
     # ==========================================
     # SUBJECT
     # ==========================================
 
     if subject:
+
         results = results.filter(
             exam__subject_id=subject
         )
+
 
     # ==========================================
     # EXAM
     # ==========================================
 
     if exam_id:
+
         results = results.filter(
             exam_id=exam_id
         )
+
 
     # ==========================================
     # STATISTICS
@@ -3440,74 +3438,225 @@ def admin_reports(request):
 
     total_results = results.count()
 
-    total_students = results.values(
-        "student_id"
-    ).distinct().count()
 
-    average_percentage = results.aggregate(
-        average=Avg("percentage")
-    )["average"] or 0
+    total_students = (
+        results
+        .values("student_id")
+        .distinct()
+        .count()
+    )
+
+
+    average_percentage = (
+        results
+        .aggregate(
+            average=Avg("percentage")
+        )["average"]
+        or 0
+    )
+
 
     pass_count = results.filter(
         percentage__gte=40
     ).count()
 
+
     fail_count = results.filter(
         percentage__lt=40
     ).count()
 
-    highest_score = results.order_by(
-        "-percentage"
-    ).first()
+
+    highest_score = (
+        results
+        .order_by("-percentage")
+        .first()
+    )
+
 
     # ==========================================
     # FILTER OPTIONS
     # ==========================================
 
-    courses = Course.objects.all().order_by("name")
+    courses = (
+        Course.objects
+        .all()
+        .order_by("name")
+    )
 
-    subjects = Subject.objects.all().order_by("name")
 
-    exams = Exam.objects.select_related(
-        "course",
-        "subject"
-    ).order_by("-id")
+    subjects = (
+        Subject.objects
+        .all()
+        .order_by("name")
+    )
+
+
+    exams = (
+        Exam.objects
+        .select_related(
+            "course",
+            "subject"
+        )
+        .order_by("-id")
+    )
+
 
     semesters = range(1, 9)
+
 
     # ==========================================
     # CONTEXT
     # ==========================================
 
     context = {
+
         "results": results,
+
         "courses": courses,
+
         "subjects": subjects,
+
         "exams": exams,
+
         "semesters": semesters,
 
-        "total_results": total_results,
-        "total_students": total_students,
-        "average_percentage": round(
-            average_percentage,
-            2
-        ),
-        "pass_count": pass_count,
-        "fail_count": fail_count,
-        "highest_score": highest_score,
 
-        "search": search,
-        "selected_course": course,
-        "selected_semester": semester,
-        "selected_subject": subject,
-        "selected_exam": exam_id,
+        "total_results":
+            total_results,
+
+        "total_students":
+            total_students,
+
+        "average_percentage":
+            round(
+                average_percentage,
+                2
+            ),
+
+        "pass_count":
+            pass_count,
+
+        "fail_count":
+            fail_count,
+
+        "highest_score":
+            highest_score,
+
+
+        "search":
+            search,
+
+        "selected_course":
+            course,
+
+        "selected_semester":
+            semester,
+
+        "selected_subject":
+            subject,
+
+        "selected_exam":
+            exam_id,
+
     }
+
 
     return render(
         request,
         "admin_panel/reports.html",
         context
-    )    # =========================================
+    )
+@login_required
+@user_passes_test(is_admin)
+def delete_exam_attempt(request, result_id):
+
+    # =====================================================
+    # ONLY POST REQUEST
+    # =====================================================
+
+    if request.method != "POST":
+        return redirect("admin_reports")
+
+
+    # =====================================================
+    # GET RESULT
+    # =====================================================
+
+    result = get_object_or_404(
+        Result.objects.select_related(
+            "student",
+            "exam"
+        ),
+        id=result_id
+    )
+
+
+    # =====================================================
+    # SAVE INFORMATION BEFORE DELETE
+    # =====================================================
+
+    student = result.student
+    exam = result.exam
+
+
+    student_name = (
+        student.get_full_name()
+        or student.username
+    )
+
+    exam_name = exam.exam_name
+
+
+    # =====================================================
+    # DELETE STUDENT ANSWERS
+    # =====================================================
+
+    StudentAnswer.objects.filter(
+        student=student,
+        exam=exam
+    ).delete()
+
+
+    # =====================================================
+    # DELETE RESULT
+    # =====================================================
+
+    result.delete()
+
+
+    # =====================================================
+    # SUCCESS MESSAGE
+    # =====================================================
+
+    messages.success(
+        request,
+        f"Previous attempt of {student_name} "
+        f"for {exam_name} was deleted successfully. "
+        f"The student can now attempt the exam again."
+    )
+
+
+    # =====================================================
+    # PRESERVE REPORT FILTERS
+    # =====================================================
+
+    query_string = request.POST.get(
+        "return_query",
+        ""
+    )
+
+
+    if query_string:
+
+        return redirect(
+            f"/admin/reports/?{query_string}"
+        )
+
+
+    return redirect(
+        "admin_reports"
+    )    
+# =========================================
 # MANAGE EXAMS
 # =========================================
 
@@ -6178,20 +6327,88 @@ def download_faculty_template(request):
 @user_passes_test(is_admin)
 def delete_exam(request, exam_id):
 
-    exam = get_object_or_404(Exam, id=exam_id)
+    # =====================================================
+    # ONLY POST REQUEST
+    # =====================================================
 
-    if request.method == "POST":
-        exam_name = exam.exam_name
-        exam.delete()
-
-        messages.success(
-            request,
-            f'Exam "{exam_name}" deleted successfully.'
-        )
-
+    if request.method != "POST":
         return redirect("manage_exams")
 
-    return redirect("manage_exams")
+
+    # =====================================================
+    # GET EXAM
+    # =====================================================
+
+    exam = get_object_or_404(
+        Exam,
+        id=exam_id
+    )
+
+
+    # =====================================================
+    # SAVE EXAM NAME
+    # =====================================================
+
+    exam_name = exam.exam_name
+
+
+    # =====================================================
+    # DELETE EVERYTHING RELATED TO THIS EXAM
+    # =====================================================
+
+    with transaction.atomic():
+
+        # -------------------------------------------------
+        # DELETE STUDENT ANSWERS
+        # -------------------------------------------------
+
+        StudentAnswer.objects.filter(
+            exam=exam
+        ).delete()
+
+
+        # -------------------------------------------------
+        # DELETE RESULTS
+        # -------------------------------------------------
+
+        Result.objects.filter(
+            exam=exam
+        ).delete()
+
+
+        # -------------------------------------------------
+        # DELETE EXAM QUESTIONS
+        # -------------------------------------------------
+
+        ExamQuestion.objects.filter(
+            exam=exam
+        ).delete()
+
+
+        # -------------------------------------------------
+        # DELETE EXAM
+        # -------------------------------------------------
+
+        exam.delete()
+
+
+    # =====================================================
+    # SUCCESS MESSAGE
+    # =====================================================
+
+    messages.success(
+        request,
+        f'Exam "{exam_name}" deleted successfully.'
+    )
+
+
+    # =====================================================
+    # RETURN TO EXAM MANAGEMENT
+    # =====================================================
+
+    return redirect(
+        "manage_exams"
+    )
 
 @login_required
 @user_passes_test(is_admin)
@@ -6718,10 +6935,18 @@ def upload_question_bank(request):
 @user_passes_test(is_admin_or_faculty)
 def delete_question(request, pk):
 
+    # =====================================================
+    # GET QUESTION
+    # =====================================================
+
     question = get_object_or_404(
         Question,
         pk=pk
     )
+
+    # =====================================================
+    # DELETE ONLY WITH POST
+    # =====================================================
 
     if request.method == "POST":
 
@@ -6732,20 +6957,38 @@ def delete_question(request, pk):
             "Question deleted successfully."
         )
 
-        # Return according to the user's role
+        # =================================================
+        # ADMIN
+        # =================================================
+
         if request.user.is_superuser:
-            return redirect("question_bank")
 
-        return redirect("view_questions")
+            return redirect(
+                "question_bank"
+            )
 
-    # If somebody accesses the URL directly with GET,
-    # simply return to the appropriate page.
+        # =================================================
+        # FACULTY
+        # =================================================
+
+        return redirect(
+            "view_questions"
+        )
+
+    # =====================================================
+    # GET REQUEST
+    # DO NOT DELETE
+    # =====================================================
 
     if request.user.is_superuser:
-        return redirect("question_bank")
 
-    return redirect("view_questions")
-@login_required
+        return redirect(
+            "question_bank"
+        )
+
+    return redirect(
+        "view_questions"
+    )@login_required
 @user_passes_test(is_faculty)
 def faculty_upload_questions(request):
 
@@ -6996,3 +7239,355 @@ def add_student(request):
             "courses": courses
         }
     )
+# =========================================================
+# EDIT QUESTION
+# =========================================================
+
+@login_required
+def edit_question(request, pk):
+
+    question = get_object_or_404(
+        Question,
+        pk=pk
+    )
+
+    # =====================================================
+    # ACCESS CONTROL
+    # =====================================================
+
+    if request.user.is_superuser:
+
+        # Admin can edit any question
+        pass
+
+    elif request.user.is_faculty:
+
+        # Faculty can edit questions
+        pass
+
+    else:
+
+        messages.error(
+            request,
+            "You are not allowed to edit questions."
+        )
+
+        return redirect("student_dashboard")
+
+
+    # =====================================================
+    # RETURN URL
+    # =====================================================
+
+    next_url = request.POST.get(
+        "next"
+    ) or request.GET.get(
+        "next"
+    )
+
+
+    # =====================================================
+    # POST
+    # =====================================================
+
+    if request.method == "POST":
+
+        question_text = request.POST.get(
+            "question_text",
+            ""
+        ).strip()
+
+        option1 = request.POST.get(
+            "option1",
+            ""
+        ).strip()
+
+        option2 = request.POST.get(
+            "option2",
+            ""
+        ).strip()
+
+        option3 = request.POST.get(
+            "option3",
+            ""
+        ).strip()
+
+        option4 = request.POST.get(
+            "option4",
+            ""
+        ).strip()
+
+        correct_answer = request.POST.get(
+            "correct_answer",
+            ""
+        ).strip()
+
+        marks = request.POST.get(
+            "marks",
+            ""
+        ).strip()
+
+
+        # =================================================
+        # VALIDATION
+        # =================================================
+
+        if not question_text:
+
+            messages.error(
+                request,
+                "Question text cannot be empty."
+            )
+
+            return render(
+                request,
+                "admin_panel/edit_question.html",
+                {
+                    "question": question,
+                    "next_url": next_url,
+                }
+            )
+
+
+        if correct_answer not in [
+            "1",
+            "2",
+            "3",
+            "4"
+        ]:
+
+            messages.error(
+                request,
+                "Please select a valid correct answer."
+            )
+
+            return render(
+                request,
+                "admin_panel/edit_question.html",
+                {
+                    "question": question,
+                    "next_url": next_url,
+                }
+            )
+
+
+        try:
+
+            marks_value = int(marks)
+
+            if marks_value <= 0:
+
+                raise ValueError
+
+        except (ValueError, TypeError):
+
+            messages.error(
+                request,
+                "Marks must be a positive number."
+            )
+
+            return render(
+                request,
+                "admin_panel/edit_question.html",
+                {
+                    "question": question,
+                    "next_url": next_url,
+                }
+            )
+
+
+        # =================================================
+        # UPDATE QUESTION
+        # =================================================
+
+        question.question_text = question_text
+
+        question.option1 = option1
+
+        question.option2 = option2
+
+        question.option3 = option3
+
+        question.option4 = option4
+
+        question.correct_answer = correct_answer
+
+        question.marks = marks_value
+
+
+        # =================================================
+        # SAVE
+        # =================================================
+
+        question.save()
+
+
+        messages.success(
+            request,
+            "Question updated successfully."
+        )
+
+
+        # =================================================
+        # RETURN TO PREVIOUS QUESTION BANK
+        # =================================================
+
+        if next_url:
+
+            if request.user.is_superuser:
+
+                return redirect(
+                    f"{next_url}"
+                )
+
+            elif request.user.is_faculty:
+
+                return redirect(
+                    f"{next_url}"
+                )
+
+
+        # =================================================
+        # DEFAULT REDIRECT
+        # =================================================
+
+        if request.user.is_superuser:
+
+            return redirect(
+                "question_bank"
+            )
+
+        elif request.user.is_faculty:
+
+            return redirect(
+                "faculty_question_bank"
+            )
+
+
+    # =====================================================
+    # GET
+    # =====================================================
+
+    return render(
+        request,
+        "admin_panel/edit_question.html",
+        {
+            "question": question,
+            "next_url": next_url,
+        }
+    )
+@login_required
+@user_passes_test(is_admin)
+def delete_selected_questions(request):
+
+    if request.method == "POST":
+
+        question_ids = request.POST.getlist("question_ids")
+
+        if not question_ids:
+            messages.warning(
+                request,
+                "Please select at least one question to delete."
+            )
+
+            return redirect("question_bank")
+
+        questions = Question.objects.filter(
+            id__in=question_ids
+        )
+
+        deleted_count = questions.count()
+
+        questions.delete()
+
+        messages.success(
+            request,
+            f"{deleted_count} question(s) deleted successfully."
+        )
+
+        return redirect("question_bank")
+
+    return redirect("question_bank")
+@login_required
+@user_passes_test(is_admin_or_faculty)
+def download_student_sample(request):
+
+    workbook = Workbook()
+    worksheet = workbook.active
+    worksheet.title = "Students"
+
+    headers = [
+        "Username",
+        "Name",
+        "Aadhaar Number",
+    ]
+
+    worksheet.append(headers)
+
+    worksheet.append([
+        "107225861001",
+        "Student Name",
+        "123456789012",
+    ])
+
+    worksheet.append([
+        "107225861002",
+        "Student Name 2",
+        "234567890123",
+    ])
+
+    # Header formatting
+    header_fill = PatternFill(
+        fill_type="solid",
+        fgColor="1F4E78"
+    )
+
+    header_font = Font(
+        bold=True,
+        color="FFFFFF"
+    )
+
+    for cell in worksheet[1]:
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(
+            horizontal="center"
+        )
+
+    # Column widths
+    worksheet.column_dimensions["A"].width = 20
+    worksheet.column_dimensions["B"].width = 30
+    worksheet.column_dimensions["C"].width = 20
+
+    # Keep Username as text
+    for row in worksheet.iter_rows(
+        min_row=2,
+        min_col=1,
+        max_col=1
+    ):
+        for cell in row:
+            cell.number_format = "@"
+
+    # Keep Aadhaar as text
+    for row in worksheet.iter_rows(
+        min_row=2,
+        min_col=3,
+        max_col=3
+    ):
+        for cell in row:
+            cell.number_format = "@"
+
+    response = HttpResponse(
+        content_type=(
+            "application/vnd.openxmlformats-officedocument."
+            "spreadsheetml.sheet"
+        )
+    )
+
+    response["Content-Disposition"] = (
+        'attachment; filename="student_upload_sample.xlsx"'
+    )
+
+    workbook.save(response)
+
+    return response

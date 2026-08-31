@@ -1,0 +1,479 @@
+{% extends 'faculty/base_faculty.html' %}
+
+{% block content %}
+
+<div class="container-fluid mt-4">
+
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h2 class="fw-bold mb-1">
+
+                <i class="fas fa-edit text-warning"></i>
+
+                Edit Question
+
+            </h2>
+
+            <p class="text-muted mb-0">
+
+                Update the question, options, correct answer and marks.
+
+            </p>
+
+        </div>
+
+
+        <div>
+
+            <a
+                href="{% url 'view_questions' %}"
+                class="btn btn-secondary"
+            >
+
+                <i class="fas fa-arrow-left"></i>
+
+                Back to Question Bank
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MESSAGES
+    ====================================================== -->
+
+    {% if messages %}
+
+        {% for message in messages %}
+
+            <div
+                class="alert alert-{{ message.tags }} alert-dismissible fade show"
+                role="alert"
+            >
+
+                {{ message }}
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                ></button>
+
+            </div>
+
+        {% endfor %}
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         EDIT QUESTION CARD
+    ====================================================== -->
+
+    <div class="card shadow border-0">
+
+        <div class="card-header bg-warning">
+
+            <h5 class="mb-0">
+
+                <i class="fas fa-question-circle"></i>
+
+                Question Details
+
+            </h5>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <form method="POST">
+
+                {% csrf_token %}
+
+
+                <!-- =================================================
+                     FORM ERRORS
+                ================================================== -->
+
+                {% if form.non_field_errors %}
+
+                    <div class="alert alert-danger">
+
+                        {{ form.non_field_errors }}
+
+                    </div>
+
+                {% endif %}
+
+
+                <!-- =================================================
+                     QUESTION
+                ================================================== -->
+
+                <div class="mb-4">
+
+                    <label
+                        for="{{ form.question_text.id_for_label }}"
+                        class="form-label fw-bold"
+                    >
+
+                        Question
+
+                    </label>
+
+                    {{ form.question_text }}
+
+                    {% if form.question_text.errors %}
+
+                        <div class="text-danger mt-1">
+
+                            {{ form.question_text.errors }}
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- =================================================
+                     OPTIONS
+                ================================================== -->
+
+                <div class="row">
+
+                    <!-- OPTION 1 -->
+
+                    <div class="col-md-6 mb-4">
+
+                        <label
+                            for="{{ form.option1.id_for_label }}"
+                            class="form-label fw-bold"
+                        >
+
+                            Option 1
+
+                        </label>
+
+                        {{ form.option1 }}
+
+                        {% if form.option1.errors %}
+
+                            <div class="text-danger mt-1">
+
+                                {{ form.option1.errors }}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- OPTION 2 -->
+
+                    <div class="col-md-6 mb-4">
+
+                        <label
+                            for="{{ form.option2.id_for_label }}"
+                            class="form-label fw-bold"
+                        >
+
+                            Option 2
+
+                        </label>
+
+                        {{ form.option2 }}
+
+                        {% if form.option2.errors %}
+
+                            <div class="text-danger mt-1">
+
+                                {{ form.option2.errors }}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- OPTION 3 -->
+
+                    <div class="col-md-6 mb-4">
+
+                        <label
+                            for="{{ form.option3.id_for_label }}"
+                            class="form-label fw-bold"
+                        >
+
+                            Option 3
+
+                        </label>
+
+                        {{ form.option3 }}
+
+                        {% if form.option3.errors %}
+
+                            <div class="text-danger mt-1">
+
+                                {{ form.option3.errors }}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- OPTION 4 -->
+
+                    <div class="col-md-6 mb-4">
+
+                        <label
+                            for="{{ form.option4.id_for_label }}"
+                            class="form-label fw-bold"
+                        >
+
+                            Option 4
+
+                        </label>
+
+                        {{ form.option4 }}
+
+                        {% if form.option4.errors %}
+
+                            <div class="text-danger mt-1">
+
+                                {{ form.option4.errors }}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     CORRECT ANSWER + MARKS
+                ================================================== -->
+
+                <div class="row">
+
+                    <!-- CORRECT ANSWER -->
+
+                    <div class="col-md-6 mb-4">
+
+                        <label
+                            for="{{ form.correct_answer.id_for_label }}"
+                            class="form-label fw-bold"
+                        >
+
+                            Correct Answer
+
+                        </label>
+
+                        {{ form.correct_answer }}
+
+                        {% if form.correct_answer.errors %}
+
+                            <div class="text-danger mt-1">
+
+                                {{ form.correct_answer.errors }}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- MARKS -->
+
+                    <div class="col-md-6 mb-4">
+
+                        <label
+                            for="{{ form.marks.id_for_label }}"
+                            class="form-label fw-bold"
+                        >
+
+                            Marks
+
+                        </label>
+
+                        {{ form.marks }}
+
+                        {% if form.marks.errors %}
+
+                            <div class="text-danger mt-1">
+
+                                {{ form.marks.errors }}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     COURSE / SEMESTER / SUBJECT
+                     
+                     These are displayed only if they exist in
+                     QuestionForm.
+                ================================================== -->
+
+                {% if form.course or form.semester or form.subject %}
+
+                    <hr class="my-4">
+
+                    <div class="row">
+
+                        {% if form.course %}
+
+                            <div class="col-md-4 mb-4">
+
+                                <label
+                                    for="{{ form.course.id_for_label }}"
+                                    class="form-label fw-bold"
+                                >
+
+                                    Course
+
+                                </label>
+
+                                {{ form.course }}
+
+                                {% if form.course.errors %}
+
+                                    <div class="text-danger mt-1">
+
+                                        {{ form.course.errors }}
+
+                                    </div>
+
+                                {% endif %}
+
+                            </div>
+
+                        {% endif %}
+
+
+                        {% if form.semester %}
+
+                            <div class="col-md-4 mb-4">
+
+                                <label
+                                    for="{{ form.semester.id_for_label }}"
+                                    class="form-label fw-bold"
+                                >
+
+                                    Semester
+
+                                </label>
+
+                                {{ form.semester }}
+
+                                {% if form.semester.errors %}
+
+                                    <div class="text-danger mt-1">
+
+                                        {{ form.semester.errors }}
+
+                                    </div>
+
+                                {% endif %}
+
+                            </div>
+
+                        {% endif %}
+
+
+                        {% if form.subject %}
+
+                            <div class="col-md-4 mb-4">
+
+                                <label
+                                    for="{{ form.subject.id_for_label }}"
+                                    class="form-label fw-bold"
+                                >
+
+                                    Subject
+
+                                </label>
+
+                                {{ form.subject }}
+
+                                {% if form.subject.errors %}
+
+                                    <div class="text-danger mt-1">
+
+                                        {{ form.subject.errors }}
+
+                                    </div>
+
+                                {% endif %}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+                {% endif %}
+
+
+                <!-- =================================================
+                     BUTTONS
+                ================================================== -->
+
+                <div class="d-flex justify-content-end gap-2 mt-3">
+
+                    <a
+                        href="{% url 'view_questions' %}"
+                        class="btn btn-secondary"
+                    >
+
+                        <i class="fas fa-times"></i>
+
+                        Cancel
+
+                    </a>
+
+
+                    <button
+                        type="submit"
+                        class="btn btn-warning"
+                    >
+
+                        <i class="fas fa-save"></i>
+
+                        Update Question
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

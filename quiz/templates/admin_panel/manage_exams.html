@@ -483,15 +483,24 @@
 function confirmDelete(examName) {
 
     return confirm(
-        "Are you sure you want to delete the exam \"" +
-        examName +
-        "\"?\n\n" +
-        "This will permanently delete the exam and its associated exam questions.\n\n" +
+        "⚠️ DELETE EXAM\n\n" +
+
+        "Are you sure you want to permanently delete:\n\n" +
+
+        "Exam: " + examName + "\n\n" +
+
+        "The following data will be deleted:\n" +
+        "• Exam\n" +
+        "• Exam Questions\n" +
+        "• Student Results\n" +
+        "• Student Answers\n\n" +
+
+        "The original Question Bank questions will NOT be deleted.\n\n" +
+
         "This action cannot be undone."
     );
 
 }
 
 </script>
-
 {% endblock %}

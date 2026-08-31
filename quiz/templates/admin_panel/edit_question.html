@@ -1,23 +1,354 @@
-{% extends "admin_panel/base_admin.html" %}
+{% extends "base_admin.html" %}
 
 {% block content %}
 
-<h2>Edit Question</h2>
+<div class="container-fluid">
 
-<form method="post">
+    <!-- PAGE HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
 
-    {% csrf_token %}
+        <div>
 
-    {{ form.as_p }}
+            <h2 class="fw-bold mb-1">
 
-    <button type="submit" class="btn btn-success">
-        Save Changes
-    </button>
+                <i class="fas fa-edit text-primary me-2"></i>
 
-    <a href="{% url 'question_bank' %}" class="btn btn-secondary">
-        Cancel
-    </a>
+                Edit Question
 
-</form>
+            </h2>
+
+            <p class="text-muted mb-0">
+
+                Update examination question
+
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- EDIT CARD -->
+
+    <div class="card shadow border-0">
+
+        <div class="card-header bg-primary text-white">
+
+            <h5 class="mb-0">
+
+                <i class="fas fa-question-circle me-2"></i>
+
+                Question Details
+
+            </h5>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <form method="POST">
+
+                {% csrf_token %}
+
+
+                <!-- QUESTION -->
+
+                <div class="mb-4">
+
+                    <label class="form-label fw-semibold">
+
+                        Question
+
+                    </label>
+
+                    <textarea
+                        name="question_text"
+                        class="form-control"
+                        rows="4"
+                        required
+                    >{{ question.question_text }}</textarea>
+
+                </div>
+
+
+                <!-- OPTIONS -->
+
+                <div class="row">
+
+
+                    <!-- OPTION 1 -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="form-label fw-semibold">
+
+                            Option 1
+
+                        </label>
+
+                        <input
+                            type="text"
+                            name="option1"
+                            class="form-control"
+                            value="{{ question.option1|default:'' }}"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- OPTION 2 -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="form-label fw-semibold">
+
+                            Option 2
+
+                        </label>
+
+                        <input
+                            type="text"
+                            name="option2"
+                            class="form-control"
+                            value="{{ question.option2|default:'' }}"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- OPTION 3 -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="form-label fw-semibold">
+
+                            Option 3
+
+                        </label>
+
+                        <input
+                            type="text"
+                            name="option3"
+                            class="form-control"
+                            value="{{ question.option3|default:'' }}"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- OPTION 4 -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="form-label fw-semibold">
+
+                            Option 4
+
+                        </label>
+
+                        <input
+                            type="text"
+                            name="option4"
+                            class="form-control"
+                            value="{{ question.option4|default:'' }}"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- CORRECT ANSWER -->
+
+                <div class="row">
+
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="form-label fw-semibold">
+
+                            Correct Answer
+
+                        </label>
+
+                        <select
+                            name="correct_answer"
+                            class="form-select"
+                            required
+                        >
+
+                            <option value="">
+
+                                Select Correct Answer
+
+                            </option>
+
+
+                            <option
+                                value="1"
+                                {% if question.correct_answer == "1" %}
+                                    selected
+                                {% endif %}
+                            >
+
+                                Option 1
+
+                            </option>
+
+
+                            <option
+                                value="2"
+                                {% if question.correct_answer == "2" %}
+                                    selected
+                                {% endif %}
+                            >
+
+                                Option 2
+
+                            </option>
+
+
+                            <option
+                                value="3"
+                                {% if question.correct_answer == "3" %}
+                                    selected
+                                {% endif %}
+                            >
+
+                                Option 3
+
+                            </option>
+
+
+                            <option
+                                value="4"
+                                {% if question.correct_answer == "4" %}
+                                    selected
+                                {% endif %}
+                            >
+
+                                Option 4
+
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- MARKS -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="form-label fw-semibold">
+
+                            Marks
+
+                        </label>
+
+                        <input
+                            type="number"
+                            name="marks"
+                            class="form-control"
+                            value="{{ question.marks }}"
+                            min="1"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- INFORMATION -->
+
+                <div class="alert alert-info">
+
+                    <i class="fas fa-info-circle me-2"></i>
+
+                    <strong>Question Information:</strong>
+
+                    <br>
+
+                    Course:
+
+                    {% if question.course %}
+                        {{ question.course.name }}
+                    {% else %}
+                        -
+                    {% endif %}
+
+                    <br>
+
+                    Semester:
+
+                    {% if question.semester %}
+                        {{ question.semester }}
+                    {% else %}
+                        -
+                    {% endif %}
+
+                    <br>
+
+                    Subject:
+
+                    {% if question.subject %}
+                        {{ question.subject.code }}
+                        -
+                        {{ question.subject.name }}
+                    {% else %}
+                        -
+                    {% endif %}
+
+                    <br>
+
+                    Academic Year:
+
+                    {{ question.academic_year|default:"-" }}
+
+                </div>
+
+
+                <!-- BUTTONS -->
+
+                <div class="d-flex gap-2">
+
+                    <button
+                        type="submit"
+                        class="btn btn-success"
+                    >
+
+                        <i class="fas fa-save me-1"></i>
+
+                        Save Changes
+
+                    </button>
+
+
+                    <a
+                        href="{% url 'question_bank' %}"
+                        class="btn btn-secondary"
+                    >
+
+                        <i class="fas fa-arrow-left me-1"></i>
+
+                        Cancel
+
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
 
 {% endblock %}

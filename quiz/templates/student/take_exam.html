@@ -5,15 +5,10 @@
 
 <style>
 
-/* ================================
-   PAGE
-================================ */
-
 body {
     background: #eef2f7;
     font-family: "Segoe UI", sans-serif;
 }
-
 
 /* ================================
    EXAM HEADER
@@ -24,7 +19,7 @@ body {
     color: white;
     padding: 20px;
     border-radius: 10px;
-    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.20);
+    box-shadow: 0 3px 12px rgba(0,0,0,0.20);
 }
 
 .exam-header h3 {
@@ -35,39 +30,26 @@ body {
     margin-bottom: 5px;
 }
 
-
 /* ================================
    QUESTION CARD
 ================================ */
 
 .question-card {
     display: none;
-
     background: white;
     padding: 25px;
     margin-bottom: 20px;
-
     border-radius: 12px;
-
     border: 4px solid transparent;
-
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
-
-    transition: 0.3s;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
 }
-
-
-/* CURRENT QUESTION */
 
 .question-card.active-question {
-    border-color: #0d6efd !important;
-
-    box-shadow:
-        0 0 20px rgba(13, 110, 253, 0.35) !important;
-
-    background: #f8fbff !important;
+    display: block;
+    border-color: #0d6efd;
+    box-shadow: 0 0 20px rgba(13,110,253,0.35);
+    background: #f8fbff;
 }
-
 
 /* ================================
    QUESTION TITLE
@@ -76,16 +58,11 @@ body {
 .question-title {
     background: #1565c0;
     color: white;
-
     padding: 12px 15px;
-
     border-radius: 8px;
-
     margin-bottom: 20px;
-
     font-weight: 600;
 }
-
 
 /* ================================
    OPTIONS
@@ -93,184 +70,80 @@ body {
 
 .option {
     display: block;
-
     border: 2px solid #ddd;
-
     padding: 13px;
-
     margin: 12px 0;
-
     border-radius: 8px;
-
     cursor: pointer;
-
     background: white;
-
     transition: 0.2s;
 }
 
-
 .option:hover {
     background: #e8f1ff;
-
     border-color: #1565c0;
 }
-
 
 .option input {
     margin-right: 10px;
 }
 
-
 .option:has(input:checked) {
     background: #e8f5e9;
-
     border-color: #198754;
 }
 
+/* ================================
+   REVIEW
+================================ */
+
+.review-question {
+    border: 4px solid #ffc107 !important;
+    box-shadow: 0 0 20px rgba(255,193,7,0.35) !important;
+    background: #fffdf5 !important;
+}
 
 /* ================================
-   NAVIGATION BUTTONS
+   NAVIGATION
 ================================ */
 
 .navigation-buttons {
     display: flex;
-
     justify-content: space-between;
-
     gap: 8px;
-
     flex-wrap: wrap;
-
     margin-top: 25px;
 }
-
 
 .navigation-buttons button {
     min-width: 120px;
 }
 
-
 /* ================================
-   QUESTION PALETTE
+   PALETTE
 ================================ */
 
 .palette-card {
     position: sticky;
-
     top: 20px;
-
     background: white;
-
     border-radius: 12px;
-
-    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
-
+    box-shadow: 0 3px 12px rgba(0,0,0,0.15);
     padding: 20px;
 }
 
-
 .palette {
     display: flex;
-
     flex-wrap: wrap;
-
     gap: 6px;
 }
 
-
 .palette button {
     width: 45px;
-
     height: 45px;
-
     font-weight: 600;
-
     border-radius: 7px;
 }
-
-
-/* CURRENT PALETTE QUESTION */
-
-.palette-current {
-    background: #0d6efd !important;
-
-    color: white !important;
-
-    border-color: #0d6efd !important;
-}
-
-
-/* ANSWERED */
-
-.palette-answered {
-    background: #198754 !important;
-
-    color: white !important;
-
-    border-color: #198754 !important;
-}
-
-
-/* MARKED FOR REVIEW */
-
-.palette-review {
-    background: #ffc107 !important;
-
-    color: #000 !important;
-
-    border-color: #ffc107 !important;
-}
-
-
-/* ================================
-   LEGEND
-================================ */
-
-.legend {
-    margin-top: 20px;
-}
-
-
-.legend-item {
-    display: flex;
-
-    align-items: center;
-
-    margin-bottom: 8px;
-}
-
-
-.legend-box {
-    width: 20px;
-
-    height: 20px;
-
-    border-radius: 4px;
-
-    margin-right: 8px;
-}
-
-
-.legend-current {
-    background: #0d6efd;
-}
-
-
-.legend-answered {
-    background: #198754;
-}
-
-
-.legend-review {
-    background: #ffc107;
-}
-
-
-.legend-not-answered {
-    background: #6c757d;
-}
-
 
 /* ================================
    SUBMIT
@@ -278,10 +151,22 @@ body {
 
 .submit-area {
     margin-top: 20px;
-
     margin-bottom: 30px;
 }
 
+/* ================================
+   WARNING
+================================ */
+
+.exam-warning {
+    background: #fff3cd;
+    color: #664d03;
+    border: 1px solid #ffecb5;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 15px;
+    font-weight: 600;
+}
 
 /* ================================
    MOBILE
@@ -291,7 +176,6 @@ body {
 
     .palette-card {
         position: static;
-
         margin-top: 20px;
     }
 
@@ -300,27 +184,15 @@ body {
     }
 
 }
-.review-question {
-    border: 4px solid #ffc107 !important;
-    box-shadow: 0 0 20px rgba(255, 193, 7, 0.35) !important;
-    background: #fffdf5 !important;
-}
-
-.palette button {
-    width: 45px;
-    height: 45px;
-    margin: 5px;
-    font-weight: bold;
-}
 
 </style>
 
 
 <div class="container-fluid mt-3">
 
-    <!-- =====================================
-         HEADER
-    ====================================== -->
+    <!-- =====================================================
+         EXAM HEADER
+    ====================================================== -->
 
     <div class="exam-header">
 
@@ -352,6 +224,11 @@ body {
                     <b>{{ exam.subject.name }}</b>
                 </p>
 
+                <p>
+                    Questions:
+                    <b>{{ exam_questions|length }}</b>
+                </p>
+
             </div>
 
 
@@ -373,22 +250,32 @@ body {
 
         </div>
 
+
+        <div class="exam-warning">
+
+            ⚠️ <strong>Important:</strong>
+
+            Do not switch tabs, windows or browsers during the examination.
+
+            Leaving the examination window will automatically submit your exam.
+
+        </div>
+
     </div>
 
 
-    <!-- =====================================
+    <!-- =====================================================
          MAIN ROW
-    ====================================== -->
+    ====================================================== -->
 
     <div class="row mt-4">
 
 
-        <!-- =================================
-             LEFT: QUESTIONS
-        ================================== -->
+        <!-- =================================================
+             QUESTIONS
+        ================================================== -->
 
         <div class="col-lg-8">
-
 
             <form
                 method="POST"
@@ -404,18 +291,25 @@ body {
                     value="{{ exam.id }}">
 
 
-                <!-- =========================
-                     QUESTIONS
-                ========================== -->
+                <input
+                    type="hidden"
+                    name="submission_reason"
+                    id="submission_reason"
+                    value="manual">
 
-                {% for q in exam_questions %}
+
+                <!-- ==========================================
+                     QUESTIONS
+                =========================================== -->
+
+                {% for eq in exam_questions %}
 
                 <div
                     class="question-card"
-                    id="question{{ forloop.counter }}">
+                    id="question{{ forloop.counter }}"
+                    data-question-id="{{ eq.question.id }}">
 
-
-                    <!-- QUESTION HEADER -->
+                    <!-- QUESTION NUMBER -->
 
                     <div class="question-title">
 
@@ -424,75 +318,90 @@ body {
                     </div>
 
 
-                    <!-- QUESTION -->
+                    <!-- QUESTION TEXT -->
 
                     <h5 class="mb-4">
 
-                        {{ q.question.question_text }}
+                        {{ eq.question.question_text }}
 
                     </h5>
 
 
                     <!-- OPTION 1 -->
 
+                    {% if eq.question.option1 %}
+
                     <label class="option">
 
                         <input
                             type="radio"
-                            name="question_{{ q.question.id }}"
+                            name="question_{{ eq.question.id }}"
                             value="1">
 
-                        {{ q.question.option1 }}
+                        {{ eq.question.option1 }}
 
                     </label>
+
+                    {% endif %}
 
 
                     <!-- OPTION 2 -->
 
+                    {% if eq.question.option2 %}
+
                     <label class="option">
 
                         <input
                             type="radio"
-                            name="question_{{ q.question.id }}"
+                            name="question_{{ eq.question.id }}"
                             value="2">
 
-                        {{ q.question.option2 }}
+                        {{ eq.question.option2 }}
 
                     </label>
+
+                    {% endif %}
 
 
                     <!-- OPTION 3 -->
 
+                    {% if eq.question.option3 %}
+
                     <label class="option">
 
                         <input
                             type="radio"
-                            name="question_{{ q.question.id }}"
+                            name="question_{{ eq.question.id }}"
                             value="3">
 
-                        {{ q.question.option3 }}
+                        {{ eq.question.option3 }}
 
                     </label>
+
+                    {% endif %}
 
 
                     <!-- OPTION 4 -->
 
+                    {% if eq.question.option4 %}
+
                     <label class="option">
 
                         <input
                             type="radio"
-                            name="question_{{ q.question.id }}"
+                            name="question_{{ eq.question.id }}"
                             value="4">
 
-                        {{ q.question.option4 }}
+                        {{ eq.question.option4 }}
 
                     </label>
+
+                    {% endif %}
 
 
                     <!-- NAVIGATION -->
 
                     <div class="navigation-buttons">
-
 
                         <button
                             type="button"
@@ -533,9 +442,7 @@ body {
 
                         </button>
 
-
                     </div>
-
 
                 </div>
 
@@ -550,7 +457,9 @@ body {
                 {% endfor %}
 
 
-                <!-- SUBMIT -->
+                <!-- ==========================================
+                     SUBMIT
+                =========================================== -->
 
                 <div class="submit-area">
 
@@ -565,21 +474,18 @@ body {
 
                 </div>
 
-
             </form>
 
         </div>
 
 
-        <!-- =================================
-             RIGHT: QUESTION PALETTE
-        ================================== -->
+        <!-- =================================================
+             PALETTE
+        ================================================== -->
 
         <div class="col-lg-4">
 
-
             <div class="palette-card">
-
 
                 <h4 class="text-primary mb-3">
 
@@ -587,14 +493,12 @@ body {
 
                 </h4>
 
-
                 <hr>
 
 
                 <div class="palette">
 
-
-                    {% for q in exam_questions %}
+                    {% for eq in exam_questions %}
 
                     <button
                         type="button"
@@ -608,64 +512,48 @@ body {
 
                     {% endfor %}
 
-
                 </div>
 
 
                 <hr>
 
 
-                <!-- LEGEND -->
+                <!-- COUNTERS -->
 
-                <div class="legend">
+                <div class="d-flex justify-content-between mb-2">
 
+                    <span class="badge bg-success">
 
-                    <div class="legend-item">
+                        Answered:
+                        <span id="answeredCount">0</span>
 
-                        <span
-                            class="legend-box legend-current">
-                        </span>
-
-                        Current Question
-
-                    </div>
+                    </span>
 
 
-                    <div class="mt-4">
+                    <span class="badge bg-secondary">
 
-```
-<div class="d-flex justify-content-between mb-2">
+                        Not Answered:
+                        <span id="notAnsweredCount">0</span>
 
-    <span class="badge bg-success">
-        Answered
-        <span id="answeredCount">0</span>
-    </span>
+                    </span>
 
-    <span class="badge bg-secondary">
-        Not Answered
-        <span id="notAnsweredCount">0</span>
-    </span>
-
-</div>
+                </div>
 
 
-<div class="mt-2">
+                <div class="mt-2">
 
-    <span class="badge bg-warning text-dark">
-        Marked for Review
-        <span id="reviewCount">0</span>
-    </span>
+                    <span class="badge bg-warning text-dark">
 
-</div>
-```
+                        Marked for Review:
+                        <span id="reviewCount">0</span>
 
-</div>
+                    </span>
 
+                </div>
 
             </div>
 
         </div>
-
 
     </div>
 
@@ -674,38 +562,72 @@ body {
 
 <script>
 
+/* =========================================================
+   GLOBAL VARIABLES
+========================================================= */
+
 let currentQuestion = 1;
 
-let totalQuestions = document.querySelectorAll(
-    ".question-card"
-).length;
+let totalQuestions =
+    document.querySelectorAll(".question-card").length;
+
+let examSubmitted = false;
 
 
-/* =====================================================
-   GET ALL QUESTIONS
-===================================================== */
-
-const questionCards = document.querySelectorAll(
-    ".question-card"
-);
-
-const paletteButtons = document.querySelectorAll(
-    ".palette button"
-);
+/*
+ * Prevent duplicate automatic submissions.
+ */
+let submissionInProgress = false;
 
 
-/* =====================================================
+/*
+ * Timer.
+ */
+let timerInterval = null;
+
+
+/*
+ * Used to prevent unwanted focus/blur behaviour.
+ */
+let blurTimer = null;
+
+
+/* =========================================================
+   ELEMENTS
+========================================================= */
+
+const examForm =
+    document.getElementById("examForm");
+
+const submitBtn =
+    document.getElementById("submitBtn");
+
+const submissionReason =
+    document.getElementById("submission_reason");
+
+const questionCards =
+    document.querySelectorAll(".question-card");
+
+const paletteButtons =
+    document.querySelectorAll(".palette button");
+
+const timerElement =
+    document.getElementById("timer");
+
+
+/* =========================================================
    SHOW QUESTION
-===================================================== */
+========================================================= */
 
 function showQuestion(number) {
 
-    if (number < 1 || number > totalQuestions) {
+    if (
+        number < 1 ||
+        number > totalQuestions
+    ) {
         return;
     }
 
-
-    /* Hide all questions */
 
     questionCards.forEach(function(card) {
 
@@ -718,11 +640,10 @@ function showQuestion(number) {
     });
 
 
-    /* Show selected question */
-
-    const currentCard = document.getElementById(
-        "question" + number
-    );
+    const currentCard =
+        document.getElementById(
+            "question" + number
+        );
 
 
     if (currentCard) {
@@ -738,20 +659,14 @@ function showQuestion(number) {
 
     currentQuestion = number;
 
-
     updatePalette();
 
-
-    /* Scroll to question */
 
     if (currentCard) {
 
         currentCard.scrollIntoView({
-
             behavior: "smooth",
-
             block: "start"
-
         });
 
     }
@@ -759,13 +674,16 @@ function showQuestion(number) {
 }
 
 
-/* =====================================================
+/* =========================================================
    NEXT QUESTION
-===================================================== */
+========================================================= */
 
 function nextQuestion() {
 
-    if (currentQuestion < totalQuestions) {
+    if (
+        currentQuestion <
+        totalQuestions
+    ) {
 
         showQuestion(
             currentQuestion + 1
@@ -776,13 +694,15 @@ function nextQuestion() {
 }
 
 
-/* =====================================================
+/* =========================================================
    PREVIOUS QUESTION
-===================================================== */
+========================================================= */
 
 function previousQuestion() {
 
-    if (currentQuestion > 1) {
+    if (
+        currentQuestion > 1
+    ) {
 
         showQuestion(
             currentQuestion - 1
@@ -793,9 +713,9 @@ function previousQuestion() {
 }
 
 
-/* =====================================================
+/* =========================================================
    GO TO QUESTION
-===================================================== */
+========================================================= */
 
 function gotoQuestion(number) {
 
@@ -806,9 +726,9 @@ function gotoQuestion(number) {
 }
 
 
-/* =====================================================
-   CHECK ANSWERED
-===================================================== */
+/* =========================================================
+   CHECK ANSWER
+========================================================= */
 
 function isAnswered(card) {
 
@@ -819,12 +739,11 @@ function isAnswered(card) {
 }
 
 
-/* =====================================================
+/* =========================================================
    UPDATE PALETTE
-===================================================== */
+========================================================= */
 
 function updatePalette() {
-
 
     let answeredCount = 0;
 
@@ -834,100 +753,74 @@ function updatePalette() {
     questionCards.forEach(
         function(card, index) {
 
-
-        const button =
-            paletteButtons[index];
-
-
-        if (!button) {
-            return;
-        }
+            const button =
+                paletteButtons[index];
 
 
-        /* Remove previous colors */
-
-        button.classList.remove(
-
-            "btn-primary",
-
-            "btn-success",
-
-            "btn-warning",
-
-            "btn-outline-primary"
-
-        );
+            if (!button) {
+                return;
+            }
 
 
-        /* Check answer */
-
-        const answered =
-            isAnswered(card);
-
-
-        /* Check review */
-
-        const review =
-            card.classList.contains(
-                "review-question"
-            );
-
-
-        /* Current question */
-
-        if (
-            index + 1 === currentQuestion
-        ) {
-
-            button.classList.add(
-                "btn-primary"
-            );
-
-        }
-
-
-        /* Marked for review */
-
-        else if (review) {
-
-            button.classList.add(
-                "btn-warning"
-            );
-
-            reviewCount++;
-
-        }
-
-
-        /* Answered */
-
-        else if (answered) {
-
-            button.classList.add(
-                "btn-success"
-            );
-
-            answeredCount++;
-
-        }
-
-
-        /* Not answered */
-
-        else {
-
-            button.classList.add(
+            button.classList.remove(
+                "btn-primary",
+                "btn-success",
+                "btn-warning",
                 "btn-outline-primary"
             );
 
+
+            const answered =
+                isAnswered(card);
+
+
+            const review =
+                card.classList.contains(
+                    "review-question"
+                );
+
+
+            if (
+                index + 1 ===
+                currentQuestion
+            ) {
+
+                button.classList.add(
+                    "btn-primary"
+                );
+
+            }
+
+            else if (review) {
+
+                button.classList.add(
+                    "btn-warning"
+                );
+
+                reviewCount++;
+
+            }
+
+            else if (answered) {
+
+                button.classList.add(
+                    "btn-success"
+                );
+
+                answeredCount++;
+
+            }
+
+            else {
+
+                button.classList.add(
+                    "btn-outline-primary"
+                );
+
+            }
+
         }
-
-    });
-
-
-    /* =================================================
-       UPDATE COUNTS
-    ================================================= */
+    );
 
 
     const answeredElement =
@@ -935,12 +828,10 @@ function updatePalette() {
             "answeredCount"
         );
 
-
     const notAnsweredElement =
         document.getElementById(
             "notAnsweredCount"
         );
-
 
     const reviewElement =
         document.getElementById(
@@ -959,7 +850,8 @@ function updatePalette() {
     if (notAnsweredElement) {
 
         notAnsweredElement.innerText =
-            totalQuestions - answeredCount;
+            totalQuestions -
+            answeredCount;
 
     }
 
@@ -974,54 +866,46 @@ function updatePalette() {
 }
 
 
-/* =====================================================
-   RADIO BUTTON CHANGE
-===================================================== */
+/* =========================================================
+   RADIO CHANGE
+========================================================= */
 
 document.querySelectorAll(
     "input[type='radio']"
-).forEach(
-    function(radio) {
-
+).forEach(function(radio) {
 
     radio.addEventListener(
         "change",
         function() {
 
+            const card =
+                radio.closest(
+                    ".question-card"
+                );
 
-        const card =
-            radio.closest(
-                ".question-card"
-            );
+
+            if (card) {
+
+                card.classList.remove(
+                    "review-question"
+                );
+
+            }
 
 
-        if (card) {
-
-            /*
-             * Selecting an answer removes
-             * review status.
-             */
-
-            card.classList.remove(
-                "review-question"
-            );
+            updatePalette();
 
         }
-
-
-        updatePalette();
-
-    });
+    );
 
 });
 
 
-/* =====================================================
-   CLEAR RESPONSE
-===================================================== */
+/* =========================================================
+   CLEAR ANSWER
+========================================================= */
 
 function clearAnswer() {
-
 
     const currentCard =
         document.getElementById(
@@ -1034,18 +918,15 @@ function clearAnswer() {
     }
 
 
-    const radios =
-        currentCard.querySelectorAll(
+    currentCard
+        .querySelectorAll(
             "input[type='radio']"
-        );
+        )
+        .forEach(function(radio) {
 
+            radio.checked = false;
 
-    radios.forEach(
-        function(radio) {
-
-        radio.checked = false;
-
-    });
+        });
 
 
     updatePalette();
@@ -1053,12 +934,11 @@ function clearAnswer() {
 }
 
 
-/* =====================================================
-   MARK FOR REVIEW
-===================================================== */
+/* =========================================================
+   MARK REVIEW
+========================================================= */
 
 function markReview() {
-
 
     const currentCard =
         document.getElementById(
@@ -1081,28 +961,557 @@ function markReview() {
 }
 
 
-/* =====================================================
+/* =========================================================
+   STOP TIMER
+========================================================= */
+
+function stopExamTimer() {
+
+    if (timerInterval !== null) {
+
+        clearInterval(
+            timerInterval
+        );
+
+        timerInterval = null;
+
+    }
+
+}
+
+
+/* =========================================================
+   SUBMIT EXAM
+========================================================= */
+
+function submitExam(reason) {
+
+    /*
+     * Prevent duplicate submissions.
+     */
+
+    if (
+        examSubmitted ||
+        submissionInProgress
+    ) {
+
+        return;
+
+    }
+
+
+    if (!examForm) {
+        return;
+    }
+
+
+    submissionInProgress = true;
+
+    examSubmitted = true;
+
+
+    /*
+     * Save submission reason.
+     */
+
+    if (submissionReason) {
+
+        submissionReason.value =
+            reason || "manual";
+
+    }
+
+
+    /*
+     * Stop timer.
+     */
+
+    stopExamTimer();
+
+
+    /*
+     * Disable submit button.
+     */
+
+    if (submitBtn) {
+
+        submitBtn.disabled = true;
+
+        submitBtn.innerText =
+            "Submitting Exam...";
+
+    }
+
+
+    /*
+     * Disable all navigation buttons.
+     */
+
+    document
+        .querySelectorAll(
+            ".navigation-buttons button"
+        )
+        .forEach(function(button) {
+
+            button.disabled = true;
+
+        });
+
+
+    /*
+     * Submit the existing form.
+     *
+     * This sends:
+     *
+     * exam_id
+     * submission_reason
+     * CSRF token
+     * all selected answers
+     */
+
+    HTMLFormElement.prototype.submit.call(
+        examForm
+    );
+
+}
+
+
+/* =========================================================
+   MANUAL SUBMISSION
+========================================================= */
+
+examForm.addEventListener(
+    "submit",
+    function(event) {
+
+        /*
+         * Do not allow a second submission.
+         */
+
+        if (submissionInProgress) {
+
+            event.preventDefault();
+
+            return;
+
+        }
+
+
+        /*
+         * Normal manual submission.
+         */
+
+        submissionInProgress = true;
+
+        examSubmitted = true;
+
+
+        if (submissionReason) {
+
+            submissionReason.value =
+                "manual";
+
+        }
+
+
+        stopExamTimer();
+
+
+        if (submitBtn) {
+
+            submitBtn.disabled = true;
+
+            submitBtn.innerText =
+                "Submitting Exam...";
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   TIMER
+========================================================= */
+
+let durationSeconds =
+    parseInt(
+        "{{ exam.duration }}"
+    ) * 60;
+
+
+/*
+ * Safety check.
+ */
+
+if (
+    isNaN(durationSeconds) ||
+    durationSeconds < 0
+) {
+
+    durationSeconds = 0;
+
+}
+
+
+/* =========================================================
+   UPDATE TIMER
+========================================================= */
+
+function updateTimer() {
+
+    if (examSubmitted) {
+        return;
+    }
+
+
+    let minutes =
+        Math.floor(
+            durationSeconds / 60
+        );
+
+
+    let seconds =
+        durationSeconds % 60;
+
+
+    if (seconds < 10) {
+
+        seconds =
+            "0" + seconds;
+
+    }
+
+
+    if (timerElement) {
+
+        timerElement.innerText =
+            minutes + ":" + seconds;
+
+    }
+
+
+    /*
+     * Time expired.
+     */
+
+    if (
+        durationSeconds <= 0
+    ) {
+
+        stopExamTimer();
+
+        submitExam(
+            "time_expired"
+        );
+
+        return;
+
+    }
+
+
+    durationSeconds--;
+
+}
+
+
+/*
+ * Start timer.
+ */
+
+timerInterval =
+    setInterval(
+        updateTimer,
+        1000
+    );
+
+
+/*
+ * Display initial timer.
+ */
+
+updateTimer();
+
+
+/* =========================================================
+   TAB SWITCH DETECTION
+========================================================= */
+
+document.addEventListener(
+    "visibilitychange",
+    function() {
+
+        /*
+         * If the page becomes hidden,
+         * student has left the exam page.
+         */
+
+        if (
+            document.visibilityState ===
+            "hidden"
+        ) {
+
+            submitExam(
+                "tab_switch"
+            );
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   WINDOW FOCUS DETECTION
+========================================================= */
+
+window.addEventListener(
+    "blur",
+    function() {
+
+        /*
+         * Do not create multiple timers.
+         */
+
+        clearTimeout(
+            blurTimer
+        );
+
+
+        blurTimer =
+            setTimeout(
+                function() {
+
+                    /*
+                     * If page is already hidden,
+                     * visibilitychange has handled it.
+                     */
+
+                    if (
+                        document.visibilityState !==
+                        "hidden"
+                    ) {
+
+                        if (
+                            !document.hasFocus()
+                        ) {
+
+                            submitExam(
+                                "window_switch"
+                            );
+
+                        }
+
+                    }
+
+                },
+                500
+            );
+
+    }
+);
+
+
+/* =========================================================
+   CANCEL FOCUS TIMER
+========================================================= */
+
+window.addEventListener(
+    "focus",
+    function() {
+
+        clearTimeout(
+            blurTimer
+        );
+
+    }
+);
+
+
+/* =========================================================
+   BROWSER BACK BUTTON
+========================================================= */
+
+history.pushState(
+    null,
+    "",
+    location.href
+);
+
+
+window.addEventListener(
+    "popstate",
+    function() {
+
+        /*
+         * Immediately restore history state.
+         */
+
+        history.pushState(
+            null,
+            "",
+            location.href
+        );
+
+
+        /*
+         * Submit exam automatically.
+         */
+
+        submitExam(
+            "browser_back"
+        );
+
+    }
+);
+
+
+/* =========================================================
+   DISABLE RIGHT CLICK
+========================================================= */
+
+document.addEventListener(
+    "contextmenu",
+    function(event) {
+
+        event.preventDefault();
+
+    }
+);
+
+
+/* =========================================================
+   DISABLE COPY
+========================================================= */
+
+document.addEventListener(
+    "copy",
+    function(event) {
+
+        event.preventDefault();
+
+    }
+);
+
+
+/* =========================================================
+   DISABLE CUT
+========================================================= */
+
+document.addEventListener(
+    "cut",
+    function(event) {
+
+        event.preventDefault();
+
+    }
+);
+
+
+/* =========================================================
+   KEYBOARD RESTRICTIONS
+========================================================= */
+
+document.addEventListener(
+    "keydown",
+    function(event) {
+
+        /*
+         * F12
+         */
+
+        if (
+            event.key === "F12"
+        ) {
+
+            event.preventDefault();
+
+        }
+
+
+        /*
+         * Ctrl + Shift + I
+         */
+
+        if (
+            event.ctrlKey &&
+            event.shiftKey &&
+            event.key.toLowerCase() === "i"
+        ) {
+
+            event.preventDefault();
+
+        }
+
+
+        /*
+         * Ctrl + Shift + J
+         */
+
+        if (
+            event.ctrlKey &&
+            event.shiftKey &&
+            event.key.toLowerCase() === "j"
+        ) {
+
+            event.preventDefault();
+
+        }
+
+
+        /*
+         * Ctrl + U
+         */
+
+        if (
+            event.ctrlKey &&
+            event.key.toLowerCase() === "u"
+        ) {
+
+            event.preventDefault();
+
+        }
+
+
+        /*
+         * Ctrl + C
+         */
+
+        if (
+            event.ctrlKey &&
+            event.key.toLowerCase() === "c"
+        ) {
+
+            event.preventDefault();
+
+        }
+
+    }
+);
+
+
+/* =========================================================
    INITIALIZE
-===================================================== */
+========================================================= */
 
 document.addEventListener(
     "DOMContentLoaded",
     function() {
 
+        if (
+            totalQuestions > 0
+        ) {
 
-    if (totalQuestions > 0) {
+            showQuestion(1);
 
-        showQuestion(1);
+        }
+
+
+        updatePalette();
 
     }
-
-
-    updatePalette();
-
-});
-
+);
 
 </script>
-
 
 {% endblock %}

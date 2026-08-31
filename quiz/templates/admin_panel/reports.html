@@ -419,21 +419,27 @@
     <div class="d-flex gap-2 mb-4">
 
         <a
-    href="{% url 'export_reports_excel' %}?course={{ selected_course }}&subject={{ selected_subject }}&exam={{ selected_exam }}&semester={{ selected_semester }}"
-    class="btn btn-success"
->
-    <i class="fas fa-file-excel"></i>
-    Export Excel
-</a>
+            href="{% url 'export_reports_excel' %}?course={{ selected_course }}&subject={{ selected_subject }}&exam={{ selected_exam }}&semester={{ selected_semester }}"
+            class="btn btn-success"
+        >
+
+            <i class="fas fa-file-excel me-1"></i>
+
+            Export Excel
+
+        </a>
 
 
         <a
-    href="{% url 'export_reports_pdf' %}?course={{ selected_course }}&subject={{ selected_subject }}&exam={{ selected_exam }}&semester={{ selected_semester }}"
-    class="btn btn-danger"
->
-    <i class="fas fa-file-pdf"></i>
-    Export PDF
-</a>
+            href="{% url 'export_reports_pdf' %}?course={{ selected_course }}&subject={{ selected_subject }}&exam={{ selected_exam }}&semester={{ selected_semester }}"
+            class="btn btn-danger"
+        >
+
+            <i class="fas fa-file-pdf me-1"></i>
+
+            Export PDF
+
+        </a>
 
     </div>
 
@@ -567,6 +573,10 @@
                                 Date
                             </th>
 
+                            <th>
+                                Action
+                            </th>
+
                         </tr>
 
                     </thead>
@@ -651,7 +661,9 @@
                             {% else %}
 
                                 <span class="text-muted">
+
                                     N/A
+
                                 </span>
 
                             {% endif %}
@@ -674,7 +686,9 @@
                             {% else %}
 
                                 <span class="text-muted">
+
                                     N/A
+
                                 </span>
 
                             {% endif %}
@@ -693,7 +707,9 @@
                             {% else %}
 
                                 <span class="text-muted">
+
                                     N/A
+
                                 </span>
 
                             {% endif %}
@@ -706,7 +722,9 @@
                         <td>
 
                             <strong>
+
                                 {{ result.score }}
+
                             </strong>
 
                         </td>
@@ -726,7 +744,9 @@
                         <td>
 
                             <strong>
+
                                 {{ result.percentage }}%
+
                             </strong>
 
                         </td>
@@ -770,6 +790,48 @@
                         </td>
 
 
+                        <!-- ACTION -->
+
+                        <td class="text-center">
+
+                            <form
+                                method="POST"
+                                action="{% url 'delete_exam_attempt' result.id %}"
+                                class="delete-attempt-form"
+                            >
+
+                                {% csrf_token %}
+
+
+                                <!--
+                                    Preserve current filters
+                                    when returning to reports.
+                                -->
+
+                                <input
+                                    type="hidden"
+                                    name="return_query"
+                                    value="{{ request.GET.urlencode }}"
+                                >
+
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-danger btn-sm"
+                                    title="Delete this student's previous attempt"
+                                >
+
+                                    <i class="fas fa-redo-alt me-1"></i>
+
+                                    Delete Attempt
+
+                                </button>
+
+                            </form>
+
+                        </td>
+
+
                     </tr>
 
 
@@ -778,18 +840,22 @@
                     <tr>
 
                         <td
-                            colspan="12"
+                            colspan="13"
                             class="text-center text-muted py-5"
                         >
 
                             <i class="fas fa-inbox fa-2x mb-3"></i>
 
                             <h5>
+
                                 No Results Available
+
                             </h5>
 
                             <p class="mb-0">
+
                                 No examination results match the selected filters.
+
                             </p>
 
                         </td>
@@ -810,5 +876,56 @@
     </div>
 
 </div>
+
+
+<!-- =====================================================
+     DELETE ATTEMPT CONFIRMATION
+====================================================== -->
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const forms =
+            document.querySelectorAll(
+                ".delete-attempt-form"
+            );
+
+
+        forms.forEach(
+            function (form) {
+
+                form.addEventListener(
+                    "submit",
+                    function (event) {
+
+                        const confirmed =
+                            confirm(
+                                "Are you sure you want to delete this student's previous exam attempt?\n\n" +
+                                "The previous Result and Student Answers will be deleted.\n\n" +
+                                "The actual Exam and Exam Questions will NOT be deleted.\n\n" +
+                                "After deletion, the student will be allowed to attempt this exam again."
+                            );
+
+
+                        if (!confirmed) {
+
+                            event.preventDefault();
+
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+    }
+);
+
+</script>
+
 
 {% endblock %}

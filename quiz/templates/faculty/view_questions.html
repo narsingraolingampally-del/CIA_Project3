@@ -11,23 +11,30 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
 
         <div>
+
             <h2 class="fw-bold mb-1">
+
                 <i class="fas fa-database text-primary"></i>
+
                 Question Bank
+
             </h2>
 
             <p class="text-muted mb-0">
+
                 View, search and manage uploaded questions.
+
             </p>
+
         </div>
 
 
-        <!-- IMPORTANT:
-             This now goes to the NEW faculty Excel upload page
-        -->
+        <!-- ADD / UPLOAD QUESTIONS -->
 
-        <a href="{% url 'faculty_upload_questions' %}"
-           class="btn btn-success shadow-sm">
+        <a
+            href="{% url 'faculty_upload_questions' %}"
+            class="btn btn-success shadow-sm"
+        >
 
             <i class="fas fa-plus"></i>
 
@@ -46,14 +53,18 @@
 
         {% for message in messages %}
 
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            <div
+                class="alert alert-{{ message.tags }} alert-dismissible fade show"
+                role="alert"
+            >
 
                 {{ message }}
 
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="alert">
-                </button>
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                ></button>
 
             </div>
 
@@ -86,7 +97,6 @@
             <form method="GET">
 
                 <div class="row g-3">
-
 
                     <!-- COURSE -->
 
@@ -226,6 +236,7 @@
                         <button
                             type="submit"
                             class="btn btn-primary w-100"
+                            title="Search"
                         >
 
                             <i class="fas fa-search"></i>
@@ -244,7 +255,7 @@
 
 
     <!-- =====================================================
-         DELETE ALL QUESTIONS
+         QUESTION COUNT + DELETE ALL
     ====================================================== -->
 
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -256,11 +267,15 @@
             </strong>
 
             <span class="badge bg-primary">
-                {{ questions|length }}
+
+                {{ total_questions }}
+
             </span>
 
         </div>
 
+
+        <!-- DELETE ALL -->
 
         <form
             method="POST"
@@ -345,8 +360,11 @@
                                 Marks
                             </th>
 
-                            <th class="text-center">
-                                Action
+                            <th
+                                class="text-center"
+                                style="min-width: 180px;"
+                            >
+                                Actions
                             </th>
 
                         </tr>
@@ -373,7 +391,19 @@
 
                                 <td class="fw-bold">
 
-                                    {{ q.course.name }}
+                                    {% if q.course %}
+
+                                        {{ q.course.name }}
+
+                                    {% elif q.subject and q.subject.course %}
+
+                                        {{ q.subject.course.name }}
+
+                                    {% else %}
+
+                                        -
+
+                                    {% endif %}
 
                                 </td>
 
@@ -395,17 +425,25 @@
 
                                 <td>
 
-                                    {% if q.subject.code %}
+                                    {% if q.subject %}
 
-                                        <strong>
-                                            {{ q.subject.code }}
-                                        </strong>
+                                        {% if q.subject.code %}
 
-                                        <br>
+                                            <strong>
+                                                {{ q.subject.code }}
+                                            </strong>
+
+                                            <br>
+
+                                        {% endif %}
+
+                                        {{ q.subject.name }}
+
+                                    {% else %}
+
+                                        -
 
                                     {% endif %}
-
-                                    {{ q.subject.name }}
 
                                 </td>
 
@@ -426,15 +464,25 @@
                                     <span class="badge bg-success">
 
                                         {% if q.correct_answer == "1" %}
+
                                             Option 1
+
                                         {% elif q.correct_answer == "2" %}
+
                                             Option 2
+
                                         {% elif q.correct_answer == "3" %}
+
                                             Option 3
+
                                         {% elif q.correct_answer == "4" %}
+
                                             Option 4
+
                                         {% else %}
+
                                             {{ q.correct_answer }}
+
                                         {% endif %}
 
                                     </span>
@@ -455,32 +503,59 @@
                                 </td>
 
 
-                                <!-- ACTION -->
+                                <!-- =================================================
+                                     ACTIONS
+                                ================================================== -->
 
                                 <td class="text-center">
 
-                                    <form
-                                        method="POST"
-                                        action="{% url 'delete_question' q.id %}"
+                                    <div
+                                        class="d-flex justify-content-center gap-2"
                                     >
 
-                                        {% csrf_token %}
+                                        <!-- EDIT -->
 
-                                        <button
-                                            type="submit"
-                                            class="btn btn-sm btn-danger"
-                                            onclick="return confirm(
-                                                'Delete this question?'
-                                            );"
+                                        <a
+                                            href="{% url 'faculty_edit_question' q.id %}"
+                                            class="btn btn-sm btn-warning"
+                                            title="Edit Question"
                                         >
 
-                                            <i class="fas fa-trash"></i>
+                                            <i class="fas fa-edit"></i>
 
-                                            Delete
+                                            Edit
 
-                                        </button>
+                                        </a>
 
-                                    </form>
+
+                                        <!-- DELETE -->
+
+                                        <form
+                                            method="POST"
+                                            action="{% url 'faculty_delete_question' q.id %}"
+                                            onsubmit="return confirm(
+                                                'Are you sure you want to delete this question?'
+                                            );"
+                                            style="display:inline;"
+                                        >
+
+                                            {% csrf_token %}
+
+                                            <button
+                                                type="submit"
+                                                class="btn btn-sm btn-danger"
+                                                title="Delete Question"
+                                            >
+
+                                                <i class="fas fa-trash"></i>
+
+                                                Delete
+
+                                            </button>
+
+                                        </form>
+
+                                    </div>
 
                                 </td>
 
@@ -507,11 +582,13 @@
                                         </h5>
 
                                         <p>
+
                                             Upload questions using the
                                             <strong>
                                                 Add New Questions
                                             </strong>
                                             button.
+
                                         </p>
 
 
