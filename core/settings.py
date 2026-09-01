@@ -17,6 +17,7 @@ ALLOWED_HOSTS = [
     "localhost",
     "cia-project3.onrender.com",
     "cia-project3-1.onrender.com",
+    "cia-project3-2.onrender.com",
 ]
 
 INSTALLED_APPS = [
