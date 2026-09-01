@@ -1,5 +1,7 @@
 from pathlib import Path
 import os
+import dj_database_url
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -8,12 +10,13 @@ SECRET_KEY = os.environ.get(
     "django-insecure-change-this-in-production"
 )
 
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
     "cia-project3.onrender.com",
+    "cia-project3-1.onrender.com",
 ]
 
 INSTALLED_APPS = [
@@ -62,7 +65,15 @@ TEMPLATES = [
 WSGI_APPLICATION = "core.wsgi.application"
 
 DATABASES = {
-    "default": {
+    "default": dj_database_url.config(
+        default=None,
+        conn_max_age=600,
+        ssl_require=True,
+    )
+}
+
+if not os.environ.get("DATABASE_URL"):
+    DATABASES["default"] = {
         "ENGINE": "mssql",
         "NAME": "CIA_Examination",
         "HOST": r"DESKTOP-B9DUPVH\SQLEXPRESS",
@@ -70,8 +81,7 @@ DATABASES = {
             "driver": "ODBC Driver 18 for SQL Server",
             "extra_params": "Encrypt=no;TrustServerCertificate=yes;",
         },
-    },
-}
+    }
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
