@@ -13,4 +13,6 @@ COPY . .
 
 RUN python manage.py collectstatic --noinput
 
-CMD ["gunicorn", "core.wsgi:application", "--bind", "0.0.0.0:10000"]
+RUN chmod +x start.sh
+
+CMD ["./start.sh"]
