@@ -19,6 +19,9 @@ ALLOWED_HOSTS = [
     "cia-project3-1.onrender.com",
     "cia-project3-2.onrender.com",
 ]
+CSRF_TRUSTED_ORIGINS = [
+    "https://cia-project3-2.onrender.com",
+]
 
 INSTALLED_APPS = [
     "import_export",
