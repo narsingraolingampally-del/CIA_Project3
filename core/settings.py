@@ -68,10 +68,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "core.wsgi.application"
 
-import os
-import dj_database_url
+
+# ============================================================
+# DATABASE CONFIGURATION
+# ============================================================
 
 if os.getenv("DATABASE_URL"):
+    # Render / Production PostgreSQL
     DATABASES = {
         "default": dj_database_url.config(
             conn_max_age=600,
@@ -79,6 +82,7 @@ if os.getenv("DATABASE_URL"):
         )
     }
 else:
+    # Local Windows SQL Server
     DATABASES = {
         "default": {
             "ENGINE": "mssql",
@@ -90,6 +94,7 @@ else:
             },
         }
     }
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
