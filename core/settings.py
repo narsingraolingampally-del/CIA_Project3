@@ -68,23 +68,27 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "core.wsgi.application"
 
-DATABASES = {
-    "default": dj_database_url.config(
-        default=None,
-        conn_max_age=600,
-        ssl_require=True,
-    )
-}
+import os
+import dj_database_url
 
-if not os.environ.get("DATABASE_URL"):
-    DATABASES["default"] = {
-        "ENGINE": "mssql",
-        "NAME": "CIA_Examination",
-        "HOST": r"DESKTOP-B9DUPVH\SQLEXPRESS",
-        "OPTIONS": {
-            "driver": "ODBC Driver 18 for SQL Server",
-            "extra_params": "Encrypt=no;TrustServerCertificate=yes;",
-        },
+if os.getenv("DATABASE_URL"):
+    DATABASES = {
+        "default": dj_database_url.config(
+            conn_max_age=600,
+            ssl_require=True,
+        )
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "mssql",
+            "NAME": "CIA_Examination",
+            "HOST": r"DESKTOP-B9DUPVH\SQLEXPRESS",
+            "OPTIONS": {
+                "driver": "ODBC Driver 18 for SQL Server",
+                "extra_params": "Encrypt=no;TrustServerCertificate=yes;",
+            },
+        }
     }
 AUTH_PASSWORD_VALIDATORS = [
     {
