@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Python
 __pycache__/
 *.py[cod]
@@ -35,3 +36,25 @@ Thumbs.db
 
 # Jupyter
 .ipynb_checkpoints/
+=======
+# Python virtual environments
+env/
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Django
+db.sqlite3
+
+# Environment variables / secrets
+.env
+.env.*
+
+# Static collected files
+staticfiles/
+
+# Nested/old project copy
+CIA_Project3/
+>>>>>>> 9f5ffdb5ff1d73a72bc53827ef81a00de5479cd4
