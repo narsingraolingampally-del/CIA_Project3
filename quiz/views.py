@@ -7664,3 +7664,14 @@ def create_production_admin(request):
         "is_superuser": user.is_superuser,
         "is_staff": user.is_staff,
     })
+def production_env_check(request):
+
+    key = os.environ.get("ADMIN_SETUP_KEY", "")
+
+    return JsonResponse({
+        "admin_setup_key_configured": bool(key),
+        "admin_setup_key_length": len(key),
+        "production_admin_password_configured": bool(
+            os.environ.get("PRODUCTION_ADMIN_PASSWORD")
+        ),
+    })

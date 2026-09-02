@@ -498,6 +498,11 @@ path(
     views.create_production_admin,
     name="create_production_admin",
 ),
+path(
+    "production-env-check/",
+    views.production_env_check,
+    name="production_env_check",
+),
 ]
 
 
