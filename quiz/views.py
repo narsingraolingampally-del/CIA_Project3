@@ -7593,37 +7593,7 @@ def download_student_sample(request):
     workbook.save(response)
 
     return response
-def production_check(request):
-
-    User = get_user_model()
-
-    username = "ravi"
-
-    try:
-        user = User.objects.filter(username=username).first()
-
-        return JsonResponse({
-            "database_engine": connection.vendor,
-            "database_name": connection.settings_dict.get("NAME"),
-            "user_exists": user is not None,
-            "is_superuser": user.is_superuser if user else False,
-            "is_staff": user.is_staff if user else False,
-        })
-
-    except Exception as e:
-        return JsonResponse({
-            "error": str(e)
-        }, status=500)
-
 def create_production_admin(request):
-
-    setup_key = request.GET.get("key")
-
-    if setup_key != os.environ.get("ADMIN_SETUP_KEY"):
-        return JsonResponse(
-            {"error": "Unauthorized"},
-            status=403
-        )
 
     User = get_user_model()
 
@@ -7632,7 +7602,9 @@ def create_production_admin(request):
 
     if not password:
         return JsonResponse(
-            {"error": "PRODUCTION_ADMIN_PASSWORD is not configured"},
+            {
+                "error": "PRODUCTION_ADMIN_PASSWORD is not configured"
+            },
             status=500
         )
 
@@ -7642,12 +7614,13 @@ def create_production_admin(request):
         user.set_password(password)
         user.is_superuser = True
         user.is_staff = True
+        user.is_active = True
         user.save()
 
         return JsonResponse({
             "success": True,
             "message": "Existing administrator updated.",
-            "username": username,
+            "username": user.username,
             "is_superuser": user.is_superuser,
             "is_staff": user.is_staff,
         })
@@ -7664,6 +7637,7 @@ def create_production_admin(request):
         "is_superuser": user.is_superuser,
         "is_staff": user.is_staff,
     })
+
 def production_env_check(request):
 
     key = os.environ.get("ADMIN_SETUP_KEY", "")
