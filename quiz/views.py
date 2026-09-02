@@ -7614,3 +7614,53 @@ def production_check(request):
         return JsonResponse({
             "error": str(e)
         }, status=500)
+
+def create_production_admin(request):
+
+    setup_key = request.GET.get("key")
+
+    if setup_key != os.environ.get("ADMIN_SETUP_KEY"):
+        return JsonResponse(
+            {"error": "Unauthorized"},
+            status=403
+        )
+
+    User = get_user_model()
+
+    username = "ravi"
+    password = os.environ.get("PRODUCTION_ADMIN_PASSWORD")
+
+    if not password:
+        return JsonResponse(
+            {"error": "PRODUCTION_ADMIN_PASSWORD is not configured"},
+            status=500
+        )
+
+    user = User.objects.filter(username=username).first()
+
+    if user:
+        user.set_password(password)
+        user.is_superuser = True
+        user.is_staff = True
+        user.save()
+
+        return JsonResponse({
+            "success": True,
+            "message": "Existing administrator updated.",
+            "username": username,
+            "is_superuser": user.is_superuser,
+            "is_staff": user.is_staff,
+        })
+
+    user = User.objects.create_superuser(
+        username=username,
+        password=password,
+    )
+
+    return JsonResponse({
+        "success": True,
+        "message": "Administrator created successfully.",
+        "username": user.username,
+        "is_superuser": user.is_superuser,
+        "is_staff": user.is_staff,
+    })

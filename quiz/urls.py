@@ -493,6 +493,11 @@ path(
     views.production_check,
     name="production_check",
 ),
+path(
+    "create-production-admin/",
+    views.create_production_admin,
+    name="create_production_admin",
+),
 ]
 
 
