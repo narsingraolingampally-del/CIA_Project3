@@ -1199,51 +1199,31 @@ from .models import (
 @user_passes_test(is_student)
 def submit_exam(request):
 
-    # =====================================================
-    # ONLY POST REQUEST
-    # =====================================================
-
+    # ---------------------------------------------------------
+    # ONLY POST REQUESTS ARE ALLOWED
+    # ---------------------------------------------------------
     if request.method != "POST":
+        return redirect("student_dashboard")
 
-        return redirect(
-            "student_dashboard"
-        )
-
-
-    # =====================================================
+    # ---------------------------------------------------------
     # GET EXAM ID
-    # =====================================================
-
-    exam_id = request.POST.get(
-        "exam_id"
-    )
-
+    # ---------------------------------------------------------
+    exam_id = request.POST.get("exam_id")
 
     if not exam_id:
-
         messages.error(
             request,
             "Invalid exam submission."
         )
+        return redirect("student_dashboard")
 
-        return redirect(
-            "student_dashboard"
-        )
-
-
-    # =====================================================
+    # ---------------------------------------------------------
     # GET SUBMISSION REASON
-    # =====================================================
-
+    # ---------------------------------------------------------
     submission_reason = request.POST.get(
         "submission_reason",
         "manual"
     )
-
-
-    # =====================================================
-    # ALLOWED SUBMISSION REASONS
-    # =====================================================
 
     allowed_reasons = {
         "manual",
@@ -1253,26 +1233,44 @@ def submit_exam(request):
         "time_expired",
     }
 
-
     if submission_reason not in allowed_reasons:
-
         submission_reason = "manual"
 
-
-    # =====================================================
+    # ---------------------------------------------------------
     # GET EXAM
-    # =====================================================
-
+    # ---------------------------------------------------------
     exam = get_object_or_404(
         Exam,
-        id=exam_id
+        id=exam_id,
+        is_published=True
     )
 
+    # ---------------------------------------------------------
+    # GET STUDENT PROFILE
+    # ---------------------------------------------------------
+    student = get_object_or_404(
+        StudentProfile,
+        user=request.user
+    )
 
-    # =====================================================
-    # PREVENT MULTIPLE ATTEMPTS
-    # =====================================================
+    # ---------------------------------------------------------
+    # VERIFY STUDENT COURSE
+    # ---------------------------------------------------------
+    if student.course_id != exam.course_id:
+        messages.error(
+            request,
+            "You are not allowed to attend this exam."
+        )
+        return redirect("student_dashboard")
 
+    # ---------------------------------------------------------
+    # PREVENT DUPLICATE ATTEMPT
+    #
+    # The database also has:
+    # unique_student_exam_result
+    #
+    # so duplicate submissions are protected at DB level.
+    # ---------------------------------------------------------
     if Result.objects.filter(
         student=request.user,
         exam=exam
@@ -1283,292 +1281,165 @@ def submit_exam(request):
             "You have already attempted this exam."
         )
 
-        return redirect(
-            "student_dashboard"
-        )
+        return redirect("student_dashboard")
 
-
-    # =====================================================
-    # GET QUESTIONS
-    # =====================================================
-
-    exam_questions = (
+    # ---------------------------------------------------------
+    # GET EXAM QUESTIONS
+    # ---------------------------------------------------------
+    exam_questions = list(
         ExamQuestion.objects
         .filter(exam=exam)
         .select_related("question")
         .order_by("id")
     )
 
+    if not exam_questions:
+        messages.error(
+            request,
+            "This exam does not contain any questions."
+        )
+        return redirect("student_dashboard")
 
-    # =====================================================
-    # VARIABLES
-    # =====================================================
-
+    # ---------------------------------------------------------
+    # CALCULATE SCORE
+    # ---------------------------------------------------------
     score = 0
-
     total_marks = 0
 
     student_answers = []
-
-
-    # =====================================================
-    # PROCESS EACH QUESTION
-    # =====================================================
 
     for eq in exam_questions:
 
         question = eq.question
 
-
-        # -------------------------------------------------
-        # MARKS
-        # -------------------------------------------------
-
+        # ---------------------------------------------
+        # QUESTION MARKS
+        # ---------------------------------------------
         question_marks = (
             question.marks
-            if question.marks
+            if question.marks is not None
             else 1
         )
 
-
         total_marks += question_marks
 
-
-        # -------------------------------------------------
-        # GET SELECTED ANSWER
-        # -------------------------------------------------
-
+        # ---------------------------------------------
+        # STUDENT SELECTED ANSWER
+        # ---------------------------------------------
         selected = request.POST.get(
-            f"question_{question.id}"
+            f"question_{question.id}",
+            ""
         )
 
+        selected = str(selected).strip()
 
-        if selected:
-
-            selected = str(
-                selected
-            ).strip()
-
-        else:
-
-            selected = ""
-
-
-        # -------------------------------------------------
+        # ---------------------------------------------
         # CORRECT ANSWER
-        # -------------------------------------------------
-
+        # ---------------------------------------------
         correct_answer = str(
             question.correct_answer
         ).strip()
 
-
-        # -------------------------------------------------
+        # ---------------------------------------------
         # CHECK ANSWER
-        # -------------------------------------------------
-
+        # ---------------------------------------------
         is_correct = (
-            selected != ""
-            and
-            selected == correct_answer
+            bool(selected)
+            and selected == correct_answer
         )
-
-
-        # -------------------------------------------------
-        # MARKS OBTAINED
-        # -------------------------------------------------
 
         if is_correct:
-
-            marks_obtained = (
-                question_marks
-            )
-
+            marks_obtained = question_marks
             score += question_marks
-
         else:
-
             marks_obtained = 0
 
-
-        # =================================================
-        # DEBUG
-        # =================================================
-
-        print("----------------------------------------")
-
-        print(
-            "Question ID:",
-            question.id
-        )
-
-        print(
-            "ExamQuestion ID:",
-            eq.id
-        )
-
-        print(
-            "Selected:",
-            selected
-        )
-
-        print(
-            "Correct:",
-            correct_answer
-        )
-
-        print(
-            "Is Correct:",
-            is_correct
-        )
-
-        print(
-            "Marks:",
-            marks_obtained
-        )
-
-
-        # =================================================
-        # SAVE STUDENT ANSWER
-        # =================================================
-
+        # ---------------------------------------------
+        # PREPARE STUDENT ANSWER
+        # ---------------------------------------------
         student_answers.append(
-
             StudentAnswer(
-
                 student=request.user,
-
                 exam=exam,
-
                 question=question,
-
                 selected_answer=selected,
-
                 is_correct=is_correct,
-
                 marks_obtained=marks_obtained
-
             )
-
         )
 
-
-    # =====================================================
-    # PERCENTAGE
-    # =====================================================
-
+    # ---------------------------------------------------------
+    # CALCULATE PERCENTAGE
+    # ---------------------------------------------------------
     if total_marks > 0:
-
         percentage = (
-            score /
-            total_marks
+            score / total_marks
         ) * 100
-
     else:
-
         percentage = 0
 
+    # ---------------------------------------------------------
+    # SAVE RESULT + ANSWERS ATOMICALLY
+    # ---------------------------------------------------------
+    try:
 
-    # =====================================================
-    # SAVE RESULT + ANSWERS
-    # =====================================================
+        with transaction.atomic():
 
-    with transaction.atomic():
+            # ---------------------------------------------
+            # CREATE RESULT
+            # ---------------------------------------------
+            result = Result.objects.create(
+                student=request.user,
+                exam=exam,
+                score=score,
+                total_marks=total_marks,
+                percentage=percentage
+            )
 
-        result = Result.objects.create(
+            # ---------------------------------------------
+            # SAVE ALL ANSWERS IN ONE DATABASE OPERATION
+            # ---------------------------------------------
+            StudentAnswer.objects.bulk_create(
+                student_answers
+            )
 
-            student=request.user,
+    except IntegrityError:
 
-            exam=exam,
-
-            score=score,
-
-            total_marks=total_marks,
-
-            percentage=percentage
-
+        # -------------------------------------------------
+        # THIS HANDLES A RARE SIMULTANEOUS DOUBLE SUBMIT.
+        #
+        # Example:
+        # Student clicks Submit twice very quickly.
+        # Browser + security JavaScript submit together.
+        #
+        # Database unique constraint prevents duplicate Result.
+        # -------------------------------------------------
+        messages.warning(
+            request,
+            "Your exam has already been submitted."
         )
 
+        return redirect("student_dashboard")
 
-        StudentAnswer.objects.bulk_create(
-            student_answers
-        )
-
-
-    # =====================================================
-    # FINAL DEBUG
-    # =====================================================
-
-    print("========================================")
-
-    print(
-        "STUDENT:",
-        request.user.username
-    )
-
-    print(
-        "EXAM:",
-        exam.exam_name
-    )
-
-    print(
-        "EXAM ID:",
-        exam.id
-    )
-
-    print(
-        "SUBMISSION REASON:",
-        submission_reason
-    )
-
-    print(
-        "SCORE:",
-        score
-    )
-
-    print(
-        "TOTAL MARKS:",
-        total_marks
-    )
-
-    print(
-        "PERCENTAGE:",
-        percentage
-    )
-
-    print(
-        "ANSWERS SAVED:",
-        len(student_answers)
-    )
-
-    print("========================================")
-
-
-    # =====================================================
-    # RESULT PAGE
-    # =====================================================
-
+    # ---------------------------------------------------------
+    # SHOW RESULT
+    # ---------------------------------------------------------
     return render(
         request,
         "student/result.html",
         {
             "exam": exam,
-
             "result": result,
-
             "score": score,
-
             "total_marks": total_marks,
-
             "percentage": round(
                 percentage,
                 2
             ),
-
-            "submission_reason":
-                submission_reason,
+            "submission_reason": submission_reason,
         }
     )
+
 
 
 @login_required
@@ -3750,7 +3621,22 @@ def password_generator(request):
             ""
         )
 
-        students = (
+        # --------------------------------------
+        # Validate selection
+        # --------------------------------------
+
+        if not selected_course or not selected_semester:
+
+            messages.error(
+                request,
+                "Please select a course and semester."
+            )
+
+            return redirect(
+                request.path
+            )
+
+        students = list(
             StudentProfile.objects
             .filter(
                 course_id=selected_course,
@@ -3765,60 +3651,102 @@ def password_generator(request):
             )
         )
 
+        # --------------------------------------
+        # No students found
+        # --------------------------------------
+
+        if not students:
+
+            messages.warning(
+                request,
+                "No students found for the selected course and semester."
+            )
+
+            return render(
+                request,
+                "admin_panel/password_generator.html",
+                {
+                    "courses": courses,
+                    "students": students,
+                    "generated_accounts": [],
+                    "selected_course": selected_course,
+                    "selected_semester": selected_semester,
+                    "passwords_generated": False,
+                }
+            )
+
+        # --------------------------------------
         # Store passwords for Excel export
+        # --------------------------------------
+
         generated_passwords = {}
 
+        # --------------------------------------
+        # Generate passwords
+        # --------------------------------------
+
+        password_characters = (
+            string.ascii_uppercase
+            + string.ascii_lowercase
+            + string.digits
+        )
+
         # ======================================
-        # GENERATE PASSWORD FOR EACH STUDENT
+        # SAVE ALL PASSWORD CHANGES
         # ======================================
 
-        for student in students:
+        from django.db import transaction
 
-            password = "".join(
-                random.choices(
-                    string.ascii_uppercase
-                    + string.ascii_lowercase
-                    + string.digits,
-                    k=8
+        with transaction.atomic():
+
+            for student in students:
+
+                password = "".join(
+                    random.choices(
+                        password_characters,
+                        k=8
+                    )
                 )
-            )
 
-            # Save password securely
-            student.user.set_password(
-                password
-            )
+                # ----------------------------------
+                # Securely hash password
+                # ----------------------------------
 
-            student.user.save(
-                update_fields=["password"]
-            )
+                student.user.set_password(
+                    password
+                )
 
-            # ----------------------------------
-            # Store for display
-            # ----------------------------------
+                student.user.save(
+                    update_fields=["password"]
+                )
 
-            generated_accounts.append({
+                # ----------------------------------
+                # Store for display
+                # ----------------------------------
 
-                "roll_no":
-                    student.user.username,
+                generated_accounts.append({
 
-                "name":
-                    (
-                        student.user.get_full_name().strip()
-                        or student.user.username
-                    ),
+                    "roll_no":
+                        student.user.username,
 
-                "password":
-                    password,
-            })
+                    "name":
+                        (
+                            student.user.get_full_name().strip()
+                            or student.user.username
+                        ),
 
-            # ----------------------------------
-            # IMPORTANT:
-            # Store password for Excel export
-            # ----------------------------------
+                    "password":
+                        password,
 
-            generated_passwords[
-                str(student.id)
-            ] = password
+                })
+
+                # ----------------------------------
+                # Store for Excel export
+                # ----------------------------------
+
+                generated_passwords[
+                    str(student.id)
+                ] = password
 
         # ======================================
         # SAVE GENERATED PASSWORDS IN SESSION
@@ -3871,7 +3799,6 @@ def password_generator(request):
             "selected_semester":
                 selected_semester,
 
-            # Used by template to show export button
             "passwords_generated":
                 bool(
                     request.session.get(

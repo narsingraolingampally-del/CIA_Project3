@@ -426,6 +426,13 @@ class Result(models.Model):
         auto_now_add=True
     )
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["student", "exam"],
+                name="unique_student_exam_result"
+            )
+        ]
 
     def __str__(self):
         return f"{self.student.username} - {self.exam.exam_name}"
