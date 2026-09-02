@@ -13,7 +13,8 @@ from django.http import (
     JsonResponse,
     HttpResponse,
 )
-
+from django.contrib.auth import get_user_model
+from django.db import connection
 from django.contrib import messages
 
 from django.contrib.auth import (
@@ -88,6 +89,7 @@ from .forms import (
     QuestionUploadForm,
     ExamForm,
 )
+
 
 
 # =========================================================
@@ -7591,3 +7593,24 @@ def download_student_sample(request):
     workbook.save(response)
 
     return response
+def production_check(request):
+
+    User = get_user_model()
+
+    username = "ravi"
+
+    try:
+        user = User.objects.filter(username=username).first()
+
+        return JsonResponse({
+            "database_engine": connection.vendor,
+            "database_name": connection.settings_dict.get("NAME"),
+            "user_exists": user is not None,
+            "is_superuser": user.is_superuser if user else False,
+            "is_staff": user.is_staff if user else False,
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            "error": str(e)
+        }, status=500)

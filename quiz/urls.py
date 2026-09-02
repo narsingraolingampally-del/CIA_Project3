@@ -488,6 +488,11 @@ path(
         views.export_reports_pdf,
         name="export_reports_pdf",
     ),
+    path(
+    "production-check/",
+    views.production_check,
+    name="production_check",
+),
 ]
 
 
