@@ -3439,6 +3439,7 @@ def admin_reports(request):
         "admin_panel/reports.html",
         context
     )
+
 @login_required
 @user_passes_test(is_admin)
 def delete_exam_attempt(request, result_id):
@@ -3449,7 +3450,6 @@ def delete_exam_attempt(request, result_id):
 
     if request.method != "POST":
         return redirect("admin_reports")
-
 
     # =====================================================
     # GET RESULT
@@ -3463,7 +3463,6 @@ def delete_exam_attempt(request, result_id):
         id=result_id
     )
 
-
     # =====================================================
     # SAVE INFORMATION BEFORE DELETE
     # =====================================================
@@ -3471,14 +3470,16 @@ def delete_exam_attempt(request, result_id):
     student = result.student
     exam = result.exam
 
-
     student_name = (
         student.get_full_name()
         or student.username
     )
 
-    exam_name = exam.exam_name
-
+    exam_name = (
+        exam.exam_name
+        if exam
+        else "this exam"
+    )
 
     # =====================================================
     # DELETE STUDENT ANSWERS
@@ -3489,13 +3490,11 @@ def delete_exam_attempt(request, result_id):
         exam=exam
     ).delete()
 
-
     # =====================================================
     # DELETE RESULT
     # =====================================================
 
     result.delete()
-
 
     # =====================================================
     # SUCCESS MESSAGE
@@ -3508,7 +3507,6 @@ def delete_exam_attempt(request, result_id):
         f"The student can now attempt the exam again."
     )
 
-
     # =====================================================
     # PRESERVE REPORT FILTERS
     # =====================================================
@@ -3518,17 +3516,18 @@ def delete_exam_attempt(request, result_id):
         ""
     )
 
-
     if query_string:
-
         return redirect(
-            f"/admin/reports/?{query_string}"
+            f"/admin-panel/reports/?{query_string}"
         )
 
+    # =====================================================
+    # NO FILTERS
+    # =====================================================
 
-    return redirect(
-        "admin_reports"
-    )    
+    return redirect("admin_reports")
+
+
 # =========================================
 # MANAGE EXAMS
 # =========================================
