@@ -3,6 +3,12 @@
 # IMPORTS
 # =========================================================
 
+
+from openpyxl.styles import (
+    Font,
+    PatternFill,
+    Alignment,
+)
 import random
 import string
 from io import BytesIO
@@ -348,17 +354,16 @@ def faculty_dashboard(request):
     )
 
 
-# =========================================
-# TAKE QUIZ
-# =========================================
 
-# =========================================
-# TAKE EXAM
-# =========================================
+
 
 @login_required
 @user_passes_test(is_student)
 def take_exam(request, exam_id):
+
+    # =====================================================
+    # GET PUBLISHED EXAM
+    # =====================================================
 
     exam = get_object_or_404(
         Exam,
@@ -366,30 +371,44 @@ def take_exam(request, exam_id):
         is_published=True
     )
 
+    # =====================================================
+    # GET STUDENT PROFILE
+    # =====================================================
 
     student = get_object_or_404(
-        StudentProfile,
+        StudentProfile.objects.select_related("course"),
         user=request.user
     )
 
+    # =====================================================
+    # CHECK STUDENT COURSE
+    # =====================================================
 
-    # Check student belongs to exam course
-    if student.course != exam.course:
+    if student.course_id != exam.course_id:
 
         messages.error(
             request,
             "You are not allowed to attend this exam."
         )
 
-        return redirect(
-            "student_dashboard"
-        )
+        return redirect("student_dashboard")
 
+    # =====================================================
+    # GET EXAM QUESTIONS
+    #
+    # select_related("question") prevents one database
+    # query for every question.
+    # =====================================================
 
-    exam_questions = exam.exam_questions.select_related(
-        "question"
-    ).all()
+    exam_questions = (
+        exam.exam_questions
+        .select_related("question")
+        .order_by("id")
+    )
 
+    # =====================================================
+    # RENDER EXAM
+    # =====================================================
 
     return render(
         request,
@@ -400,23 +419,11 @@ def take_exam(request, exam_id):
             "duration_seconds": exam.duration * 60,
         },
     )
-# =========================================
-# SUBMIT QUIZ
-# =========================================
-
-# =========================================
-# SUBMIT EXAM
-# =========================================
 
 
-    
-# =========================================
-# VIEW QUESTIONS
-# =========================================
 
-# =========================================================
-# FACULTY - VIEW QUESTIONS
-# =========================================================
+
+
 
 @login_required
 @user_passes_test(is_faculty)
@@ -2377,6 +2384,11 @@ def question_bank(request):
 # UPLOAD QUESTIONS
 # =========================================
 
+
+# =========================================================
+# ADMIN / FACULTY - UPLOAD QUESTIONS
+# =========================================================
+
 @login_required
 @user_passes_test(is_admin_or_faculty)
 def upload_questions(request):
@@ -2406,27 +2418,11 @@ def upload_questions(request):
         request.FILES
     )
 
-    print("\n========================================")
-    print("QUESTION BANK UPLOAD")
-    print("========================================")
-
-    print("POST DATA:")
-    print(request.POST)
-
-    print("\nFILES:")
-    print(request.FILES)
-
     # =====================================================
     # FORM VALIDATION
     # =====================================================
 
     if not form.is_valid():
-
-        print("\n========================================")
-        print("FORM INVALID")
-        print("========================================")
-
-        print(form.errors.as_json())
 
         return render(
             request,
@@ -2435,8 +2431,6 @@ def upload_questions(request):
                 "form": form
             }
         )
-
-    print("\nFORM IS VALID")
 
     # =====================================================
     # FORM DATA
@@ -2452,26 +2446,10 @@ def upload_questions(request):
 
     academic_year = (
         form.cleaned_data["academic_year"]
-        .strip()
-    )
+        or ""
+    ).strip()
 
     excel_file = form.cleaned_data["excel_file"]
-
-    print("\n----------------------------------------")
-    print("SELECTED DATA")
-    print("----------------------------------------")
-
-    print("Course:", course)
-    print("Course ID:", course.id)
-
-    print("Semester:", semester)
-
-    print("Subject:", subject)
-    print("Subject ID:", subject.id)
-
-    print("Academic Year:", academic_year)
-
-    print("Excel:", excel_file.name)
 
     # =====================================================
     # COURSE / SUBJECT VALIDATION
@@ -2514,18 +2492,22 @@ def upload_questions(request):
         )
 
     # =====================================================
-    # CHECK FILE EXTENSION
+    # FILE EXTENSION
     # =====================================================
 
-    filename = excel_file.name.lower()
+    filename = (
+        excel_file.name
+        or ""
+    ).lower()
 
     if not filename.endswith(
         (".xlsx", ".xls")
     ):
 
-        messages.error(
-            request,
-            "Please upload a valid Excel file (.xlsx or .xls)."
+        form.add_error(
+            "excel_file",
+            "Please upload a valid Excel file "
+            "(.xlsx or .xls)."
         )
 
         return render(
@@ -2543,15 +2525,14 @@ def upload_questions(request):
     try:
 
         df = pd.read_excel(
-            excel_file
+            excel_file,
+            dtype=object
         )
 
     except Exception as e:
 
-        print("\nEXCEL READ ERROR:", e)
-
-        messages.error(
-            request,
+        form.add_error(
+            "excel_file",
             f"Unable to read Excel file: {e}"
         )
 
@@ -2567,127 +2548,103 @@ def upload_questions(request):
     # CLEAN COLUMN NAMES
     # =====================================================
 
-    df.columns = (
+    original_columns = list(
         df.columns
-        .astype(str)
-        .str.strip()
-        .str.lower()
     )
 
-    print("\n========================================")
-    print("EXCEL INFORMATION")
-    print("========================================")
-
-    print("Columns:")
-    print(list(df.columns))
-
-    print("Number of rows:", len(df))
+    df.columns = [
+        " ".join(
+            str(column)
+            .strip()
+            .lower()
+            .replace("\n", " ")
+            .replace("\t", " ")
+            .split()
+        )
+        for column in df.columns
+    ]
 
     # =====================================================
     # REQUIRED COLUMNS
     # =====================================================
 
     required_columns = [
-
         "question_text",
-
         "option1",
-
         "option2",
-
         "option3",
-
         "option4",
-
         "correct_answer",
-
         "marks",
-
     ]
 
     missing_columns = [
-
         column
-
         for column in required_columns
-
         if column not in df.columns
-
     ]
+
+    # =====================================================
+    # MISSING COLUMNS
+    # =====================================================
 
     if missing_columns:
 
-        messages.error(
-            request,
-            "Missing Excel columns: "
+        # Keep whatever columns were uploaded
+        df["Error"] = (
+            "Missing Excel column(s): "
             + ", ".join(missing_columns)
         )
 
-        return render(
-            request,
-            "admin_panel/upload_questions.html",
-            {
-                "form": form
-            }
+        return _download_question_upload_error_report(
+            df,
+            "admin_question_upload_error_report.xlsx"
         )
 
     # =====================================================
-    # KEEP ONLY REQUIRED COLUMNS
+    # PRESERVE ORIGINAL EXCEL ROW NUMBERS
     # =====================================================
 
-    df = df[
-        required_columns
-    ]
+    df["_excel_row"] = (
+        df.index + 2
+    )
 
     # =====================================================
-    # REMOVE COMPLETELY EMPTY ROWS
+    # REMOVE ONLY COMPLETELY EMPTY DATA ROWS
     # =====================================================
 
     df = df.dropna(
+        subset=required_columns,
         how="all"
-    )
-
-    if df.empty:
-
-        messages.error(
-            request,
-            "The Excel file does not contain "
-            "any questions."
-        )
-
-        return render(
-            request,
-            "admin_panel/upload_questions.html",
-            {
-                "form": form
-            }
-        )
+    ).copy()
 
     # =====================================================
-    # VALIDATE ALL ROWS FIRST
-    #
-    # IMPORTANT:
-    # No database records are created here.
+    # ERROR COLUMN
+    # =====================================================
+
+    df["Error"] = ""
+
+    # =====================================================
+    # VALID QUESTIONS
     # =====================================================
 
     valid_questions = []
 
-    errors = []
+    # =====================================================
+    # VALIDATE EVERY ROW
+    # =====================================================
 
-    print("\n========================================")
-    print("VALIDATING QUESTIONS")
-    print("========================================")
+    for index, row in df.iterrows():
 
-    for row_number, row in df.iterrows():
+        excel_row = int(
+            row["_excel_row"]
+        )
 
-        # Excel header is row 1
-        # Therefore first data row is row 2
+        row_errors = []
 
-        excel_row = row_number + 2
-
-        # =================================================
-        # QUESTION TEXT
-        # =================================================
+        # -------------------------------------------------
+        # QUESTION
+        # -------------------------------------------------
 
         question_value = row[
             "question_text"
@@ -2695,41 +2652,31 @@ def upload_questions(request):
 
         if pd.isna(question_value):
 
-            errors.append(
-                f"Excel row {excel_row}: "
-                "question_text is empty."
-            )
+            question_text = ""
 
-            continue
+        else:
 
-        question_text = str(
-            question_value
-        ).strip()
+            question_text = str(
+                question_value
+            ).strip()
 
         if not question_text:
 
-            errors.append(
-                f"Excel row {excel_row}: "
-                "question_text is empty."
+            row_errors.append(
+                "Question is empty"
             )
 
-            continue
-
-        # =================================================
+        # -------------------------------------------------
         # OPTIONS
-        # =================================================
+        # -------------------------------------------------
 
         option_values = {}
 
-        option_error = False
-
         for column in [
-
             "option1",
             "option2",
             "option3",
             "option4",
-
         ]:
 
             value = row[column]
@@ -2744,24 +2691,19 @@ def upload_questions(request):
                     value
                 ).strip()
 
-            option_values[column] = value
+            option_values[
+                column
+            ] = value
 
             if not value:
 
-                errors.append(
-                    f"Excel row {excel_row}: "
-                    f"{column} is empty."
+                row_errors.append(
+                    f"{column} is empty"
                 )
 
-                option_error = True
-
-        if option_error:
-
-            continue
-
-        # =================================================
+        # -------------------------------------------------
         # CORRECT ANSWER
-        # =================================================
+        # -------------------------------------------------
 
         correct_value = row[
             "correct_answer"
@@ -2769,196 +2711,270 @@ def upload_questions(request):
 
         if pd.isna(correct_value):
 
-            errors.append(
-                f"Excel row {excel_row}: "
-                "correct_answer is empty."
-            )
+            correct_answer = ""
 
-            continue
-
-        try:
-
-            correct_answer = str(
-                int(
-                    float(
-                        correct_value
-                    )
-                )
-            )
-
-        except (
-            ValueError,
-            TypeError
-        ):
+        else:
 
             correct_answer = str(
                 correct_value
             ).strip()
 
-        # =================================================
-        # VALID CORRECT ANSWER
-        # =================================================
+        answer_number = None
 
-        if correct_answer not in [
+        if correct_answer:
 
-            "1",
-            "2",
-            "3",
-            "4",
+            # ---------------------------------------------
+            # NUMERIC ANSWER
+            # ---------------------------------------------
 
-        ]:
+            try:
 
-            errors.append(
-                f"Excel row {excel_row}: "
-                f"Invalid correct_answer "
-                f"'{correct_answer}'. "
-                f"Use 1, 2, 3 or 4."
+                numeric_value = float(
+                    correct_answer
+                )
+
+                if numeric_value.is_integer():
+
+                    numeric_value = int(
+                        numeric_value
+                    )
+
+                    if numeric_value in [
+                        1,
+                        2,
+                        3,
+                        4,
+                    ]:
+
+                        answer_number = (
+                            numeric_value
+                        )
+
+            except (
+                ValueError,
+                TypeError
+            ):
+
+                pass
+
+            # ---------------------------------------------
+            # ANSWER TEXT
+            # ---------------------------------------------
+
+            if answer_number is None:
+
+                answer_map = {
+
+                    option_values[
+                        "option1"
+                    ].lower(): 1,
+
+                    option_values[
+                        "option2"
+                    ].lower(): 2,
+
+                    option_values[
+                        "option3"
+                    ].lower(): 3,
+
+                    option_values[
+                        "option4"
+                    ].lower(): 4,
+                }
+
+                answer_number = answer_map.get(
+                    correct_answer.lower()
+                )
+
+        if answer_number is None:
+
+            row_errors.append(
+                "Correct answer must be 1, 2, 3 or 4, "
+                "or exactly match one option"
             )
 
-            continue
-
-        # =================================================
+        # -------------------------------------------------
         # MARKS
-        # =================================================
+        # -------------------------------------------------
 
-        marks_value = row[
+        marks_raw = row[
             "marks"
         ]
 
-        if pd.isna(marks_value):
+        marks_value = None
 
-            errors.append(
-                f"Excel row {excel_row}: "
-                "marks is empty."
+        if pd.isna(marks_raw):
+
+            marks_text = ""
+
+        else:
+
+            marks_text = str(
+                marks_raw
+            ).strip()
+
+        if not marks_text:
+
+            row_errors.append(
+                "Marks is empty"
             )
 
-            continue
+        else:
 
-        try:
+            try:
 
-            marks_float = float(
-                marks_value
-            )
+                marks_float = float(
+                    marks_text
+                )
 
-            marks = int(
-                marks_float
-            )
+                if not marks_float.is_integer():
 
-            # Prevent 1.5 from silently becoming 1
+                    row_errors.append(
+                        "Marks must be a whole number"
+                    )
 
-            if marks_float != marks:
+                else:
 
-                raise ValueError
+                    marks_value = int(
+                        marks_float
+                    )
 
-        except (
-            ValueError,
-            TypeError
+                    if marks_value <= 0:
+
+                        row_errors.append(
+                            "Marks must be greater than 0"
+                        )
+
+            except (
+                ValueError,
+                TypeError
+            ):
+
+                row_errors.append(
+                    "Marks must be a valid number"
+                )
+
+        # -------------------------------------------------
+        # DUPLICATE DATABASE CHECK
+        # -------------------------------------------------
+
+        if (
+            question_text
+            and not row_errors
         ):
 
-            errors.append(
-                f"Excel row {excel_row}: "
-                f"Invalid marks '{marks_value}'. "
-                f"Marks must be a whole number."
-            )
-
-            continue
-
-        # =================================================
-        # MARKS MUST BE GREATER THAN ZERO
-        # =================================================
-
-        if marks <= 0:
-
-            errors.append(
-                f"Excel row {excel_row}: "
-                "marks must be greater than 0."
-            )
-
-            continue
-
-        # =================================================
-        # PREPARE QUESTION
-        #
-        # Do NOT save yet.
-        # =================================================
-
-        valid_questions.append(
-
-            Question(
-
+            exists = Question.objects.filter(
                 course=course,
-
                 subject=subject,
-
-                academic_year=academic_year,
-
                 semester=semester,
-
-                uploaded_by=request.user,
-
+                academic_year=academic_year,
                 question_text=question_text,
+            ).exists()
 
-                option1=option_values["option1"],
+            if exists:
 
-                option2=option_values["option2"],
+                row_errors.append(
+                    "Question already exists for this "
+                    "course, semester, subject and academic year"
+                )
 
-                option3=option_values["option3"],
+        # -------------------------------------------------
+        # WRITE ERROR INTO SAME EXCEL ROW
+        # -------------------------------------------------
 
-                option4=option_values["option4"],
+        if row_errors:
 
-                correct_answer=correct_answer,
-
-                marks=marks,
-
+            df.loc[
+                index,
+                "Error"
+            ] = (
+                f"Row {excel_row}: "
+                + "; ".join(row_errors)
             )
 
+        else:
+
+            valid_questions.append(
+                Question(
+                    course=course,
+                    subject=subject,
+                    academic_year=academic_year,
+                    semester=semester,
+                    uploaded_by=request.user,
+
+                    question_text=question_text,
+
+                    option1=option_values[
+                        "option1"
+                    ],
+
+                    option2=option_values[
+                        "option2"
+                    ],
+
+                    option3=option_values[
+                        "option3"
+                    ],
+
+                    option4=option_values[
+                        "option4"
+                    ],
+
+                    correct_answer=str(
+                        answer_number
+                    ),
+
+                    marks=marks_value,
+                )
+            )
+
+    # =====================================================
+    # REMOVE INTERNAL COLUMN
+    # =====================================================
+
+    if "_excel_row" in df.columns:
+
+        df.drop(
+            columns=["_excel_row"],
+            inplace=True
         )
 
     # =====================================================
-    # VALIDATION ERRORS
+    # FIND ERROR ROWS
     # =====================================================
 
-    if errors:
+    error_rows = df[
+        df["Error"]
+        .astype(str)
+        .str.strip()
+        != ""
+    ]
 
-        print("\n========================================")
-        print("EXCEL VALIDATION ERRORS")
-        print("========================================")
+    # =====================================================
+    # ERRORS FOUND
+    # =====================================================
 
-        for error in errors:
+    if not error_rows.empty:
 
-            print(error)
-
-        # -------------------------------------------------
-        # Show first several errors
-        # -------------------------------------------------
-
-        for error in errors[:10]:
-
-            messages.error(
-                request,
-                error
-            )
-
-        if len(errors) > 10:
-
-            messages.error(
-                request,
-                f"And {len(errors) - 10} "
-                f"more error(s) found."
-            )
+        print(
+            "Excel validation errors:",
+            len(error_rows)
+        )
 
         messages.error(
             request,
-            "Upload cancelled. "
-            "No questions were added to the database."
+            f"{len(error_rows)} Excel row(s) contain errors."
         )
 
-        return render(
+        messages.warning(
             request,
-            "admin_panel/upload_questions.html",
-            {
-                "form": form
-            }
+            "No questions were uploaded. "
+            "The corrected Excel file has been downloaded."
+        )
+
+        return _download_question_upload_error_report(
+            df,
+            "admin_question_upload_error_report.xlsx"
         )
 
     # =====================================================
@@ -2969,8 +2985,7 @@ def upload_questions(request):
 
         messages.error(
             request,
-            "No valid questions were found "
-            "in the Excel file."
+            "No valid questions were found in the Excel file."
         )
 
         return render(
@@ -2982,78 +2997,7 @@ def upload_questions(request):
         )
 
     # =====================================================
-    # DUPLICATE CHECK
-    #
-    # Prevent uploading the exact same question twice.
-    # =====================================================
-
-    duplicate_questions = []
-
-    for question in valid_questions:
-
-        exists = Question.objects.filter(
-
-            course=course,
-
-            subject=subject,
-
-            semester=semester,
-
-            academic_year=academic_year,
-
-            question_text=question.question_text,
-
-        ).exists()
-
-        if exists:
-
-            duplicate_questions.append(
-                question.question_text
-            )
-
-    # =====================================================
-    # DUPLICATE QUESTIONS FOUND
-    # =====================================================
-
-    if duplicate_questions:
-
-        print("\n========================================")
-        print("DUPLICATE QUESTIONS")
-        print("========================================")
-
-        for duplicate in duplicate_questions:
-
-            print(
-                duplicate
-            )
-
-        messages.error(
-            request,
-            f"{len(duplicate_questions)} "
-            f"question(s) already exist for "
-            f"this course, semester, subject "
-            f"and academic year."
-        )
-
-        messages.error(
-            request,
-            "Upload cancelled to prevent duplicate questions."
-        )
-
-        return render(
-            request,
-            "admin_panel/upload_questions.html",
-            {
-                "form": form
-            }
-        )
-
-    # =====================================================
-    # SAVE ALL QUESTIONS
-    #
-    # Atomic transaction:
-    # Either ALL questions are saved,
-    # or NONE are saved.
+    # SAVE ALL QUESTIONS ATOMICALLY
     # =====================================================
 
     try:
@@ -3065,12 +3009,6 @@ def upload_questions(request):
             )
 
     except Exception as e:
-
-        print("\n========================================")
-        print("DATABASE ERROR")
-        print("========================================")
-
-        print(e)
 
         messages.error(
             request,
@@ -3093,37 +3031,6 @@ def upload_questions(request):
         valid_questions
     )
 
-    print("\n========================================")
-    print("UPLOAD SUCCESS")
-    print("========================================")
-
-    print(
-        "Course:",
-        course
-    )
-
-    print(
-        "Semester:",
-        semester
-    )
-
-    print(
-        "Subject:",
-        subject
-    )
-
-    print(
-        "Academic Year:",
-        academic_year
-    )
-
-    print(
-        "Questions Created:",
-        created_count
-    )
-
-    print("========================================\n")
-
     messages.success(
         request,
         f"{created_count} question(s) uploaded successfully."
@@ -3132,6 +3039,7 @@ def upload_questions(request):
     return redirect(
         "question_bank"
     )
+
 # PUBLISH EXAM
 # =========================================
 
@@ -4114,473 +4022,7 @@ from .forms import QuestionUploadForm
 from .models import Question, Subject
 
 
-# ============================================================
-# FACULTY CHECK
-# ============================================================
-@login_required
-def faculty_upload_questions(request):
 
-    # ---------------------------------------------------------
-    # FACULTY ACCESS CHECK
-    # ---------------------------------------------------------
-    if not request.user.is_faculty and not request.user.is_superuser:
-        messages.error(
-            request,
-            "You are not authorized to upload questions."
-        )
-        return redirect("faculty_login")
-
-    # ---------------------------------------------------------
-    # GET
-    # ---------------------------------------------------------
-    if request.method == "GET":
-
-        form = FacultyQuestionUploadForm()
-
-        return render(
-            request,
-            "faculty/upload_questions.html",
-            {
-                "form": form
-            }
-        )
-
-    # ---------------------------------------------------------
-    # POST
-    # ---------------------------------------------------------
-    form = FacultyQuestionUploadForm(request.POST, request.FILES)
-
-    if not form.is_valid():
-
-        return render(
-            request,
-            "faculty/upload_questions.html",
-            {
-                "form": form
-            }
-        )
-
-    course = form.cleaned_data["course"]
-    semester = form.cleaned_data["semester"]
-    subject = form.cleaned_data["subject"]
-    academic_year = form.cleaned_data["academic_year"].strip()
-    excel_file = form.cleaned_data["excel_file"]
-
-    print("=" * 70)
-    print("FACULTY QUESTION UPLOAD")
-    print("=" * 70)
-
-    print("Course:", course)
-    print("Semester:", semester)
-    print("Subject:", subject)
-    print("Academic Year:", academic_year)
-    print("Excel:", excel_file.name)
-
-    print("=" * 70)
-
-    # ---------------------------------------------------------
-    # READ EXCEL
-    # ---------------------------------------------------------
-    try:
-
-        df = pd.read_excel(excel_file)
-
-    except Exception as e:
-
-        form.add_error(
-            "excel_file",
-            f"Unable to read Excel file: {e}"
-        )
-
-        return render(
-            request,
-            "faculty/upload_questions.html",
-            {
-                "form": form
-            }
-        )
-
-    # ---------------------------------------------------------
-    # CLEAN COLUMN NAMES
-    # ---------------------------------------------------------
-    df.columns = (
-        df.columns
-        .astype(str)
-        .str.strip()
-        .str.lower()
-        .str.replace("\n", " ", regex=False)
-        .str.replace("\t", " ", regex=False)
-    )
-
-    # Fix accidental spaces between column names
-    df.columns = [
-        " ".join(column.split())
-        for column in df.columns
-    ]
-
-    print("EXCEL COLUMNS:")
-    print(list(df.columns))
-
-    # ---------------------------------------------------------
-    # EXPECTED COLUMNS
-    # ---------------------------------------------------------
-    required_columns = [
-        "question_text",
-        "option1",
-        "option2",
-        "option3",
-        "option4",
-        "correct_answer",
-        "marks",
-    ]
-
-    # ---------------------------------------------------------
-    # VALIDATE COLUMNS
-    # ---------------------------------------------------------
-    missing_columns = [
-        column
-        for column in required_columns
-        if column not in df.columns
-    ]
-
-    if missing_columns:
-
-        form.add_error(
-            "excel_file",
-            "Missing Excel columns: "
-            + ", ".join(missing_columns)
-        )
-
-        return render(
-            request,
-            "faculty/upload_questions.html",
-            {
-                "form": form
-            }
-        )
-
-    # ---------------------------------------------------------
-    # REMOVE COMPLETELY EMPTY ROWS
-    # ---------------------------------------------------------
-    df = df.dropna(
-        how="all"
-    )
-
-    print("NUMBER OF ROWS:")
-    print(len(df))
-
-    # ---------------------------------------------------------
-    # IMPORTANT:
-    # VALIDATE EVERYTHING BEFORE SAVING ANYTHING
-    # ---------------------------------------------------------
-    errors = []
-
-    cleaned_rows = []
-
-    for index, row in df.iterrows():
-
-        excel_row = index + 2
-
-        question_text = str(
-            row["question_text"]
-        ).strip()
-
-        option1 = str(
-            row["option1"]
-        ).strip()
-
-        option2 = str(
-            row["option2"]
-        ).strip()
-
-        option3 = str(
-            row["option3"]
-        ).strip()
-
-        option4 = str(
-            row["option4"]
-        ).strip()
-
-        correct_answer = str(
-            row["correct_answer"]
-        ).strip()
-
-        marks = row["marks"]
-
-        print(
-            f"Processing Excel row {excel_row}"
-        )
-
-        # -----------------------------------------------------
-        # CHECK QUESTION
-        # -----------------------------------------------------
-        if (
-            not question_text
-            or question_text.lower() == "nan"
-        ):
-
-            errors.append(
-                f"Excel row {excel_row}: "
-                "Question is empty."
-            )
-
-            continue
-
-        # -----------------------------------------------------
-        # CHECK OPTIONS
-        # -----------------------------------------------------
-        options = {
-            "Option 1": option1,
-            "Option 2": option2,
-            "Option 3": option3,
-            "Option 4": option4,
-        }
-
-        row_has_error = False
-
-        for option_name, option_value in options.items():
-
-            if (
-                not option_value
-                or option_value.lower() == "nan"
-            ):
-
-                errors.append(
-                    f"Excel row {excel_row}: "
-                    f"{option_name} is empty."
-                )
-
-                row_has_error = True
-
-        if row_has_error:
-            continue
-
-        # -----------------------------------------------------
-        # CONVERT CORRECT ANSWER
-        # -----------------------------------------------------
-        answer_text = correct_answer.strip()
-
-        answer_number = None
-
-        # If Excel contains 1,2,3,4
-        if answer_text in ["1", "2", "3", "4"]:
-
-            answer_number = int(answer_text)
-
-        else:
-
-            answer_map = {
-                option1.strip().lower(): 1,
-                option2.strip().lower(): 2,
-                option3.strip().lower(): 3,
-                option4.strip().lower(): 4,
-            }
-
-            answer_number = answer_map.get(
-                answer_text.lower()
-            )
-
-        # -----------------------------------------------------
-        # INVALID CORRECT ANSWER
-        # -----------------------------------------------------
-        if answer_number is None:
-
-            errors.append(
-                f"Excel row {excel_row}: "
-                f"Correct answer '{correct_answer}' "
-                "does not match any option."
-            )
-
-            continue
-
-        # -----------------------------------------------------
-        # MARKS
-        # -----------------------------------------------------
-        try:
-
-            marks_value = int(
-                float(marks)
-            )
-
-        except (
-            ValueError,
-            TypeError
-        ):
-
-            errors.append(
-                f"Excel row {excel_row}: "
-                "Marks must be a number."
-            )
-
-            continue
-
-        if marks_value <= 0:
-
-            errors.append(
-                f"Excel row {excel_row}: "
-                "Marks must be greater than 0."
-            )
-
-            continue
-
-        print(
-            f"Correct answer converted to: "
-            f"{answer_number}"
-        )
-
-        # -----------------------------------------------------
-        # STORE CLEANED DATA
-        # -----------------------------------------------------
-        cleaned_rows.append(
-            {
-                "question_text": question_text,
-                "option1": option1,
-                "option2": option2,
-                "option3": option3,
-                "option4": option4,
-                "correct_answer": answer_number,
-                "marks": marks_value,
-            }
-        )
-
-    # ---------------------------------------------------------
-    # IF ANY ERROR, SAVE NOTHING
-    # ---------------------------------------------------------
-    if errors:
-
-        print("=" * 70)
-        print("UPLOAD VALIDATION ERROR")
-        print("=" * 70)
-
-        for error in errors:
-            print(error)
-
-        form.add_error(
-            "excel_file",
-            "Excel upload failed. "
-            + " | ".join(errors)
-        )
-
-        return render(
-            request,
-            "faculty/upload_questions.html",
-            {
-                "form": form
-            }
-        )
-
-    # ---------------------------------------------------------
-    # NO VALID QUESTIONS
-    # ---------------------------------------------------------
-    if not cleaned_rows:
-
-        form.add_error(
-            "excel_file",
-            "No valid questions found in the Excel file."
-        )
-
-        return render(
-            request,
-            "faculty/upload_questions.html",
-            {
-                "form": form
-            }
-        )
-
-    # ---------------------------------------------------------
-    # SAVE QUESTIONS
-    # ---------------------------------------------------------
-    created_count = 0
-
-    try:
-
-        for data in cleaned_rows:
-
-            question = Question.objects.create(
-
-                course=course,
-
-                semester=int(
-                    semester
-                ),
-
-                subject=subject,
-
-                academic_year=academic_year,
-
-                question_text=data[
-                    "question_text"
-                ],
-
-                option1=data[
-                    "option1"
-                ],
-
-                option2=data[
-                    "option2"
-                ],
-
-                option3=data[
-                    "option3"
-                ],
-
-                option4=data[
-                    "option4"
-                ],
-
-                correct_answer=str(
-                    data[
-                        "correct_answer"
-                    ]
-                ),
-
-                marks=data[
-                    "marks"
-                ],
-            )
-
-            created_count += 1
-
-            print(
-                f"CREATED QUESTION ID: "
-                f"{question.id}"
-            )
-
-        print("=" * 70)
-        print(
-            f"SUCCESS: {created_count} "
-            "questions uploaded."
-        )
-        print("=" * 70)
-
-        messages.success(
-            request,
-            f"{created_count} questions uploaded successfully."
-        )
-
-        return redirect(
-            "view_questions"
-        )
-
-    except Exception as e:
-
-        print("=" * 70)
-        print("DATABASE ERROR")
-        print("=" * 70)
-        print(e)
-
-        form.add_error(
-            "excel_file",
-            f"Database error: {e}"
-        )
-
-        return render(
-            request,
-            "faculty/upload_questions.html",
-            {
-                "form": form
-            }
-        )
 def is_faculty(user):
     return (
         user.is_authenticated
@@ -5706,20 +5148,38 @@ def edit_student(request, id):
         id=id
     )
 
+    user = student.user
+
     if request.method == "POST":
 
         form = StudentRegistrationForm(
             request.POST,
-            instance=student.user
+            instance=student
         )
 
         if form.is_valid():
 
+            # =====================================
+            # UPDATE STUDENT PROFILE
+            # =====================================
+
             form.save()
+
+
+            # =====================================
+            # UPDATE USER NAME
+            # =====================================
+
+            user.first_name = form.cleaned_data["first_name"]
+
+            user.last_name = form.cleaned_data["last_name"]
+
+            user.save()
+
 
             messages.success(
                 request,
-                "Student updated successfully."
+                "Student details updated successfully."
             )
 
             return redirect(
@@ -5729,16 +5189,15 @@ def edit_student(request, id):
     else:
 
         form = StudentRegistrationForm(
-            instance=student.user
+            instance=student
         )
-
 
     return render(
         request,
         "admin_panel/edit_student.html",
         {
             "form": form,
-            "student": student
+            "student": student,
         }
     )
 @login_required
@@ -6916,191 +6375,809 @@ def delete_question(request, pk):
 
     return redirect(
         "view_questions"
-    )@login_required
+    )
+# =========================================================
+# FACULTY - UPLOAD QUESTIONS WITH EXCEL ERROR REPORT
+# =========================================================
+
+@login_required
 @user_passes_test(is_faculty)
 def faculty_upload_questions(request):
 
-    if request.method == "POST":
+    # =====================================================
+    # GET REQUEST
+    # =====================================================
 
-        form = QuestionUploadForm(
-            request.POST,
-            request.FILES
-        )
-
-        if form.is_valid():
-
-            course = form.cleaned_data["course"]
-            semester = form.cleaned_data["semester"]
-            subject = form.cleaned_data["subject"]
-            academic_year = form.cleaned_data["academic_year"]
-            excel_file = form.cleaned_data["excel_file"]
-
-            try:
-
-                import pandas as pd
-
-                df = pd.read_excel(excel_file)
-
-                df.columns = (
-                    df.columns
-                    .astype(str)
-                    .str.strip()
-                    .str.lower()
-                )
-
-                required_columns = [
-
-                    "question_text",
-                    "option1",
-                    "option2",
-                    "option3",
-                    "option4",
-                    "correct_answer",
-                    "marks",
-
-                ]
-
-                missing_columns = [
-
-                    column
-                    for column in required_columns
-                    if column not in df.columns
-
-                ]
-
-                if missing_columns:
-
-                    messages.error(
-                        request,
-                        "Missing Excel columns: "
-                        + ", ".join(missing_columns)
-                    )
-
-                    return render(
-                        request,
-                        "faculty/faculty_upload_questions.html",
-                        {
-                            "form": form,
-                        }
-                    )
-
-                created_count = 0
-
-                for index, row in df.iterrows():
-
-                    question_text = str(
-                        row["question_text"]
-                    ).strip()
-
-                    if not question_text:
-
-                        continue
-
-                    correct_answer = str(
-                        row["correct_answer"]
-                    ).strip()
-
-                    if correct_answer.endswith(".0"):
-
-                        correct_answer = correct_answer[:-2]
-
-                    if correct_answer not in [
-                        "1",
-                        "2",
-                        "3",
-                        "4",
-                    ]:
-
-                        continue
-
-                    def clean_value(value):
-
-                        if pd.isna(value):
-
-                            return ""
-
-                        return str(value).strip()
-
-
-                    Question.objects.create(
-
-                        question_text=question_text,
-
-                        option1=clean_value(
-                            row["option1"]
-                        ),
-
-                        option2=clean_value(
-                            row["option2"]
-                        ),
-
-                        option3=clean_value(
-                            row["option3"]
-                        ),
-
-                        option4=clean_value(
-                            row["option4"]
-                        ),
-
-                        correct_answer=correct_answer,
-
-                        marks=int(
-                            row["marks"]
-                        ),
-
-                        course=course,
-
-                        semester=semester,
-
-                        subject=subject,
-
-                        academic_year=academic_year,
-
-                    )
-
-                    created_count += 1
-
-
-                messages.success(
-
-                    request,
-
-                    f"{created_count} questions uploaded successfully."
-
-                )
-
-                return redirect(
-                    "faculty_upload_questions"
-                )
-
-
-            except Exception as e:
-
-                messages.error(
-
-                    request,
-
-                    f"Error uploading Excel file: {str(e)}"
-
-                )
-
-
-    else:
+    if request.method == "GET":
 
         form = QuestionUploadForm()
 
+        return render(
+            request,
+            "faculty/faculty_upload_questions.html",
+            {
+                "form": form,
+            }
+        )
 
-    return render(
+    # =====================================================
+    # POST REQUEST
+    # =====================================================
 
-        request,
-
-        "faculty/faculty_upload_questions.html",
-
-        {
-            "form": form,
-        }
-
+    form = QuestionUploadForm(
+        request.POST,
+        request.FILES
     )
+
+    if not form.is_valid():
+
+        return render(
+            request,
+            "faculty/faculty_upload_questions.html",
+            {
+                "form": form,
+            }
+        )
+
+    # =====================================================
+    # FORM DATA
+    # =====================================================
+
+    course = form.cleaned_data["course"]
+
+    semester = form.cleaned_data["semester"]
+
+    subject = form.cleaned_data["subject"]
+
+    academic_year = (
+        form.cleaned_data["academic_year"]
+        or ""
+    ).strip()
+
+    excel_file = form.cleaned_data["excel_file"]
+
+    # =====================================================
+    # READ EXCEL
+    # =====================================================
+
+    try:
+
+        df = pd.read_excel(
+            excel_file,
+            dtype=object
+        )
+
+    except Exception as e:
+
+        form.add_error(
+            "excel_file",
+            f"Unable to read Excel file: {e}"
+        )
+
+        return render(
+            request,
+            "faculty/faculty_upload_questions.html",
+            {
+                "form": form,
+            }
+        )
+
+    # =====================================================
+    # CLEAN COLUMN NAMES
+    # =====================================================
+
+    df.columns = [
+        " ".join(
+            str(column)
+            .strip()
+            .lower()
+            .replace("\n", " ")
+            .replace("\t", " ")
+            .split()
+        )
+        for column in df.columns
+    ]
+
+    # =====================================================
+    # REQUIRED COLUMNS
+    # =====================================================
+
+    required_columns = [
+        "question_text",
+        "option1",
+        "option2",
+        "option3",
+        "option4",
+        "correct_answer",
+        "marks",
+    ]
+
+    missing_columns = [
+        column
+        for column in required_columns
+        if column not in df.columns
+    ]
+
+    # =====================================================
+    # MISSING COLUMNS
+    # =====================================================
+
+    if missing_columns:
+
+        error_text = (
+            "Missing Excel column(s): "
+            + ", ".join(missing_columns)
+        )
+
+        # Add Error column so faculty can see the problem
+        df["Error"] = error_text
+
+        return _download_question_upload_error_report(
+            df,
+            "question_upload_error_report.xlsx"
+        )
+
+    # =====================================================
+    # REMOVE COMPLETELY EMPTY ROWS
+    # =====================================================
+
+    df = df.dropna(
+        how="all"
+    ).copy()
+
+    # =====================================================
+    # CREATE ERROR COLUMN
+    # =====================================================
+
+    df["Error"] = ""
+
+    # =====================================================
+    # CLEAN VALUE HELPER
+    # =====================================================
+
+    def clean_value(value):
+
+        if pd.isna(value):
+
+            return ""
+
+        value = str(value).strip()
+
+        if value.lower() == "nan":
+
+            return ""
+
+        return value
+
+    # =====================================================
+    # VALID DATA
+    # =====================================================
+
+    valid_rows = []
+
+    # =====================================================
+    # VALIDATE EVERY EXCEL ROW
+    # =====================================================
+
+    for index in range(len(df)):
+
+        # Excel row = pandas index + header row
+        excel_row = index + 2
+
+        errors = []
+
+        row = df.iloc[index]
+
+        # -------------------------------------------------
+        # QUESTION
+        # -------------------------------------------------
+
+        question_text = clean_value(
+            row["question_text"]
+        )
+
+        if not question_text:
+
+            errors.append(
+                "Question is empty"
+            )
+
+        # -------------------------------------------------
+        # OPTIONS
+        # -------------------------------------------------
+
+        option1 = clean_value(
+            row["option1"]
+        )
+
+        option2 = clean_value(
+            row["option2"]
+        )
+
+        option3 = clean_value(
+            row["option3"]
+        )
+
+        option4 = clean_value(
+            row["option4"]
+        )
+
+        if not option1:
+
+            errors.append(
+                "Option 1 is empty"
+            )
+
+        if not option2:
+
+            errors.append(
+                "Option 2 is empty"
+            )
+
+        if not option3:
+
+            errors.append(
+                "Option 3 is empty"
+            )
+
+        if not option4:
+
+            errors.append(
+                "Option 4 is empty"
+            )
+
+        # -------------------------------------------------
+        # CORRECT ANSWER
+        # -------------------------------------------------
+
+        correct_raw = clean_value(
+            row["correct_answer"]
+        )
+
+        answer_number = None
+
+        if correct_raw:
+
+            # ---------------------------------------------
+            # NUMBER 1 / 2 / 3 / 4
+            # ---------------------------------------------
+
+            try:
+
+                numeric_value = float(
+                    correct_raw
+                )
+
+                if numeric_value.is_integer():
+
+                    numeric_value = int(
+                        numeric_value
+                    )
+
+                    if numeric_value in [1, 2, 3, 4]:
+
+                        answer_number = numeric_value
+
+            except (
+                ValueError,
+                TypeError
+            ):
+
+                pass
+
+            # ---------------------------------------------
+            # ANSWER TEXT
+            # ---------------------------------------------
+
+            if answer_number is None:
+
+                answer_map = {}
+
+                if option1:
+
+                    answer_map[
+                        option1.lower()
+                    ] = 1
+
+                if option2:
+
+                    answer_map[
+                        option2.lower()
+                    ] = 2
+
+                if option3:
+
+                    answer_map[
+                        option3.lower()
+                    ] = 3
+
+                if option4:
+
+                    answer_map[
+                        option4.lower()
+                    ] = 4
+
+                answer_number = answer_map.get(
+                    correct_raw.lower()
+                )
+
+        # -------------------------------------------------
+        # INVALID ANSWER
+        # -------------------------------------------------
+
+        if answer_number is None:
+
+            errors.append(
+                "Correct answer must be 1, 2, 3 or 4, "
+                "or exactly match one option"
+            )
+
+        # -------------------------------------------------
+        # MARKS
+        # -------------------------------------------------
+
+        marks_raw = clean_value(
+            row["marks"]
+        )
+
+        marks_value = None
+
+        if not marks_raw:
+
+            errors.append(
+                "Marks is empty"
+            )
+
+        else:
+
+            try:
+
+                marks_float = float(
+                    marks_raw
+                )
+
+                if not marks_float.is_integer():
+
+                    errors.append(
+                        "Marks must be a whole number"
+                    )
+
+                else:
+
+                    marks_value = int(
+                        marks_float
+                    )
+
+                    if marks_value <= 0:
+
+                        errors.append(
+                            "Marks must be greater than 0"
+                        )
+
+            except (
+                ValueError,
+                TypeError
+            ):
+
+                errors.append(
+                    "Marks must be a valid number"
+                )
+
+        # -------------------------------------------------
+        # DUPLICATE QUESTION
+        # -------------------------------------------------
+
+        if question_text and not errors:
+
+            exists = Question.objects.filter(
+                course=course,
+                subject=subject,
+                semester=int(semester),
+                academic_year=academic_year,
+                question_text=question_text,
+            ).exists()
+
+            if exists:
+
+                errors.append(
+                    "Question already exists for this "
+                    "course, semester, subject and academic year"
+                )
+
+        # -------------------------------------------------
+        # WRITE ERROR TO EXCEL
+        # -------------------------------------------------
+
+        if errors:
+
+            df.loc[
+                df.index[index],
+                "Error"
+            ] = (
+                f"Row {excel_row}: "
+                + "; ".join(errors)
+            )
+
+        else:
+
+            # -------------------------------------------------
+            # VALID ROW
+            # -------------------------------------------------
+
+            valid_rows.append(
+                {
+                    "question_text":
+                        question_text,
+
+                    "option1":
+                        option1,
+
+                    "option2":
+                        option2,
+
+                    "option3":
+                        option3,
+
+                    "option4":
+                        option4,
+
+                    "correct_answer":
+                        answer_number,
+
+                    "marks":
+                        marks_value,
+                }
+            )
+
+    # =====================================================
+    # CHECK ERRORS
+    # =====================================================
+
+    error_rows = df[
+        df["Error"].astype(str).str.strip() != ""
+    ]
+
+    # =====================================================
+    # IF ERRORS EXIST
+    # =====================================================
+
+    if not error_rows.empty:
+
+        messages.error(
+            request,
+            f"{len(error_rows)} Excel row(s) contain errors."
+        )
+
+        messages.warning(
+            request,
+            "No questions were added. "
+            "Please correct the downloaded Excel file "
+            "and upload it again."
+        )
+
+        return _download_question_upload_error_report(
+            df,
+            "question_upload_error_report.xlsx"
+        )
+
+    # =====================================================
+    # NO VALID ROWS
+    # =====================================================
+
+    if not valid_rows:
+
+        messages.error(
+            request,
+            "The Excel file contains no valid questions."
+        )
+
+        return render(
+            request,
+            "faculty/faculty_upload_questions.html",
+            {
+                "form": form,
+            }
+        )
+
+    # =====================================================
+    # SAVE QUESTIONS
+    # =====================================================
+
+    try:
+
+        with transaction.atomic():
+
+            Question.objects.bulk_create(
+                [
+                    Question(
+                        course=course,
+                        semester=int(semester),
+                        subject=subject,
+                        academic_year=academic_year,
+
+                        question_text=data[
+                            "question_text"
+                        ],
+
+                        option1=data[
+                            "option1"
+                        ],
+
+                        option2=data[
+                            "option2"
+                        ],
+
+                        option3=data[
+                            "option3"
+                        ],
+
+                        option4=data[
+                            "option4"
+                        ],
+
+                        correct_answer=str(
+                            data[
+                                "correct_answer"
+                            ]
+                        ),
+
+                        marks=data[
+                            "marks"
+                        ],
+                    )
+
+                    for data in valid_rows
+                ]
+            )
+
+        # =================================================
+        # SUCCESS
+        # =================================================
+
+        messages.success(
+            request,
+            f"{len(valid_rows)} question(s) uploaded successfully."
+        )
+
+        return redirect(
+            "view_questions"
+        )
+
+    except Exception as e:
+
+        form.add_error(
+            "excel_file",
+            f"Database error: {e}"
+        )
+
+        return render(
+            request,
+            "faculty/faculty_upload_questions.html",
+            {
+                "form": form,
+            }
+        )
+
+
+# =========================================================
+# EXCEL ERROR REPORT HELPER
+# =========================================================
+
+def _download_question_upload_error_report(
+    df,
+    filename
+):
+
+    # =====================================================
+    # CREATE WORKBOOK
+    # =====================================================
+
+    workbook = Workbook()
+
+    worksheet = workbook.active
+
+    worksheet.title = "Upload Errors"
+
+    # =====================================================
+    # HEADERS
+    # =====================================================
+
+    headers = list(
+        df.columns
+    )
+
+    # Make sure Error is LAST
+    if "Error" in headers:
+
+        headers.remove("Error")
+
+        headers.append("Error")
+
+    worksheet.append(
+        headers
+    )
+
+    # =====================================================
+    # HEADER STYLE
+    # =====================================================
+
+    header_fill = PatternFill(
+        fill_type="solid",
+        fgColor="1F4E78"
+    )
+
+    header_font = Font(
+        bold=True,
+        color="FFFFFF"
+    )
+
+    header_alignment = Alignment(
+        horizontal="center",
+        vertical="center"
+    )
+
+    for cell in worksheet[1]:
+
+        cell.fill = header_fill
+
+        cell.font = header_font
+
+        cell.alignment = header_alignment
+
+    # =====================================================
+    # DATA
+    # =====================================================
+
+    for _, row in df.iterrows():
+
+        values = []
+
+        for column in headers:
+
+            value = row.get(
+                column,
+                ""
+            )
+
+            if pd.isna(value):
+
+                value = ""
+
+            values.append(
+                value
+            )
+
+        worksheet.append(
+            values
+        )
+
+    # =====================================================
+    # FORMAT ERROR COLUMN
+    # =====================================================
+
+    error_column_index = headers.index(
+        "Error"
+    ) + 1
+
+    for row in worksheet.iter_rows(
+        min_row=2,
+        min_col=error_column_index,
+        max_col=error_column_index
+    ):
+
+        for cell in row:
+
+            cell.font = Font(
+                bold=True,
+                color="9C0006"
+            )
+
+            cell.alignment = Alignment(
+                wrap_text=True,
+                vertical="top"
+            )
+
+    # =====================================================
+    # COLUMN WIDTHS
+    # =====================================================
+
+    width_map = {
+
+        "question_text":
+            45,
+
+        "option1":
+            25,
+
+        "option2":
+            25,
+
+        "option3":
+            25,
+
+        "option4":
+            25,
+
+        "correct_answer":
+            18,
+
+        "marks":
+            12,
+
+        "Error":
+            65,
+    }
+
+    for column_number, column_name in enumerate(
+        headers,
+        start=1
+    ):
+
+        letter = get_column_letter(
+            column_number
+        )
+
+        worksheet.column_dimensions[
+            letter
+        ].width = width_map.get(
+            column_name,
+            20
+        )
+
+    # =====================================================
+    # WRAP TEXT
+    # =====================================================
+
+    for row in worksheet.iter_rows(
+        min_row=2
+    ):
+
+        for cell in row:
+
+            cell.alignment = Alignment(
+                wrap_text=True,
+                vertical="top"
+            )
+
+    # =====================================================
+    # FREEZE HEADER
+    # =====================================================
+
+    worksheet.freeze_panes = "A2"
+
+    # =====================================================
+    # FILTER
+    # =====================================================
+
+    worksheet.auto_filter.ref = (
+        worksheet.dimensions
+    )
+
+    # =====================================================
+    # DOWNLOAD
+    # =====================================================
+
+    output = BytesIO()
+
+    workbook.save(
+        output
+    )
+
+    output.seek(0)
+
+    response = HttpResponse(
+        output.getvalue(),
+        content_type=(
+            "application/vnd.openxmlformats-officedocument."
+            "spreadsheetml.sheet"
+        )
+    )
+
+    response["Content-Disposition"] = (
+        f'attachment; filename="{filename}"'
+    )
+
+    return response
 @login_required
 @user_passes_test(is_admin)
 def add_student(request):

@@ -1,87 +1,347 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-<div class="bg-primary text-white py-5 mb-5 shadow-sm">
-    <div class="container text-center py-4">
-        <h1 class="display-3 fw-bold mb-3">CIA Exam Portal</h1>
-        <p class="lead mb-4">A secure, streamlined platform for academic excellence and assessment.</p>
-        {% if not user.is_authenticated %}
-            <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
-              <a href="{% url 'student_login' %}" class="btn btn-light btn-lg px-4 gap-3 fw-bold">
-    Get Started
-</a>
-                <a href="#features" class="btn btn-outline-light btn-lg px-4">Learn More</a>
-            </div>
-       {% else %}
-    <a href="{% url 'index' %}" class="btn btn-light btn-lg px-4 fw-bold">
-        Go to Home
-    </a>
-{% endif %}
+
+<style>
+
+/* =====================================================
+   PAGE
+===================================================== */
+
+body {
+    background: #eef2f7;
+}
+
+
+/* =====================================================
+   COLLEGE HEADER
+===================================================== */
+
+.college-header {
+    background: linear-gradient(135deg, #0d47a1, #1565c0);
+    color: #ffffff;
+    padding: 45px 20px;
+    margin-bottom: 45px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.18);
+}
+
+
+/* =====================================================
+   LOGO CONTAINER
+===================================================== */
+
+.college-logo-box {
+    width: 125px;
+    height: 125px;
+    background: #ffffff;
+    border-radius: 16px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin: 0 auto 20px auto;
+    padding: 10px;
+
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+
+    overflow: hidden;
+}
+
+
+/* =====================================================
+   COLLEGE LOGO
+===================================================== */
+
+.college-logo {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+    object-position: center;
+}
+
+
+/* =====================================================
+   COLLEGE NAME
+===================================================== */
+
+.college-name {
+    font-size: 2.3rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+
+/* =====================================================
+   SYSTEM NAME
+===================================================== */
+
+.college-system {
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-top: 8px;
+    margin-bottom: 0;
+}
+
+
+/* =====================================================
+   PORTAL CARDS
+===================================================== */
+
+.portal-card {
+    border: none;
+    border-radius: 15px;
+    background: #ffffff;
+
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.10);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+.portal-card:hover {
+    transform: translateY(-5px);
+
+    box-shadow:
+        0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+
+/* =====================================================
+   PORTAL ICON
+===================================================== */
+
+.feature-icon {
+    width: 80px;
+    height: 80px;
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 768px) {
+
+    .college-header {
+        padding: 35px 15px;
+    }
+
+    .college-logo-box {
+        width: 100px;
+        height: 100px;
+    }
+
+    .college-name {
+        font-size: 1.7rem;
+    }
+
+    .college-system {
+        font-size: 1rem;
+    }
+
+}
+
+</style>
+
+<!-- =====================================================
+     COLLEGE HEADER
+===================================================== -->
+
+<div class="college-header">
+
+<div class="container text-center">
+
+
+    <!-- COLLEGE LOGO -->
+
+    <div class="college-logo-box">
+
+        <img
+            src="{% static 'images/logo.png' %}"
+            alt="Bhavan's Vivekananda College Logo"
+            class="college-logo">
+
     </div>
+
+
+    <!-- COLLEGE NAME -->
+
+    <h1 class="college-name">
+        Bhavan's Vivekananda College
+    </h1>
+
+
+    <!-- SYSTEM NAME -->
+
+    <p class="college-system">
+        CIA Examination Management System
+    </p>
+
 </div>
 
-<div class="container" id="features">
-    <div class="row g-4 py-5">
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm text-center p-4">
-                <div class="card-body">
-                    <div class="feature-icon bg-primary bg-gradient text-white mb-3 d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 80px; height: 80px;">
-                        <i class="fas fa-user-graduate fa-2x"></i>
-                    </div>
-                    <h2 class="h4 fw-bold">Student Portal</h2>
-                    <p class="text-muted small">Access scheduled exams, view real-time reports, and track academic progress.</p>
-                   <a href="{% url 'student_login' %}" class="btn btn-outline-primary mt-3">
-    Enter Student Login
-</a>
-                </div>
-            </div>
-        </div>
 
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm text-center p-4">
-                <div class="card-body">
-                    <div class="feature-icon bg-dark bg-gradient text-white mb-3 d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 80px; height: 80px;">
-                        <i class="fas fa-chalkboard-teacher fa-2x"></i>
-                    </div>
-                    <h2 class="h4 fw-bold">Faculty Panel</h2>
-                    <p class="text-muted small">Upload papers via Excel, manage students, and export result analytics.</p>
-                
-                   <a href="{% url 'faculty_login' %}" class="btn btn-outline-dark mt-3">
-    Enter Faculty Login
-</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm text-center p-4 border-top border-danger border-4">
-                <div class="card-body">
-                    <div class="feature-icon bg-danger bg-gradient text-white mb-3 d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 80px; height: 80px;">
-                        <i class="fas fa-user-shield fa-2x"></i>
-                    </div>
-                    <h2 class="h4 fw-bold">Admin Module</h2>
-                    <p class="text-muted small">Full system control: manage all users, database logs, and site configurations.</p>
-                   <a href="{% url 'admin_login' %}" class="btn btn-outline-danger mt-3">
-                        Enter Admin Login
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row mt-5 text-center bg-white rounded shadow-sm py-4 mx-1">
-        <div class="col-md-4">
-            <h3 class="fw-bold text-primary">Secure</h3>
-            <p class="small text-muted mb-0">Timed exam windows & randomized questions.</p>
-        </div>
-        <div class="col-md-4 border-start border-end">
-            <h3 class="fw-bold text-primary">Fast</h3>
-            <p class="small text-muted mb-0">Instant results and automated grading.</p>
-        </div>
-        <div class="col-md-4">
-            <h3 class="fw-bold text-primary">Smart</h3>
-            <p class="small text-muted mb-0">Excel-driven bulk management.</p>
-        </div>
-    </div>
 </div>
+
+<!-- =====================================================
+     PORTAL SECTION
+===================================================== -->
+
+<div class="container pb-5">
+
+```
+<div class="row g-4">
+
+
+    <!-- =================================================
+         STUDENT PORTAL
+    ================================================== -->
+
+    <div class="col-md-4">
+
+        <div class="card portal-card h-100 text-center p-4">
+
+            <div class="card-body">
+
+
+                <div
+                    class="feature-icon bg-primary bg-gradient text-white mb-4
+                           d-inline-flex align-items-center justify-content-center
+                           rounded-circle">
+
+                    <i class="fas fa-user-graduate fa-2x"></i>
+
+                </div>
+
+
+                <h2 class="h4 fw-bold mb-3">
+                    Student Portal
+                </h2>
+
+
+                <p class="text-muted">
+                    Access scheduled examinations, view your results,
+                    and track your academic progress.
+                </p>
+
+
+                <a
+                    href="{% url 'student_login' %}"
+                    class="btn btn-outline-primary mt-3 px-4">
+
+                    Student Login
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =================================================
+         FACULTY PANEL
+    ================================================== -->
+
+    <div class="col-md-4">
+
+        <div class="card portal-card h-100 text-center p-4">
+
+            <div class="card-body">
+
+
+                <div
+                    class="feature-icon bg-dark bg-gradient text-white mb-4
+                           d-inline-flex align-items-center justify-content-center
+                           rounded-circle">
+
+                    <i class="fas fa-chalkboard-teacher fa-2x"></i>
+
+                </div>
+
+
+                <h2 class="h4 fw-bold mb-3">
+                    Faculty Panel
+                </h2>
+
+
+                <p class="text-muted">
+                    Manage examinations, upload question papers,
+                    manage students, and view examination results.
+                </p>
+
+
+                <a
+                    href="{% url 'faculty_login' %}"
+                    class="btn btn-outline-dark mt-3 px-4">
+
+                    Faculty Login
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =================================================
+         ADMIN MODULE
+    ================================================== -->
+
+    <div class="col-md-4">
+
+        <div class="card portal-card h-100 text-center p-4">
+
+            <div class="card-body">
+
+
+                <div
+                    class="feature-icon bg-danger bg-gradient text-white mb-4
+                           d-inline-flex align-items-center justify-content-center
+                           rounded-circle">
+
+                    <i class="fas fa-user-shield fa-2x"></i>
+
+                </div>
+
+
+                <h2 class="h4 fw-bold mb-3">
+                    Admin Module
+                </h2>
+
+
+                <p class="text-muted">
+                    Manage users, courses, subjects, examinations,
+                    question banks, and examination reports.
+                </p>
+
+
+                <a
+                    href="{% url 'admin_login' %}"
+                    class="btn btn-outline-danger mt-3 px-4">
+
+                    Admin Login
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+</div>
+
 {% endblock %}

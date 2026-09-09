@@ -1,176 +1,372 @@
-{% extends "base.html" %}
+{% load static %}
 
-{% block content %}
+<!DOCTYPE html>
 
-<div class="container mt-5">
+<html lang="en">
 
-    <div class="row justify-content-center">
+<head>
 
+```
+<meta charset="UTF-8">
 
-        <div class="col-md-5">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>
+    CIA Student Login
+</title>
 
-            <div class="card shadow-lg border-0">
 
+<style>
 
-                <div class="card-header bg-primary text-white text-center">
+    * {
+        box-sizing: border-box;
+    }
 
-                    <h3 class="mb-0">
 
-                        <i class="fas fa-user-graduate"></i>
+    body {
 
-                        Candidate Login
+        margin: 0;
 
-                    </h3>
+        min-height: 100vh;
 
-                    <p class="mb-0">
-                        Online Assessment Portal
-                    </p>
+        display: flex;
 
-                </div>
+        justify-content: center;
 
+        align-items: center;
 
+        background: linear-gradient(
+            135deg,
+            #0f172a,
+            #2563eb
+        );
 
-                <div class="card-body p-4">
+        font-family:
+            'Segoe UI',
+            sans-serif;
 
+        padding: 20px;
 
-                    <form method="POST">
+    }
 
-                        {% csrf_token %}
 
+    .login-card {
 
+        width: 430px;
 
-                        <div class="mb-3">
+        max-width: 100%;
 
+        background: white;
 
-                            <label class="form-label">
+        padding: 40px;
 
-                                Username
+        border-radius: 18px;
 
-                            </label>
+        box-shadow:
+            0 20px 40px rgba(0,0,0,0.25);
 
+    }
 
-                            <div class="input-group">
 
+    .logo {
 
-                                <span class="input-group-text">
+        width: 90px;
 
-                                    <i class="fas fa-user"></i>
+        height: 90px;
 
-                                </span>
+        margin: 0 auto 20px auto;
 
+        display: flex;
 
-                                <input type="text"
+        justify-content: center;
 
-                                name="username"
+        align-items: center;
 
-                                class="form-control"
+        background: #2563eb;
 
-                                placeholder="Enter Username"
+        color: white;
 
-                                required>
+        font-size: 40px;
 
+        border-radius: 50%;
 
-                            </div>
+    }
 
 
-                        </div>
+    h1 {
 
+        text-align: center;
 
+        color: #0f172a;
 
+        margin-bottom: 5px;
 
+        font-size: 30px;
 
-                        <div class="mb-3">
+    }
 
 
-                            <label class="form-label">
+    .subtitle {
 
-                                Password
+        text-align: center;
 
-                            </label>
+        color: #6b7280;
 
+        margin-bottom: 30px;
 
-                            <div class="input-group">
+    }
 
 
-                                <span class="input-group-text">
+    label {
 
-                                    <i class="fas fa-lock"></i>
+        font-weight: 600;
 
-                                </span>
+        display: block;
 
+        margin-bottom: 6px;
 
-                                <input type="password"
+        color: #1f2937;
 
-                                name="password"
+    }
 
-                                class="form-control"
 
-                                placeholder="Enter Password"
+    input {
 
-                                required>
+        width: 100%;
 
+        padding: 12px;
 
-                            </div>
+        border-radius: 10px;
 
+        border: 1px solid #ccc;
 
-                        </div>
+        font-size: 16px;
 
+        margin-bottom: 18px;
 
+        transition: 0.2s ease;
 
+    }
 
 
-                        <div class="d-grid">
+    input:focus {
 
+        outline: none;
 
-                            <button type="submit"
+        border-color: #2563eb;
 
-                            class="btn btn-primary btn-lg">
+        box-shadow:
+            0 0 0 3px rgba(37,99,235,0.12);
 
+    }
 
-                                Login to Assessment
 
+    button {
 
-                            </button>
+        width: 100%;
 
+        padding: 14px;
 
-                        </div>
+        background: #2563eb;
 
+        border: none;
 
+        color: white;
 
-                    </form>
+        border-radius: 10px;
 
+        font-size: 17px;
 
+        font-weight: 600;
 
-                </div>
+        cursor: pointer;
 
+        transition: 0.2s ease;
 
+    }
 
 
-                <div class="card-footer text-center">
+    button:hover {
 
+        background: #1d4ed8;
 
-                    <small class="text-muted">
+    }
 
-                        Secure Candidate Authentication
 
-                    </small>
+    .error {
 
+        background: #fee2e2;
 
-                </div>
+        color: #b91c1c;
 
+        padding: 12px;
 
+        border-radius: 10px;
 
-            </div>
+        margin-bottom: 20px;
 
+        text-align: center;
 
-        </div>
+    }
 
 
-    </div>
+    .college-name {
 
+        text-align: center;
+
+        color: #2563eb;
+
+        font-size: 15px;
+
+        font-weight: 700;
+
+        margin-top: 25px;
+
+    }
+
+
+    .college-system {
+
+        text-align: center;
+
+        color: #9ca3af;
+
+        font-size: 12px;
+
+        margin-top: 4px;
+
+    }
+
+
+    @media (max-width: 480px) {
+
+        .login-card {
+
+            padding: 30px 25px;
+
+        }
+
+        h1 {
+
+            font-size: 26px;
+
+        }
+
+    }
+
+</style>
+```
+
+</head>
+
+<body>
+
+<div class="login-card">
+
+```
+<!-- STUDENT ICON -->
+
+<div class="logo">
+
+    🎓
 
 </div>
 
 
-{% endblock %}
+<!-- TITLE -->
+
+<h1>
+
+    CIA Student Portal
+
+</h1>
+
+
+<!-- SUBTITLE -->
+
+<div class="subtitle">
+
+    Examination Management System
+
+</div>
+
+
+<!-- MESSAGES -->
+
+{% if messages %}
+
+    {% for message in messages %}
+
+        <div class="error">
+
+            {{ message }}
+
+        </div>
+
+    {% endfor %}
+
+{% endif %}
+
+
+<!-- LOGIN FORM -->
+
+<form method="POST">
+
+    {% csrf_token %}
+
+
+    <label>
+        Username
+    </label>
+
+    <input
+        type="text"
+        name="username"
+        placeholder="Enter username"
+        autocomplete="username"
+        required
+    >
+
+
+    <label>
+        Password
+    </label>
+
+    <input
+        type="password"
+        name="password"
+        placeholder="Enter password"
+        autocomplete="current-password"
+        required
+    >
+
+
+    <button type="submit">
+
+        Login
+
+    </button>
+
+</form>
+
+
+<!-- COLLEGE BRANDING -->
+
+<div class="college-name">
+
+    Bhavan's Vivekananda College
+
+</div>
+
+<div class="college-system">
+
+    CIA Examination Management System
+
+</div>
+```
+
+</div>
+
+</body>
+
+</html>

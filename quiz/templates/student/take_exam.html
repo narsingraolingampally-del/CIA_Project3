@@ -169,6 +169,71 @@ body {
 }
 
 /* ================================
+   SECURITY MODAL
+================================ */
+
+.security-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.72);
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.security-modal {
+    width: 100%;
+    max-width: 520px;
+    background: white;
+    border-radius: 18px;
+    padding: 30px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+    animation: securityPopup 0.2s ease;
+}
+
+.security-icon {
+    font-size: 55px;
+    margin-bottom: 10px;
+}
+
+.security-modal h3 {
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+.security-modal p {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #444;
+}
+
+.warning-number {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 15px 0;
+}
+
+.security-ok-btn {
+    min-width: 150px;
+    margin-top: 10px;
+}
+
+@keyframes securityPopup {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* ================================
    MOBILE
 ================================ */
 
@@ -257,7 +322,9 @@ body {
 
             Do not switch tabs, windows or browsers during the examination.
 
-            Leaving the examination window will automatically submit your exam.
+            You will receive 3 security warnings.
+
+            After the third violation, your exam will be automatically submitted.
 
         </div>
 
@@ -309,8 +376,6 @@ body {
                     id="question{{ forloop.counter }}"
                     data-question-id="{{ eq.question.id }}">
 
-                    <!-- QUESTION NUMBER -->
-
                     <div class="question-title">
 
                         Question {{ forloop.counter }}
@@ -318,16 +383,12 @@ body {
                     </div>
 
 
-                    <!-- QUESTION TEXT -->
-
                     <h5 class="mb-4">
 
                         {{ eq.question.question_text }}
 
                     </h5>
 
-
-                    <!-- OPTION 1 -->
 
                     {% if eq.question.option1 %}
 
@@ -345,8 +406,6 @@ body {
                     {% endif %}
 
 
-                    <!-- OPTION 2 -->
-
                     {% if eq.question.option2 %}
 
                     <label class="option">
@@ -362,8 +421,6 @@ body {
 
                     {% endif %}
 
-
-                    <!-- OPTION 3 -->
 
                     {% if eq.question.option3 %}
 
@@ -381,8 +438,6 @@ body {
                     {% endif %}
 
 
-                    <!-- OPTION 4 -->
-
                     {% if eq.question.option4 %}
 
                     <label class="option">
@@ -398,8 +453,6 @@ body {
 
                     {% endif %}
 
-
-                    <!-- NAVIGATION -->
 
                     <div class="navigation-buttons">
 
@@ -456,10 +509,6 @@ body {
 
                 {% endfor %}
 
-
-                <!-- ==========================================
-                     SUBMIT
-                =========================================== -->
 
                 <div class="submit-area">
 
@@ -518,8 +567,6 @@ body {
                 <hr>
 
 
-                <!-- COUNTERS -->
-
                 <div class="d-flex justify-content-between mb-2">
 
                     <span class="badge bg-success">
@@ -560,6 +607,70 @@ body {
 </div>
 
 
+<!-- =========================================================
+     SECURITY WARNING POPUP
+========================================================= -->
+
+<div
+    id="securityOverlay"
+    class="security-overlay">
+
+    <div class="security-modal">
+
+        <div
+            id="securityIcon"
+            class="security-icon">
+
+            ⚠️
+
+        </div>
+
+
+        <h3 id="securityTitle">
+
+            Security Warning
+
+        </h3>
+
+
+        <p id="securityMessage">
+
+            You have left the examination window.
+
+        </p>
+
+
+        <div
+            id="warningNumber"
+            class="warning-number text-danger">
+
+            Warning 1 of 3
+
+        </div>
+
+
+        <p>
+
+            Please return to the examination and do not switch
+            tabs, windows or browsers again.
+
+        </p>
+
+
+        <button
+            type="button"
+            id="securityOkBtn"
+            class="btn btn-primary security-ok-btn">
+
+            Return to Exam
+
+        </button>
+
+    </div>
+
+</div>
+
+
 <script>
 
 /* =========================================================
@@ -573,23 +684,88 @@ let totalQuestions =
 
 let examSubmitted = false;
 
-
-/*
- * Prevent duplicate automatic submissions.
- */
 let submissionInProgress = false;
 
-
-/*
- * Timer.
- */
 let timerInterval = null;
 
 
 /*
- * Used to prevent unwanted focus/blur behaviour.
+ * Prevent duplicate security detections caused by
+ * visibilitychange + blur for the same action.
  */
+
+let securityDetectionLock = false;
+
+
+/*
+ * Used for window blur detection.
+ */
+
 let blurTimer = null;
+
+
+/*
+ * Maximum security violations.
+ */
+
+const MAX_SECURITY_WARNINGS = 3;
+
+
+/* =========================================================
+   SECURITY STORAGE KEY
+========================================================= */
+
+/*
+ * Use an exam-specific key.
+ *
+ * Example:
+ *
+ * exam_security_18
+ */
+
+const SECURITY_STORAGE_KEY =
+    "exam_security_{{ exam.id }}";
+
+
+/* =========================================================
+   SECURITY WARNING COUNT
+========================================================= */
+
+let securityWarnings = 0;
+
+
+/*
+ * Read previous count.
+ */
+
+try {
+
+    securityWarnings =
+        parseInt(
+            sessionStorage.getItem(
+                SECURITY_STORAGE_KEY
+            )
+        ) || 0;
+
+} catch (error) {
+
+    securityWarnings = 0;
+
+}
+
+
+/*
+ * Safety check.
+ */
+
+if (
+    securityWarnings < 0 ||
+    securityWarnings > MAX_SECURITY_WARNINGS
+) {
+
+    securityWarnings = 0;
+
+}
 
 
 /* =========================================================
@@ -615,6 +791,41 @@ const timerElement =
     document.getElementById("timer");
 
 
+/*
+ * Security popup elements.
+ */
+
+const securityOverlay =
+    document.getElementById(
+        "securityOverlay"
+    );
+
+const securityTitle =
+    document.getElementById(
+        "securityTitle"
+    );
+
+const securityMessage =
+    document.getElementById(
+        "securityMessage"
+    );
+
+const warningNumber =
+    document.getElementById(
+        "warningNumber"
+    );
+
+const securityIcon =
+    document.getElementById(
+        "securityIcon"
+    );
+
+const securityOkBtn =
+    document.getElementById(
+        "securityOkBtn"
+    );
+
+
 /* =========================================================
    SHOW QUESTION
 ========================================================= */
@@ -625,7 +836,9 @@ function showQuestion(number) {
         number < 1 ||
         number > totalQuestions
     ) {
+
         return;
+
     }
 
 
@@ -665,8 +878,11 @@ function showQuestion(number) {
     if (currentCard) {
 
         currentCard.scrollIntoView({
+
             behavior: "smooth",
+
             block: "start"
+
         });
 
     }
@@ -758,7 +974,9 @@ function updatePalette() {
 
 
             if (!button) {
+
                 return;
+
             }
 
 
@@ -914,7 +1132,9 @@ function clearAnswer() {
 
 
     if (!currentCard) {
+
         return;
+
     }
 
 
@@ -947,7 +1167,9 @@ function markReview() {
 
 
     if (!currentCard) {
+
         return;
+
     }
 
 
@@ -967,7 +1189,9 @@ function markReview() {
 
 function stopExamTimer() {
 
-    if (timerInterval !== null) {
+    if (
+        timerInterval !== null
+    ) {
 
         clearInterval(
             timerInterval
@@ -976,6 +1200,262 @@ function stopExamTimer() {
         timerInterval = null;
 
     }
+
+}
+
+
+/* =========================================================
+   SAVE SECURITY COUNT
+========================================================= */
+
+function saveSecurityWarnings() {
+
+    try {
+
+        sessionStorage.setItem(
+            SECURITY_STORAGE_KEY,
+            securityWarnings.toString()
+        );
+
+    } catch (error) {
+
+        /*
+         * sessionStorage may be unavailable
+         * in some browser privacy modes.
+         *
+         * The exam still continues.
+         */
+
+    }
+
+}
+
+
+/* =========================================================
+   SHOW SECURITY POPUP
+========================================================= */
+
+function showSecurityWarning(number) {
+
+    if (!securityOverlay) {
+
+        return;
+
+    }
+
+
+    securityOverlay.style.display =
+        "flex";
+
+
+    if (securityIcon) {
+
+        securityIcon.innerText =
+            "⚠️";
+
+    }
+
+
+    if (securityTitle) {
+
+        securityTitle.innerText =
+            "Security Warning";
+
+    }
+
+
+    if (securityMessage) {
+
+        securityMessage.innerText =
+            "You switched away from the examination window.";
+
+    }
+
+
+    if (warningNumber) {
+
+        warningNumber.innerText =
+            "Warning " +
+            number +
+            " of " +
+            MAX_SECURITY_WARNINGS;
+
+    }
+
+
+    if (securityOkBtn) {
+
+        securityOkBtn.innerText =
+            "Return to Exam";
+
+        securityOkBtn.disabled =
+            false;
+
+    }
+
+}
+
+
+/* =========================================================
+   HIDE SECURITY POPUP
+========================================================= */
+
+function hideSecurityWarning() {
+
+    if (securityOverlay) {
+
+        securityOverlay.style.display =
+            "none";
+
+    }
+
+}
+
+
+/* =========================================================
+   SECURITY WARNING BUTTON
+========================================================= */
+
+if (securityOkBtn) {
+
+    securityOkBtn.addEventListener(
+        "click",
+        function() {
+
+            hideSecurityWarning();
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   REGISTER SECURITY VIOLATION
+========================================================= */
+
+function registerSecurityViolation(reason) {
+
+    /*
+     * Do not count violations after submission.
+     */
+
+    if (
+        examSubmitted ||
+        submissionInProgress
+    ) {
+
+        return;
+
+    }
+
+
+    /*
+     * Prevent duplicate events occurring
+     * almost simultaneously.
+     */
+
+    if (securityDetectionLock) {
+
+        return;
+
+    }
+
+
+    securityDetectionLock = true;
+
+
+    /*
+     * Unlock after a short cooldown.
+     */
+
+    setTimeout(
+        function() {
+
+            securityDetectionLock =
+                false;
+
+        },
+        1500
+    );
+
+
+    /*
+     * Increase warning count.
+     */
+
+    securityWarnings++;
+
+
+    /*
+     * Never exceed maximum.
+     */
+
+    if (
+        securityWarnings >
+        MAX_SECURITY_WARNINGS
+    ) {
+
+        securityWarnings =
+            MAX_SECURITY_WARNINGS;
+
+    }
+
+
+    /*
+     * Store immediately so refresh doesn't reset
+     * the warning count.
+     */
+
+    saveSecurityWarnings();
+
+
+    /* =====================================================
+       FIRST AND SECOND VIOLATION
+    ====================================================== */
+
+    if (
+        securityWarnings <
+        MAX_SECURITY_WARNINGS
+    ) {
+
+        /*
+         * If the student returns to the page,
+         * the popup will be shown.
+         */
+
+        showSecurityWarning(
+            securityWarnings
+        );
+
+        return;
+
+    }
+
+
+    /* =====================================================
+       THIRD VIOLATION
+    ====================================================== */
+
+    /*
+     * Third violation.
+     *
+     * Automatically submit the exam.
+     */
+
+    hideSecurityWarning();
+
+
+    setTimeout(
+        function() {
+
+            submitExam(
+                "security_violation_3"
+            );
+
+        },
+        100
+    );
 
 }
 
@@ -1001,7 +1481,9 @@ function submitExam(reason) {
 
 
     if (!examForm) {
+
         return;
+
     }
 
 
@@ -1035,7 +1517,8 @@ function submitExam(reason) {
 
     if (submitBtn) {
 
-        submitBtn.disabled = true;
+        submitBtn.disabled =
+            true;
 
         submitBtn.innerText =
             "Submitting Exam...";
@@ -1044,7 +1527,7 @@ function submitExam(reason) {
 
 
     /*
-     * Disable all navigation buttons.
+     * Disable navigation.
      */
 
     document
@@ -1053,20 +1536,14 @@ function submitExam(reason) {
         )
         .forEach(function(button) {
 
-            button.disabled = true;
+            button.disabled =
+                true;
 
         });
 
 
     /*
-     * Submit the existing form.
-     *
-     * This sends:
-     *
-     * exam_id
-     * submission_reason
-     * CSRF token
-     * all selected answers
+     * Submit current form.
      */
 
     HTMLFormElement.prototype.submit.call(
@@ -1080,54 +1557,57 @@ function submitExam(reason) {
    MANUAL SUBMISSION
 ========================================================= */
 
-examForm.addEventListener(
-    "submit",
-    function(event) {
+if (examForm) {
 
-        /*
-         * Do not allow a second submission.
-         */
+    examForm.addEventListener(
+        "submit",
+        function(event) {
 
-        if (submissionInProgress) {
+            /*
+             * Do not allow another submission.
+             */
 
-            event.preventDefault();
+            if (submissionInProgress) {
 
-            return;
+                event.preventDefault();
+
+                return;
+
+            }
+
+
+            submissionInProgress =
+                true;
+
+            examSubmitted =
+                true;
+
+
+            if (submissionReason) {
+
+                submissionReason.value =
+                    "manual";
+
+            }
+
+
+            stopExamTimer();
+
+
+            if (submitBtn) {
+
+                submitBtn.disabled =
+                    true;
+
+                submitBtn.innerText =
+                    "Submitting Exam...";
+
+            }
 
         }
+    );
 
-
-        /*
-         * Normal manual submission.
-         */
-
-        submissionInProgress = true;
-
-        examSubmitted = true;
-
-
-        if (submissionReason) {
-
-            submissionReason.value =
-                "manual";
-
-        }
-
-
-        stopExamTimer();
-
-
-        if (submitBtn) {
-
-            submitBtn.disabled = true;
-
-            submitBtn.innerText =
-                "Submitting Exam...";
-
-        }
-
-    }
-);
+}
 
 
 /* =========================================================
@@ -1139,10 +1619,6 @@ let durationSeconds =
         "{{ exam.duration }}"
     ) * 60;
 
-
-/*
- * Safety check.
- */
 
 if (
     isNaN(durationSeconds) ||
@@ -1161,7 +1637,9 @@ if (
 function updateTimer() {
 
     if (examSubmitted) {
+
         return;
+
     }
 
 
@@ -1201,9 +1679,11 @@ function updateTimer() {
 
         stopExamTimer();
 
+
         submitExam(
             "time_expired"
         );
+
 
         return;
 
@@ -1227,7 +1707,7 @@ timerInterval =
 
 
 /*
- * Display initial timer.
+ * Initial timer display.
  */
 
 updateTimer();
@@ -1242,8 +1722,7 @@ document.addEventListener(
     function() {
 
         /*
-         * If the page becomes hidden,
-         * student has left the exam page.
+         * Page became hidden.
          */
 
         if (
@@ -1251,7 +1730,7 @@ document.addEventListener(
             "hidden"
         ) {
 
-            submitExam(
+            registerSecurityViolation(
                 "tab_switch"
             );
 
@@ -1270,7 +1749,7 @@ window.addEventListener(
     function() {
 
         /*
-         * Do not create multiple timers.
+         * Clear previous timer.
          */
 
         clearTimeout(
@@ -1278,13 +1757,18 @@ window.addEventListener(
         );
 
 
+        /*
+         * Small delay prevents false detection
+         * caused by normal page interaction.
+         */
+
         blurTimer =
             setTimeout(
                 function() {
 
                     /*
-                     * If page is already hidden,
-                     * visibilitychange has handled it.
+                     * Only count if the page is still
+                     * visible but browser window lost focus.
                      */
 
                     if (
@@ -1296,7 +1780,7 @@ window.addEventListener(
                             !document.hasFocus()
                         ) {
 
-                            submitExam(
+                            registerSecurityViolation(
                                 "window_switch"
                             );
 
@@ -1344,7 +1828,7 @@ window.addEventListener(
     function() {
 
         /*
-         * Immediately restore history state.
+         * Restore history state.
          */
 
         history.pushState(
@@ -1355,7 +1839,10 @@ window.addEventListener(
 
 
         /*
-         * Submit exam automatically.
+         * Keep browser-back protection.
+         *
+         * This is NOT counted as one of the
+         * three tab-switch warnings.
          */
 
         submitExam(

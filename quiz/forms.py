@@ -150,11 +150,106 @@ class FacultyForm(forms.Form):
 # STUDENT REGISTRATION FORM
 # =========================================
 
+# =========================================
+# STUDENT REGISTRATION / EDIT FORM
+# =========================================
+
+# =========================================
+# STUDENT REGISTRATION / EDIT FORM
+# =========================================
+
 class StudentRegistrationForm(forms.ModelForm):
 
+    first_name = forms.CharField(
+        required=True,
+        label="First Name",
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Enter first name",
+            }
+        )
+    )
+
+    last_name = forms.CharField(
+        required=False,
+        label="Last Name",
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Enter last name",
+            }
+        )
+    )
+
     class Meta:
+
         model = StudentProfile
-        fields = "__all__"
+
+        fields = [
+            "course",
+            "semester",
+            "academic_year",
+            "aadhaar_number",
+        ]
+
+        widgets = {
+
+            "course": forms.Select(
+                attrs={
+                    "class": "form-select",
+                }
+            ),
+
+            "semester": forms.Select(
+                choices=[
+                    ("", "---------"),
+                    (1, "Semester 1"),
+                    (2, "Semester 2"),
+                    (3, "Semester 3"),
+                    (4, "Semester 4"),
+                    (5, "Semester 5"),
+                    (6, "Semester 6"),
+                    (7, "Semester 7"),
+                    (8, "Semester 8"),
+                ],
+                attrs={
+                    "class": "form-select",
+                }
+            ),
+
+            "academic_year": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Example: 2026-2027",
+                }
+            ),
+
+            "aadhaar_number": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Enter Aadhaar number",
+                    "maxlength": "12",
+                }
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+
+        # When editing an existing student,
+        # fetch the name from the User model.
+
+        if self.instance and self.instance.pk:
+
+            self.fields["first_name"].initial = (
+                self.instance.user.first_name
+            )
+
+            self.fields["last_name"].initial = (
+                self.instance.user.last_name
+            )
         # =========================================
 # COURSE FORM
 # =========================================
