@@ -150,24 +150,58 @@ def index_page(request):
 
 def student_login(request):
 
+    if request.user.is_authenticated and request.user.is_student:
+        return redirect("student_dashboard")
+
     if request.method == "POST":
 
-        username = request.POST.get("username")
-        password = request.POST.get("password")
+        username = request.POST.get("username", "").strip()
+        password = request.POST.get("password", "")
+
+        if not username or not password:
+            messages.error(
+                request,
+                "Please enter username and password."
+            )
+            return render(
+                request,
+                "student/login.html"
+            )
 
         user = authenticate(
             request,
             username=username,
-            password=password
+            password=password,
         )
 
-        if user is not None and user.is_student:
-            login(request, user)
-            return redirect("student_dashboard")
+        if user is not None:
 
-        messages.error(request, "Invalid Student Login")
+            if user.is_student:
 
-    return render(request, "student/login.html")
+                login(request, user)
+
+                next_url = request.GET.get("next")
+
+                if next_url:
+                    return redirect(next_url)
+
+                return redirect("student_dashboard")
+
+            messages.error(
+                request,
+                "This account is not registered as a student."
+            )
+
+        else:
+            messages.error(
+                request,
+                "Invalid username or password."
+            )
+
+    return render(
+        request,
+        "student/login.html"
+    )
 
 
 from django.contrib.auth import authenticate, login
