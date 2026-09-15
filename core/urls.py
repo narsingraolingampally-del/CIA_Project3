@@ -1,11 +1,23 @@
-from django.urls import path, include
+from django.urls import include, path
 
 
 urlpatterns = [
 
+    # Admin Feedback Management
     path(
-        "",
-        include("quiz.urls")
+        "admin-panel/feedback/",
+        include("feedback.urls"),
     ),
 
+    # Student Feedback
+    path(
+        "student/feedback/",
+        include("feedback.student_urls"),
+    ),
+
+    # Existing CIA Examination System
+    path(
+        "",
+        include("quiz.urls"),
+    ),
 ]

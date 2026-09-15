@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="fas fa-comment-dots me-2"></i>
+                Student Feedback
+            </h2>
+
+            <p class="text-muted mb-0">
+                Complete the feedback forms assigned to you.
+            </p>
+        </div>
+    </div>
+
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show">
+                {{ message }}
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+                </button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+
+    {% if available_assignments %}
+
+        <div class="row g-4">
+
+            {% for item in available_assignments %}
+
+                {% with assignment=item.assignment %}
+
+                    <div class="col-md-6 col-lg-4">
+
+                        <div class="card border-0 shadow-sm h-100">
+
+                            <div class="card-body">
+
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+
+                                    <div>
+                                        <span class="badge bg-primary">
+                                            Feedback
+                                        </span>
+                                    </div>
+
+                                    {% if item.already_submitted %}
+                                        <span class="badge bg-success">
+                                            Submitted
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">
+                                            Pending
+                                        </span>
+                                    {% endif %}
+
+                                </div>
+
+
+                                <h5 class="fw-bold mb-3">
+                                    {{ assignment.feedback_form.title }}
+                                </h5>
+
+
+                                {% if assignment.feedback_form.description %}
+                                    <p class="text-muted small">
+                                        {{ assignment.feedback_form.description }}
+                                    </p>
+                                {% endif %}
+
+
+                                <div class="small text-muted mb-3">
+
+                                    {% if assignment.subject %}
+                                        <div class="mb-1">
+                                            <i class="fas fa-book me-2"></i>
+                                            Subject:
+                                            <strong>
+                                                {{ assignment.subject.name }}
+                                            </strong>
+                                        </div>
+                                    {% endif %}
+
+
+                                    {% if assignment.faculty %}
+                                        <div class="mb-1">
+                                            <i class="fas fa-user-tie me-2"></i>
+                                            Faculty:
+                                            <strong>
+                                                {{ assignment.faculty.user.get_full_name|default:assignment.faculty.user.username }}
+                                            </strong>
+                                        </div>
+                                    {% endif %}
+
+
+                                    <div class="mb-1">
+                                        <i class="fas fa-graduation-cap me-2"></i>
+                                        Semester:
+                                        <strong>
+                                            {{ assignment.semester }}
+                                        </strong>
+                                    </div>
+
+
+                                    {% if assignment.start_date %}
+                                        <div class="mb-1">
+                                            <i class="fas fa-calendar-alt me-2"></i>
+                                            Starts:
+                                            <strong>
+                                                {{ assignment.start_date|date:"d M Y, h:i A" }}
+                                            </strong>
+                                        </div>
+                                    {% endif %}
+
+
+                                    {% if assignment.end_date %}
+                                        <div>
+                                            <i class="fas fa-calendar-check me-2"></i>
+                                            Ends:
+                                            <strong>
+                                                {{ assignment.end_date|date:"d M Y, h:i A" }}
+                                            </strong>
+                                        </div>
+                                    {% endif %}
+
+                                </div>
+
+
+                                {% if item.already_submitted %}
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-success w-100"
+                                        disabled>
+                                        <i class="fas fa-check-circle me-2"></i>
+                                        Feedback Submitted
+                                    </button>
+
+                                {% else %}
+
+                                    <a
+                                        href="{% url 'student_feedback_form' assignment.id %}"
+                                        class="btn btn-primary w-100">
+                                        <i class="fas fa-edit me-2"></i>
+                                        Give Feedback
+                                    </a>
+
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                {% endwith %}
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div class="card border-0 shadow-sm">
+
+            <div class="card-body text-center py-5">
+
+                <div class="mb-3">
+                    <i
+                        class="fas fa-comment-slash fa-3x text-muted">
+                    </i>
+                </div>
+
+                <h4 class="fw-bold">
+                    No Feedback Available
+                </h4>
+
+                <p class="text-muted mb-0">
+                    There are currently no feedback forms assigned to you.
+                </p>
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

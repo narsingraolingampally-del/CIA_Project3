@@ -1,0 +1,413 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1">
+            <i class="fas fa-clipboard-list me-2"></i>
+            {{ assignment.feedback_form.title }}
+        </h2>
+
+        <p class="text-muted mb-0">
+            Please complete the feedback form and submit your response.
+        </p>
+    </div>
+
+
+    {% if errors %}
+        <div class="alert alert-danger shadow-sm">
+            <h6 class="fw-bold mb-2">
+                Please correct the following:
+            </h6>
+
+            <ul class="mb-0">
+                {% for error in errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+
+            <h5 class="fw-bold mb-3">
+                Feedback Details
+            </h5>
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+                    <div class="text-muted small">
+                        Course
+                    </div>
+
+                    <div class="fw-semibold">
+                        {{ assignment.course.name }}
+                    </div>
+                </div>
+
+
+                <div class="col-md-4">
+                    <div class="text-muted small">
+                        Semester
+                    </div>
+
+                    <div class="fw-semibold">
+                        Semester {{ assignment.semester }}
+                    </div>
+                </div>
+
+
+                <div class="col-md-4">
+                    <div class="text-muted small">
+                        Academic Year
+                    </div>
+
+                    <div class="fw-semibold">
+                        {{ assignment.academic_year }}
+                    </div>
+                </div>
+
+
+                {% if assignment.subject %}
+                    <div class="col-md-4">
+                        <div class="text-muted small">
+                            Subject
+                        </div>
+
+                        <div class="fw-semibold">
+                            {{ assignment.subject.name }}
+                        </div>
+                    </div>
+                {% endif %}
+
+
+                {% if assignment.faculty %}
+                    <div class="col-md-4">
+                        <div class="text-muted small">
+                            Faculty
+                        </div>
+
+                        <div class="fw-semibold">
+                            {% if assignment.faculty.user.get_full_name %}
+                                {{ assignment.faculty.user.get_full_name }}
+                            {% else %}
+                                {{ assignment.faculty.user.username }}
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+
+            </div>
+
+
+            {% if assignment.feedback_form.description %}
+                <hr>
+
+                <p class="text-muted mb-0">
+                    {{ assignment.feedback_form.description }}
+                </p>
+            {% endif %}
+
+        </div>
+    </div>
+
+
+    <form method="post">
+
+        {% csrf_token %}
+
+
+        {% for question in questions %}
+
+            <div class="card border-0 shadow-sm mb-4">
+
+                <div class="card-body">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">
+
+                            {{ forloop.counter }}.
+                            {{ question.question_text }}
+
+                            {% if question.is_required %}
+                                <span class="text-danger">*</span>
+                            {% endif %}
+
+                        </label>
+                    </div>
+
+
+                    {% if question.question_type == "rating" %}
+
+                        <div class="d-flex flex-wrap gap-4">
+
+                            <div class="form-check">
+                                <input
+                                    class="form-check-input"
+                                    type="radio"
+                                    name="question_{{ question.id }}"
+                                    id="q{{ question.id }}_1"
+                                    value="1"
+                                    {% if question.is_required %}required{% endif %}
+                                >
+                                <label
+                                    class="form-check-label"
+                                    for="q{{ question.id }}_1">
+                                    1 - Poor
+                                </label>
+                            </div>
+
+
+                            <div class="form-check">
+                                <input
+                                    class="form-check-input"
+                                    type="radio"
+                                    name="question_{{ question.id }}"
+                                    id="q{{ question.id }}_2"
+                                    value="2"
+                                >
+                                <label
+                                    class="form-check-label"
+                                    for="q{{ question.id }}_2">
+                                    2 - Fair
+                                </label>
+                            </div>
+
+
+                            <div class="form-check">
+                                <input
+                                    class="form-check-input"
+                                    type="radio"
+                                    name="question_{{ question.id }}"
+                                    id="q{{ question.id }}_3"
+                                    value="3"
+                                >
+                                <label
+                                    class="form-check-label"
+                                    for="q{{ question.id }}_3">
+                                    3 - Good
+                                </label>
+                            </div>
+
+
+                            <div class="form-check">
+                                <input
+                                    class="form-check-input"
+                                    type="radio"
+                                    name="question_{{ question.id }}"
+                                    id="q{{ question.id }}_4"
+                                    value="4"
+                                >
+                                <label
+                                    class="form-check-label"
+                                    for="q{{ question.id }}_4">
+                                    4 - Very Good
+                                </label>
+                            </div>
+
+
+                            <div class="form-check">
+                                <input
+                                    class="form-check-input"
+                                    type="radio"
+                                    name="question_{{ question.id }}"
+                                    id="q{{ question.id }}_5"
+                                    value="5"
+                                >
+                                <label
+                                    class="form-check-label"
+                                    for="q{{ question.id }}_5">
+                                    5 - Excellent
+                                </label>
+                            </div>
+
+                        </div>
+
+
+                    {% elif question.question_type == "yes_no" %}
+
+                        <div class="form-check mb-2">
+
+                            <input
+                                class="form-check-input"
+                                type="radio"
+                                name="question_{{ question.id }}"
+                                id="q{{ question.id }}_yes"
+                                value="yes"
+                                {% if question.is_required %}required{% endif %}
+                            >
+
+                            <label
+                                class="form-check-label"
+                                for="q{{ question.id }}_yes">
+                                Yes
+                            </label>
+
+                        </div>
+
+
+                        <div class="form-check">
+
+                            <input
+                                class="form-check-input"
+                                type="radio"
+                                name="question_{{ question.id }}"
+                                id="q{{ question.id }}_no"
+                                value="no"
+                            >
+
+                            <label
+                                class="form-check-label"
+                                for="q{{ question.id }}_no">
+                                No
+                            </label>
+
+                        </div>
+
+
+                    {% elif question.question_type == "choice" %}
+
+                        {% if question.option1 %}
+                            <div class="form-check mb-2">
+
+                                <input
+                                    class="form-check-input"
+                                    type="radio"
+                                    name="question_{{ question.id }}"
+                                    id="q{{ question.id }}_option1"
+                                    value="{{ question.option1 }}"
+                                    {% if question.is_required %}required{% endif %}
+                                >
+
+                                <label
+                                    class="form-check-label"
+                                    for="q{{ question.id }}_option1">
+                                    {{ question.option1 }}
+                                </label>
+
+                            </div>
+                        {% endif %}
+
+
+                        {% if question.option2 %}
+                            <div class="form-check mb-2">
+
+                                <input
+                                    class="form-check-input"
+                                    type="radio"
+                                    name="question_{{ question.id }}"
+                                    id="q{{ question.id }}_option2"
+                                    value="{{ question.option2 }}"
+                                >
+
+                                <label
+                                    class="form-check-label"
+                                    for="q{{ question.id }}_option2">
+                                    {{ question.option2 }}
+                                </label>
+
+                            </div>
+                        {% endif %}
+
+
+                        {% if question.option3 %}
+                            <div class="form-check mb-2">
+
+                                <input
+                                    class="form-check-input"
+                                    type="radio"
+                                    name="question_{{ question.id }}"
+                                    id="q{{ question.id }}_option3"
+                                    value="{{ question.option3 }}"
+                                >
+
+                                <label
+                                    class="form-check-label"
+                                    for="q{{ question.id }}_option3">
+                                    {{ question.option3 }}
+                                </label>
+
+                            </div>
+                        {% endif %}
+
+
+                        {% if question.option4 %}
+                            <div class="form-check">
+
+                                <input
+                                    class="form-check-input"
+                                    type="radio"
+                                    name="question_{{ question.id }}"
+                                    id="q{{ question.id }}_option4"
+                                    value="{{ question.option4 }}"
+                                >
+
+                                <label
+                                    class="form-check-label"
+                                    for="q{{ question.id }}_option4">
+                                    {{ question.option4 }}
+                                </label>
+
+                            </div>
+                        {% endif %}
+
+
+                    {% elif question.question_type == "text" %}
+
+                        <textarea
+                            class="form-control"
+                            name="question_{{ question.id }}"
+                            rows="4"
+                            placeholder="Enter your feedback"
+                            {% if question.is_required %}required{% endif %}
+                        ></textarea>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        {% empty %}
+
+            <div class="alert alert-warning">
+                No active questions are available for this feedback form.
+            </div>
+
+        {% endfor %}
+
+
+        <div class="d-flex justify-content-between align-items-center mt-4 mb-5">
+
+            <a
+                href="{% url 'student_feedback_list' %}"
+                class="btn btn-outline-secondary"
+            >
+                <i class="fas fa-arrow-left me-2"></i>
+                Back to Feedback
+            </a>
+
+
+            {% if questions %}
+                <button
+                    type="submit"
+                    class="btn btn-primary px-4"
+                    onclick="return confirm('Are you sure you want to submit your feedback? You cannot submit it again.');"
+                >
+                    <i class="fas fa-paper-plane me-2"></i>
+                    Submit Feedback
+                </button>
+            {% endif %}
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

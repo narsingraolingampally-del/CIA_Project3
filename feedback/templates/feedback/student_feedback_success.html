@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-md-8 col-lg-6">
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-body text-center py-5">
+
+                    {% if already_submitted %}
+
+                        <div class="mb-4">
+                            <i
+                                class="fas fa-check-circle fa-4x text-success">
+                            </i>
+                        </div>
+
+                        <h2 class="fw-bold mb-3">
+                            Feedback Already Submitted
+                        </h2>
+
+                        <p class="text-muted mb-4">
+                            You have already submitted feedback for:
+                        </p>
+
+                    {% else %}
+
+                        <div class="mb-4">
+                            <i
+                                class="fas fa-check-circle fa-4x text-success">
+                            </i>
+                        </div>
+
+                        <h2 class="fw-bold mb-3">
+                            Feedback Submitted Successfully
+                        </h2>
+
+                        <p class="text-muted mb-4">
+                            Thank you for submitting your feedback.
+                        </p>
+
+                    {% endif %}
+
+
+                    <h5 class="fw-bold mb-4">
+                        {{ assignment.feedback_form.title }}
+                    </h5>
+
+
+                    {% if assignment.subject %}
+
+                        <p class="text-muted mb-2">
+                            <strong>Subject:</strong>
+                            {{ assignment.subject.name }}
+                        </p>
+
+                    {% endif %}
+
+
+                    {% if assignment.faculty %}
+
+                        <p class="text-muted mb-4">
+                            <strong>Faculty:</strong>
+                            {{ assignment.faculty.user.get_full_name|default:assignment.faculty.user.username }}
+                        </p>
+
+                    {% endif %}
+
+
+                    <a
+                        href="{% url 'student_feedback_list' %}"
+                        class="btn btn-primary">
+
+                        <i class="fas fa-list me-2"></i>
+                        Back to Feedback
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

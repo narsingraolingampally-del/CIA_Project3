@@ -1,0 +1,509 @@
+{% extends "admin_panel/base.html" %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- PAGE HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="fas fa-comments text-primary me-2"></i>
+                Feedback Management
+            </h2>
+
+            <p class="text-muted mb-0">
+                Manage student feedback and evaluation forms
+            </p>
+        </div>
+
+        <a
+            href="{% url 'feedback_forms' %}"
+            class="btn btn-primary"
+        >
+            <i class="fas fa-file-alt me-1"></i>
+            Manage Feedback Forms
+        </a>
+
+    </div>
+
+
+    <!-- STATISTICS -->
+    <div class="row g-4 mb-4">
+
+        <!-- TOTAL FORMS -->
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <h6 class="text-muted mb-2">
+                                Total Forms
+                            </h6>
+
+                            <h2 class="fw-bold mb-0">
+                                {{ total_forms }}
+                            </h2>
+
+                            <small class="text-muted">
+                                All feedback forms
+                            </small>
+
+                        </div>
+
+                        <div
+                            class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center"
+                            style="width:58px;height:58px;"
+                        >
+                            <i class="fas fa-file-alt fa-lg"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ACTIVE FORMS -->
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <h6 class="text-muted mb-2">
+                                Active Forms
+                            </h6>
+
+                            <h2 class="fw-bold mb-0">
+                                {{ active_forms }}
+                            </h2>
+
+                            <small class="text-muted">
+                                Currently active
+                            </small>
+
+                        </div>
+
+                        <div
+                            class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center"
+                            style="width:58px;height:58px;"
+                        >
+                            <i class="fas fa-check-circle fa-lg"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ASSIGNMENTS -->
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <h6 class="text-muted mb-2">
+                                Assignments
+                            </h6>
+
+                            <h2 class="fw-bold mb-0">
+                                {{ total_assignments }}
+                            </h2>
+
+                            <small class="text-muted">
+                                Feedback assignments
+                            </small>
+
+                        </div>
+
+                        <div
+                            class="rounded-circle bg-warning bg-opacity-10 text-warning d-flex align-items-center justify-content-center"
+                            style="width:58px;height:58px;"
+                        >
+                            <i class="fas fa-link fa-lg"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- RESPONSES -->
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <h6 class="text-muted mb-2">
+                                Responses
+                            </h6>
+
+                            <h2 class="fw-bold mb-0">
+                                {{ total_responses }}
+                            </h2>
+
+                            <small class="text-muted">
+                                Student submissions
+                            </small>
+
+                        </div>
+
+                        <div
+                            class="rounded-circle bg-info bg-opacity-10 text-info d-flex align-items-center justify-content-center"
+                            style="width:58px;height:58px;"
+                        >
+                            <i class="fas fa-comments fa-lg"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- MANAGEMENT CONTROLS -->
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-primary text-white">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <h5 class="mb-0">
+                    <i class="fas fa-cogs me-2"></i>
+                    Feedback Controls
+                </h5>
+
+                <span class="badge bg-light text-primary">
+                    Admin
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <!-- FEEDBACK FORMS -->
+                <div class="col-lg-4 col-md-6">
+
+                    <a
+                        href="{% url 'feedback_forms' %}"
+                        class="btn btn-outline-primary w-100 p-3 text-start h-100"
+                    >
+
+                        <div class="d-flex align-items-center">
+
+                            <div class="me-3">
+                                <i class="fas fa-file-alt fa-2x"></i>
+                            </div>
+
+                            <div>
+
+                                <div class="fw-bold">
+                                    Feedback Forms
+                                </div>
+
+                                <small class="text-muted">
+                                    Create and manage questionnaires
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                </div>
+
+
+                <!-- ASSIGN FEEDBACK -->
+                <div class="col-lg-4 col-md-6">
+
+                    <a
+                        href="{% url 'feedback_assignments' %}"
+                        class="btn btn-outline-warning w-100 p-3 text-start h-100"
+                    >
+
+                        <div class="d-flex align-items-center">
+
+                            <div class="me-3">
+                                <i class="fas fa-link fa-2x"></i>
+                            </div>
+
+                            <div>
+
+                                <div class="fw-bold">
+                                    Assign Feedback
+                                </div>
+
+                                <small class="text-muted">
+                                    Assign to course, subject and faculty
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                </div>
+
+
+                <!-- RESPONSES -->
+                <div class="col-lg-4 col-md-6">
+
+                    <a
+                        href="{% url 'feedback_reports' %}"
+                        class="btn btn-outline-info w-100 p-3 text-start h-100"
+                    >
+
+                        <div class="d-flex align-items-center">
+
+                            <div class="me-3">
+                                <i class="fas fa-comments fa-2x"></i>
+                            </div>
+
+                            <div>
+
+                                <div class="fw-bold">
+                                    Responses
+                                </div>
+
+                                <small class="text-muted">
+                                    View student submissions
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                </div>
+
+
+                <!-- REPORTS -->
+                <div class="col-lg-4 col-md-6">
+
+                    <a
+                        href="{% url 'feedback_reports' %}"
+                        class="btn btn-outline-secondary w-100 p-3 text-start h-100"
+                    >
+
+                        <div class="d-flex align-items-center">
+
+                            <div class="me-3">
+                                <i class="fas fa-chart-bar fa-2x"></i>
+                            </div>
+
+                            <div>
+
+                                <div class="fw-bold">
+                                    Reports
+                                </div>
+
+                                <small class="text-muted">
+                                    View feedback analytics
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                </div>
+
+
+                <!-- QUICK CREATE -->
+                <div class="col-lg-4 col-md-6">
+
+                    <a
+                        href="{% url 'create_feedback_form' %}"
+                        class="btn btn-outline-success w-100 p-3 text-start h-100"
+                    >
+
+                        <div class="d-flex align-items-center">
+
+                            <div class="me-3">
+                                <i class="fas fa-plus-circle fa-2x"></i>
+                            </div>
+
+                            <div>
+
+                                <div class="fw-bold">
+                                    Create Feedback Form
+                                </div>
+
+                                <small class="text-muted">
+                                    Start a new questionnaire
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- WORKFLOW INFORMATION -->
+    <div class="card shadow-sm border-0 mt-4 mb-4">
+
+        <div class="card-header">
+
+            <h6 class="mb-0 fw-bold">
+                <i class="fas fa-info-circle text-primary me-2"></i>
+                Feedback Workflow
+            </h6>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <div class="row text-center g-3">
+
+                <!-- STEP 1 -->
+                <div class="col-md-3">
+
+                    <div class="p-3 border rounded h-100">
+
+                        <div class="text-primary mb-2">
+                            <i class="fas fa-file-alt fa-2x"></i>
+                        </div>
+
+                        <h6 class="fw-bold">
+                            1. Create Form
+                        </h6>
+
+                        <small class="text-muted">
+                            Create the feedback questionnaire.
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <!-- STEP 2 -->
+                <div class="col-md-3">
+
+                    <div class="p-3 border rounded h-100">
+
+                        <div class="text-success mb-2">
+                            <i class="fas fa-question-circle fa-2x"></i>
+                        </div>
+
+                        <h6 class="fw-bold">
+                            2. Add Questions
+                        </h6>
+
+                        <small class="text-muted">
+                            Add rating, choice and text questions.
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <!-- STEP 3 -->
+                <div class="col-md-3">
+
+                    <div class="p-3 border rounded h-100">
+
+                        <div class="text-warning mb-2">
+                            <i class="fas fa-link fa-2x"></i>
+                        </div>
+
+                        <h6 class="fw-bold">
+                            3. Assign
+                        </h6>
+
+                        <small class="text-muted">
+                            Assign feedback to the correct class and faculty.
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <!-- STEP 4 -->
+                <div class="col-md-3">
+
+                    <div class="p-3 border rounded h-100">
+
+                        <div class="text-info mb-2">
+                            <i class="fas fa-chart-line fa-2x"></i>
+                        </div>
+
+                        <h6 class="fw-bold">
+                            4. Review
+                        </h6>
+
+                        <small class="text-muted">
+                            Analyze student responses and reports.
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

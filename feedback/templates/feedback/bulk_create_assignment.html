@@ -1,0 +1,412 @@
+{% extends "admin_panel/base.html" %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- PAGE HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="fas fa-users-cog text-primary me-2"></i>
+                Bulk Faculty Feedback Assignment
+            </h2>
+
+            <p class="text-muted mb-0">
+                Assign faculty feedback to all teaching faculty for a
+                selected course and semester.
+            </p>
+        </div>
+
+        <a
+            href="{% url 'feedback_assignments' %}"
+            class="btn btn-outline-secondary"
+        >
+            <i class="fas fa-arrow-left me-1"></i>
+            Back to Assignments
+        </a>
+
+    </div>
+
+
+    <!-- INFORMATION -->
+    <div class="alert alert-info shadow-sm border-0">
+
+        <div class="d-flex align-items-start">
+
+            <i class="fas fa-info-circle fa-lg me-3 mt-1"></i>
+
+            <div>
+
+                <strong>
+                    Bulk Faculty Feedback
+                </strong>
+
+                <div class="mt-1">
+                    Select the feedback form, course, semester and
+                    academic year. The system will automatically assign
+                    the feedback to all teaching faculty belonging to
+                    that course and to the subjects they teach in the
+                    selected semester.
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ASSIGNMENT FORM -->
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-primary text-white">
+
+            <h5 class="mb-0">
+                <i class="fas fa-layer-group me-2"></i>
+                Assignment Details
+            </h5>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <form method="post">
+
+                {% csrf_token %}
+
+
+                <!-- FEEDBACK FORM -->
+                <div class="mb-4">
+
+                    <label
+                        for="feedback_form"
+                        class="form-label fw-semibold"
+                    >
+                        Feedback Form
+                        <span class="text-danger">*</span>
+                    </label>
+
+                    <select
+                        id="feedback_form"
+                        name="feedback_form"
+                        class="form-select"
+                        required
+                    >
+
+                        <option value="">
+                            ---------
+                        </option>
+
+                        {% for feedback_form in feedback_forms %}
+
+                            <option
+                                value="{{ feedback_form.id }}"
+                            >
+                                {{ feedback_form.title }}
+                                — {{ feedback_form.academic_year }}
+                            </option>
+
+                        {% empty %}
+
+                            <option value="">
+                                No active feedback forms available
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                    <div class="form-text">
+                        Only active feedback forms are shown.
+                    </div>
+
+                </div>
+
+
+                <!-- COURSE -->
+                <div class="mb-4">
+
+                    <label
+                        for="course"
+                        class="form-label fw-semibold"
+                    >
+                        Course
+                        <span class="text-danger">*</span>
+                    </label>
+
+                    <select
+                        id="course"
+                        name="course"
+                        class="form-select"
+                        required
+                    >
+
+                        <option value="">
+                            Select Course
+                        </option>
+
+                        {% for course in courses %}
+
+                            <option
+                                value="{{ course.id }}"
+                            >
+                                {{ course.name }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <!-- SEMESTER -->
+                <div class="mb-4">
+
+                    <label
+                        for="semester"
+                        class="form-label fw-semibold"
+                    >
+                        Semester
+                        <span class="text-danger">*</span>
+                    </label>
+
+                    <select
+                        id="semester"
+                        name="semester"
+                        class="form-select"
+                        required
+                    >
+
+                        <option value="">
+                            Select Semester
+                        </option>
+
+                        <option value="1">
+                            Semester 1
+                        </option>
+
+                        <option value="2">
+                            Semester 2
+                        </option>
+
+                        <option value="3">
+                            Semester 3
+                        </option>
+
+                        <option value="4">
+                            Semester 4
+                        </option>
+
+                        <option value="5">
+                            Semester 5
+                        </option>
+
+                        <option value="6">
+                            Semester 6
+                        </option>
+
+                        <option value="7">
+                            Semester 7
+                        </option>
+
+                        <option value="8">
+                            Semester 8
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- ACADEMIC YEAR -->
+                <div class="mb-4">
+
+                    <label
+                        for="academic_year"
+                        class="form-label fw-semibold"
+                    >
+                        Academic Year
+                        <span class="text-danger">*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="academic_year"
+                        name="academic_year"
+                        class="form-control"
+                        value="2026-2027"
+                        placeholder="e.g. 2026-2027"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- WARNING -->
+                <div class="alert alert-warning">
+
+                    <div class="d-flex align-items-start">
+
+                        <i class="fas fa-exclamation-triangle me-3 mt-1"></i>
+
+                        <div>
+
+                            <strong>
+                                Please note:
+                            </strong>
+
+                            <div class="mt-1">
+                                This operation will create feedback
+                                assignments for all teaching faculty
+                                associated with the selected course and
+                                their subjects for the selected semester.
+                            </div>
+
+                            <div class="mt-1">
+                                Existing identical assignments will be
+                                skipped automatically to prevent duplicates.
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ACTIONS -->
+                <div class="d-flex justify-content-between mt-4">
+
+                    <a
+                        href="{% url 'feedback_assignments' %}"
+                        class="btn btn-outline-secondary"
+                    >
+                        <i class="fas fa-times me-1"></i>
+                        Cancel
+                    </a>
+
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary px-4"
+                        onclick="return confirm(
+                            'Are you sure you want to assign this feedback to all teaching faculty for the selected course and semester?'
+                        );"
+                    >
+                        <i class="fas fa-users-cog me-2"></i>
+                        Assign to All Teaching Faculty
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- WORKFLOW -->
+    <div class="card shadow-sm border-0 mt-4">
+
+        <div class="card-header bg-light">
+
+            <h6 class="mb-0 fw-bold">
+                <i class="fas fa-info-circle text-primary me-2"></i>
+                Assignment Workflow
+            </h6>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row text-center g-3">
+
+                <div class="col-md-3">
+
+                    <div class="border rounded p-3 h-100">
+
+                        <i class="fas fa-file-alt fa-2x text-primary mb-2"></i>
+
+                        <h6 class="fw-bold">
+                            1. Select Form
+                        </h6>
+
+                        <small class="text-muted">
+                            Choose the faculty feedback questionnaire.
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <div class="border rounded p-3 h-100">
+
+                        <i class="fas fa-graduation-cap fa-2x text-success mb-2"></i>
+
+                        <h6 class="fw-bold">
+                            2. Select Course
+                        </h6>
+
+                        <small class="text-muted">
+                            Choose the UG or PG course.
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <div class="border rounded p-3 h-100">
+
+                        <i class="fas fa-layer-group fa-2x text-warning mb-2"></i>
+
+                        <h6 class="fw-bold">
+                            3. Select Semester
+                        </h6>
+
+                        <small class="text-muted">
+                            Select the applicable semester.
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <div class="border rounded p-3 h-100">
+
+                        <i class="fas fa-users fa-2x text-info mb-2"></i>
+
+                        <h6 class="fw-bold">
+                            4. Assign All
+                        </h6>
+
+                        <small class="text-muted">
+                            Assign feedback to all mapped teaching faculty.
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,252 @@
+{% extends "admin_panel/base.html" %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold">
+                <i class="fas fa-link text-primary me-2"></i>
+                Assign Feedback
+            </h2>
+
+            <p class="text-muted mb-0">
+                Assign a feedback questionnaire to a course, subject and faculty
+            </p>
+        </div>
+
+        <a href="{% url 'feedback_assignments' %}"
+           class="btn btn-outline-secondary">
+
+            <i class="fas fa-arrow-left me-1"></i>
+            Back
+
+        </a>
+
+    </div>
+
+
+    {% if messages %}
+        {% for message in messages %}
+
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show">
+
+                {{ message }}
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert">
+                </button>
+
+            </div>
+
+        {% endfor %}
+    {% endif %}
+
+
+    <div class="card shadow border-0">
+
+        <div class="card-header bg-primary text-white">
+
+            <h5 class="mb-0">
+                Feedback Assignment Details
+            </h5>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <form method="POST">
+
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+
+                {% endif %}
+
+
+                <div class="mb-4">
+
+                    <label class="form-label fw-semibold">
+                        Feedback Form
+                        <span class="text-danger">*</span>
+                    </label>
+
+                    <select name="feedback_form"
+                            class="form-select"
+                            required>
+
+                        <option value="">
+                            -- Select Feedback Form --
+                        </option>
+
+                        {% for feedback_form in feedback_forms %}
+
+                            <option value="{{ feedback_form.id }}">
+
+                                {{ feedback_form.title }}
+                                — {{ feedback_form.academic_year }}
+
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            Course
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        {{ form.course }}
+
+                    </div>
+
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            Semester
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        {{ form.semester }}
+
+                    </div>
+
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            Subject
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        {{ form.subject }}
+
+                    </div>
+
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            Faculty
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        {{ form.faculty }}
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-semibold">
+                            Academic Year
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        {{ form.academic_year }}
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-semibold">
+                            Start Date
+                        </label>
+
+                        {{ form.start_date }}
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-semibold">
+                            End Date
+                        </label>
+
+                        {{ form.end_date }}
+
+                    </div>
+
+
+                    <div class="col-md-12">
+
+                        <div class="form-check mt-2">
+
+                            {{ form.is_active }}
+
+                            <label class="form-check-label"
+                                   for="{{ form.is_active.id_for_label }}">
+
+                                Activate this assignment immediately
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <hr class="my-4">
+
+
+                <button type="submit"
+                        class="btn btn-primary">
+
+                    <i class="fas fa-save me-1"></i>
+                    Create Assignment
+
+                </button>
+
+
+                <a href="{% url 'feedback_assignments' %}"
+                   class="btn btn-secondary">
+
+                    Cancel
+
+                </a>
+
+            </form>
+            {% if form.errors %}
+    <div class="alert alert-danger">
+        <h6 class="fw-bold">Please correct the following errors:</h6>
+        {{ form.non_field_errors }}
+
+        {% for field in form %}
+            {% if field.errors %}
+                <div class="mb-2">
+                    <strong>{{ field.label }}:</strong>
+                    {{ field.errors }}
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

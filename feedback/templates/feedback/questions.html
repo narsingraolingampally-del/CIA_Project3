@@ -1,0 +1,318 @@
+{% extends "admin_panel/base.html" %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold">
+                <i class="fas fa-question-circle text-primary me-2"></i>
+                Feedback Questions
+            </h2>
+
+            <p class="text-muted mb-0">
+                {{ feedback_form.title }}
+                — {{ feedback_form.academic_year }}
+            </p>
+        </div>
+
+        <div>
+
+            <a href="{% url 'feedback_forms' %}"
+               class="btn btn-outline-secondary me-2">
+
+                <i class="fas fa-arrow-left me-1"></i>
+                Back
+
+            </a>
+<a href="{% url 'upload_feedback_questions' feedback_form.id %}"
+   class="btn btn-success me-2">
+
+    <i class="fas fa-file-excel me-1"></i>
+    Bulk Upload
+
+</a>
+
+            <a href="{% url 'add_feedback_question' feedback_form.id %}"
+               class="btn btn-primary">
+
+                <i class="fas fa-plus me-1"></i>
+                Add Question
+
+            </a>
+
+        </div>
+
+    </div>
+
+    <!-- MESSAGES -->
+    {% if messages %}
+
+        {% for message in messages %}
+
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show">
+
+                {{ message }}
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert">
+                </button>
+
+            </div>
+
+        {% endfor %}
+
+    {% endif %}
+
+    <!-- QUESTIONS CARD -->
+    <div class="card shadow border-0">
+
+        <div class="card-header bg-primary text-white">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    Questions
+                </h5>
+
+                <span>
+                    {{ questions|length }}
+                    Question{{ questions|length|pluralize }}
+                </span>
+
+            </div>
+
+        </div>
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-dark">
+
+                        <tr>
+                            <th style="width: 70px;">#</th>
+                            <th>Question</th>
+                            <th style="width: 180px;">Type</th>
+                            <th style="width: 120px;">Required</th>
+                            <th style="width: 110px;">Status</th>
+                            <th class="text-center" style="width: 180px;">
+                                Actions
+                            </th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for question in questions %}
+
+                            <tr>
+
+                                <td class="fw-bold">
+                                    {{ question.display_order }}
+                                </td>
+
+                                <td>
+
+                                    <div class="fw-semibold">
+                                        {{ question.question_text }}
+                                    </div>
+
+                                    {% if question.question_type == "choice" %}
+
+                                        <div class="small text-muted mt-2">
+
+                                            {% if question.option1 %}
+                                                <div>
+                                                    <strong>1.</strong>
+                                                    {{ question.option1 }}
+                                                </div>
+                                            {% endif %}
+
+                                            {% if question.option2 %}
+                                                <div>
+                                                    <strong>2.</strong>
+                                                    {{ question.option2 }}
+                                                </div>
+                                            {% endif %}
+
+                                            {% if question.option3 %}
+                                                <div>
+                                                    <strong>3.</strong>
+                                                    {{ question.option3 }}
+                                                </div>
+                                            {% endif %}
+
+                                            {% if question.option4 %}
+                                                <div>
+                                                    <strong>4.</strong>
+                                                    {{ question.option4 }}
+                                                </div>
+                                            {% endif %}
+
+                                        </div>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>
+                                    {{ question.get_question_type_display }}
+                                </td>
+
+                                <td>
+
+                                    {% if question.is_required %}
+
+                                        <span class="badge bg-danger">
+                                            Required
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="badge bg-secondary">
+                                            Optional
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>
+
+                                    {% if question.is_active %}
+
+                                        <span class="badge bg-success">
+                                            Active
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="badge bg-secondary">
+                                            Inactive
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td class="text-center">
+
+                                    <!-- EDIT -->
+                                    <a href="{% url 'edit_feedback_question' question.id %}"
+                                       class="btn btn-sm btn-outline-primary"
+                                       title="Edit">
+
+                                        <i class="fas fa-edit"></i>
+
+                                    </a>
+
+                                    <!-- TOGGLE -->
+                                    <form method="POST"
+                                          action="{% url 'toggle_feedback_question' question.id %}"
+                                          class="d-inline">
+
+                                        {% csrf_token %}
+
+                                        {% if question.is_active %}
+
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-warning"
+                                                    title="Deactivate">
+
+                                                <i class="fas fa-toggle-off"></i>
+
+                                            </button>
+
+                                        {% else %}
+
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-success"
+                                                    title="Activate">
+
+                                                <i class="fas fa-toggle-on"></i>
+
+                                            </button>
+
+                                        {% endif %}
+
+                                    </form>
+
+                                    <!-- DELETE -->
+                                    <form method="POST"
+                                          action="{% url 'delete_feedback_question' question.id %}"
+                                          class="d-inline"
+                                          onsubmit="return confirm('Are you sure you want to delete this question?');">
+
+                                        {% csrf_token %}
+
+                                        <button type="submit"
+                                                class="btn btn-sm btn-outline-danger"
+                                                title="Delete">
+
+                                            <i class="fas fa-trash"></i>
+
+                                        </button>
+
+                                    </form>
+
+                                </td>
+
+                            </tr>
+
+                        {% empty %}
+
+                            <tr>
+
+                                <td colspan="6"
+                                    class="text-center py-5">
+
+                                    <div class="text-muted">
+
+                                        <i class="fas fa-question-circle fa-3x mb-3"></i>
+
+                                        <h5>
+                                            No Questions Added
+                                        </h5>
+
+                                        <p class="mb-3">
+                                            Add questions to this feedback form.
+                                        </p>
+
+                                        <a href="{% url 'add_feedback_question' feedback_form.id %}"
+                                           class="btn btn-primary">
+
+                                            <i class="fas fa-plus me-1"></i>
+                                            Add First Question
+
+                                        </a>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
